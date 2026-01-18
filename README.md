@@ -87,3 +87,4 @@ To use this node, you need a Lemon Squeezy API key:
 ## License
 
 [MIT](LICENSE)
+# n8n-nodes-lemonsqueezy
