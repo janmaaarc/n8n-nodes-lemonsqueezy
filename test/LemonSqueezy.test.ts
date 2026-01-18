@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import * as crypto from 'crypto';
+import { describe, it, expect } from 'vitest';
 import {
   buildFilterParams,
   buildJsonApiBody,
@@ -160,8 +161,6 @@ describe('Helpers', () => {
     it('should return true for valid signature', () => {
       const payload = '{"test":"data"}';
       const secret = 'test-secret';
-      // Pre-computed HMAC-SHA256 signature for this payload and secret
-      const crypto = require('crypto');
       const expectedSignature = crypto
         .createHmac('sha256', secret)
         .update(payload)
@@ -174,10 +173,10 @@ describe('Helpers', () => {
     it('should return false for invalid signature', () => {
       const payload = '{"test":"data"}';
       const secret = 'test-secret';
-      const invalidSignature = 'invalid-signature-that-is-64-chars-long-to-match-hex-length-xx';
+      const invalidSignature = 'invalid-signature';
 
-      // This will throw due to length mismatch in timingSafeEqual, so we catch it
-      expect(() => verifyWebhookSignature(payload, invalidSignature, secret)).toThrow();
+      const result = verifyWebhookSignature(payload, invalidSignature, secret);
+      expect(result).toBe(false);
     });
   });
 });

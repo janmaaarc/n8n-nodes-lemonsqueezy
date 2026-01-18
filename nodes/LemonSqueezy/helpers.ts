@@ -1,3 +1,4 @@
+import * as crypto from 'crypto';
 import type {
   IExecuteFunctions,
   IWebhookFunctions,
@@ -277,8 +278,11 @@ export function verifyWebhookSignature(
   signature: string,
   secret: string,
 ): boolean {
-  const crypto = require('crypto');
   const hmac = crypto.createHmac('sha256', secret);
   const digest = hmac.update(payload).digest('hex');
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
+  try {
+    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
+  } catch {
+    return false;
+  }
 }

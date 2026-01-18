@@ -24,7 +24,7 @@ async function handleCreate(
     const storeId = ctx.getNodeParameter('customerStoreId', itemIndex) as string;
     const name = ctx.getNodeParameter('customerName', itemIndex) as string;
     const email = ctx.getNodeParameter('customerEmail', itemIndex) as string;
-    const additionalFields = ctx.getNodeParameter('additionalFields', itemIndex) as IDataObject;
+    const additionalFields = ctx.getNodeParameter('additionalFields', itemIndex);
 
     const body = buildJsonApiBody(
       'customers',
@@ -192,7 +192,7 @@ async function handleUpdate(
 ): Promise<IDataObject> {
   if (resource === 'subscription') {
     const subscriptionId = ctx.getNodeParameter('subscriptionId', itemIndex) as string;
-    const updateFields = ctx.getNodeParameter('updateFields', itemIndex) as IDataObject;
+    const updateFields = ctx.getNodeParameter('updateFields', itemIndex);
 
     const attributes: IDataObject = {};
 
@@ -224,7 +224,7 @@ async function handleUpdate(
 
   if (resource === 'customer') {
     const customerId = ctx.getNodeParameter('customerId', itemIndex) as string;
-    const updateFields = ctx.getNodeParameter('updateFields', itemIndex) as IDataObject;
+    const updateFields = ctx.getNodeParameter('updateFields', itemIndex);
 
     const attributes: IDataObject = {};
 
@@ -254,7 +254,7 @@ async function handleUpdate(
 
   if (resource === 'licenseKey') {
     const licenseKeyId = ctx.getNodeParameter('licenseKeyId', itemIndex) as string;
-    const updateFields = ctx.getNodeParameter('updateFields', itemIndex) as IDataObject;
+    const updateFields = ctx.getNodeParameter('updateFields', itemIndex);
 
     const attributes: IDataObject = {};
 
@@ -275,7 +275,7 @@ async function handleUpdate(
 
   if (resource === 'webhook') {
     const webhookId = ctx.getNodeParameter('webhookId', itemIndex) as string;
-    const updateFields = ctx.getNodeParameter('updateFields', itemIndex) as IDataObject;
+    const updateFields = ctx.getNodeParameter('updateFields', itemIndex);
 
     const attributes: IDataObject = {};
 
@@ -324,8 +324,8 @@ export class LemonSqueezy implements INodeType {
     const items = this.getInputData();
     const returnData: INodeExecutionData[] = [];
 
-    const resource = this.getNodeParameter('resource', 0) as string;
-    const operation = this.getNodeParameter('operation', 0) as string;
+    const resource = this.getNodeParameter('resource', 0);
+    const operation = this.getNodeParameter('operation', 0);
 
     for (let i = 0; i < items.length; i++) {
       try {
@@ -339,13 +339,13 @@ export class LemonSqueezy implements INodeType {
           responseData = await lemonSqueezyApiRequest.call(this, 'GET', `/${endpoint}/${id}`);
         } else if (operation === 'getAll') {
           const returnAll = this.getNodeParameter('returnAll', i) as boolean;
-          const filters = this.getNodeParameter('filters', i, {}) as IDataObject;
+          const filters = this.getNodeParameter('filters', i, {});
           const qs = buildFilterParams(filters);
 
           if (returnAll) {
             responseData = await lemonSqueezyApiRequestAllItems.call(this, 'GET', `/${endpoint}`, qs);
           } else {
-            const limit = this.getNodeParameter('limit', i) as number;
+            const limit = this.getNodeParameter('limit', i);
             qs['page[size]'] = limit;
             const response = await lemonSqueezyApiRequest.call(this, 'GET', `/${endpoint}`, undefined, qs);
             responseData = (response as unknown as LemonSqueezyResponse).data;

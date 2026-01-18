@@ -104,7 +104,7 @@ export class LemonSqueezyTrigger implements INodeType {
             await lemonSqueezyApiRequest.call(
               this,
               'GET',
-              `/webhooks/${webhookData.webhookId}`,
+              `/webhooks/${String(webhookData.webhookId)}`,
             );
             return true;
           } catch {
@@ -124,7 +124,8 @@ export class LemonSqueezyTrigger implements INodeType {
             { 'filter[store_id]': storeId },
           );
 
-          const webhooks = (response as IDataObject).data as IDataObject[];
+          const responseData = response;
+          const webhooks = responseData.data as IDataObject[] | undefined;
           if (Array.isArray(webhooks)) {
             const existingWebhook = webhooks.find(
               (webhook) =>
@@ -178,7 +179,8 @@ export class LemonSqueezyTrigger implements INodeType {
           body,
         );
 
-        const data = (response as IDataObject).data as IDataObject;
+        const responseData = response;
+        const data = responseData.data as IDataObject | undefined;
         if (data?.id) {
           webhookData.webhookId = data.id;
           return true;
@@ -195,7 +197,7 @@ export class LemonSqueezyTrigger implements INodeType {
             await lemonSqueezyApiRequest.call(
               this,
               'DELETE',
-              `/webhooks/${webhookData.webhookId}`,
+              `/webhooks/${String(webhookData.webhookId)}`,
             );
           } catch {
             // Webhook might already be deleted
@@ -210,13 +212,12 @@ export class LemonSqueezyTrigger implements INodeType {
   };
 
   async webhook(this: IWebhookFunctions): Promise<IWebhookResponseData> {
-    const req = this.getRequestObject();
     const options = this.getNodeParameter('options') as IDataObject;
     const webhookSecret = this.getNodeParameter('webhookSecret') as string;
 
     // Verify signature if enabled
     if (options.verifySignature !== false) {
-      const signature = req.headers['x-signature'] as string;
+      const signature = this.getHeaderData()['x-signature'] as string | undefined;
 
       if (!signature) {
         return {
@@ -227,7 +228,8 @@ export class LemonSqueezyTrigger implements INodeType {
         };
       }
 
-      const rawBody = req.rawBody?.toString() || JSON.stringify(req.body);
+      const bodyData = this.getBodyData();
+      const rawBody = JSON.stringify(bodyData);
       const isValid = verifyWebhookSignature(rawBody, signature, webhookSecret);
 
       if (!isValid) {
@@ -240,12 +242,13 @@ export class LemonSqueezyTrigger implements INodeType {
       }
     }
 
-    const body = req.body as IDataObject;
-    const eventName = (body.meta as IDataObject)?.event_name as string;
+    const body = this.getBodyData();
+    const meta = body.meta as IDataObject | undefined;
+    const eventName = meta?.event_name as string | undefined;
 
     // Check if we should process this event
     const subscribedEvents = this.getNodeParameter('events') as string[];
-    if (!subscribedEvents.includes(eventName)) {
+    if (!eventName || !subscribedEvents.includes(eventName)) {
       // Event not subscribed, acknowledge but don't trigger workflow
       return {
         webhookResponse: {
