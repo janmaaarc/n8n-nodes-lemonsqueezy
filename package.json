@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-lemonsqueezy",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "n8n community node for Lemon Squeezy - digital products and subscriptions platform",
   "keywords": [
     "n8n-community-node-package",
@@ -9,7 +9,9 @@
     "lemon-squeezy",
     "payments",
     "subscriptions",
-    "digital-products"
+    "digital-products",
+    "license-keys",
+    "checkout"
   ],
   "license": "MIT",
   "homepage": "https://github.com/janmaaarc/n8n-nodes-lemonsqueezy",
@@ -25,10 +27,15 @@
   "scripts": {
     "build": "tsc && gulp build:icons",
     "dev": "tsc --watch",
-    "format": "prettier nodes credentials --write",
-    "lint": "eslint nodes credentials package.json",
-    "lintfix": "eslint nodes credentials package.json --fix",
-    "prepublishOnly": "npm run build"
+    "format": "prettier nodes credentials test --write",
+    "format:check": "prettier nodes credentials test --check",
+    "lint": "eslint nodes credentials --ext .ts",
+    "lintfix": "eslint nodes credentials --ext .ts --fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prepublishOnly": "npm run build",
+    "typecheck": "tsc --noEmit"
   },
   "files": [
     "dist"
@@ -39,17 +46,26 @@
       "dist/credentials/LemonSqueezyApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/LemonSqueezy/LemonSqueezy.node.js"
+      "dist/nodes/LemonSqueezy/LemonSqueezy.node.js",
+      "dist/nodes/LemonSqueezy/LemonSqueezyTrigger.node.js"
     ]
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "eslint": "^8.55.0",
     "gulp": "^4.0.2",
     "n8n-workflow": "^1.0.0",
     "prettier": "^3.1.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "vitest": "^1.0.0"
   },
   "peerDependencies": {
     "n8n-workflow": "*"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

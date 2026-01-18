@@ -8,6 +8,7 @@ import type {
 export class LemonSqueezyApi implements ICredentialType {
   name = 'lemonSqueezyApi';
   displayName = 'Lemon Squeezy API';
+  icon = 'file:lemonSqueezy.svg' as const;
   documentationUrl = 'https://docs.lemonsqueezy.com/api';
   properties: INodeProperties[] = [
     {
@@ -17,7 +18,9 @@ export class LemonSqueezyApi implements ICredentialType {
       typeOptions: { password: true },
       default: '',
       required: true,
-      description: 'Your Lemon Squeezy API key. Generate one at Settings → API in your Lemon Squeezy dashboard.',
+      placeholder: 'lsq_xxxxxxxxxxxxxxxxxxxxxxxx',
+      hint: 'Found in Settings → API in your dashboard',
+      description: 'Your Lemon Squeezy API key. <a href="https://app.lemonsqueezy.com/settings/api" target="_blank">Generate one here</a>.',
     },
   ];
 
