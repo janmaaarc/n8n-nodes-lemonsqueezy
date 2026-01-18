@@ -10,11 +10,36 @@ export const webhookOperations: INodeProperties = {
     show: { resource: ['webhook'] },
   },
   options: [
-    { name: 'Create', value: 'create', action: 'Create a webhook', description: 'Create a new webhook' },
-    { name: 'Delete', value: 'delete', action: 'Delete a webhook', description: 'Delete a webhook' },
-    { name: 'Get', value: 'get', action: 'Get a webhook', description: 'Retrieve a single webhook by ID' },
-    { name: 'Get Many', value: 'getAll', action: 'Get many webhooks', description: 'Retrieve multiple webhooks' },
-    { name: 'Update', value: 'update', action: 'Update a webhook', description: 'Update a webhook' },
+    {
+      name: 'Create',
+      value: 'create',
+      action: 'Create a webhook',
+      description: 'Create a new webhook',
+    },
+    {
+      name: 'Delete',
+      value: 'delete',
+      action: 'Delete a webhook',
+      description: 'Delete a webhook',
+    },
+    {
+      name: 'Get',
+      value: 'get',
+      action: 'Get a webhook',
+      description: 'Retrieve a single webhook by ID',
+    },
+    {
+      name: 'Get Many',
+      value: 'getAll',
+      action: 'Get many webhooks',
+      description: 'Retrieve multiple webhooks',
+    },
+    {
+      name: 'Update',
+      value: 'update',
+      action: 'Update a webhook',
+      description: 'Update a webhook',
+    },
   ],
   default: 'getAll',
 };

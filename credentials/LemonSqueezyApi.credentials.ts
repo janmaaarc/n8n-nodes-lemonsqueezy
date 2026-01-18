@@ -20,7 +20,8 @@ export class LemonSqueezyApi implements ICredentialType {
       required: true,
       placeholder: 'lsq_xxxxxxxxxxxxxxxxxxxxxxxx',
       hint: 'Found in Settings → API in your dashboard',
-      description: 'Your Lemon Squeezy API key. <a href="https://app.lemonsqueezy.com/settings/api" target="_blank">Generate one here</a>.',
+      description:
+        'Your Lemon Squeezy API key. <a href="https://app.lemonsqueezy.com/settings/api" target="_blank">Generate one here</a>.',
     },
   ];
 

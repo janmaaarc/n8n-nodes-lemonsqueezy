@@ -102,12 +102,7 @@ describe('Helpers', () => {
     });
 
     it('should include ID when provided', () => {
-      const result = buildJsonApiBody(
-        'customers',
-        { name: 'John' },
-        undefined,
-        '123',
-      );
+      const result = buildJsonApiBody('customers', { name: 'John' }, undefined, '123');
       expect((result.data as Record<string, unknown>).id).toBe('123');
     });
 
@@ -131,17 +126,14 @@ describe('Helpers', () => {
   describe('validateRequiredFields', () => {
     it('should not throw for valid fields', () => {
       expect(() =>
-        validateRequiredFields(
-          { name: 'John', email: 'john@example.com' },
-          ['name', 'email'],
-        ),
+        validateRequiredFields({ name: 'John', email: 'john@example.com' }, ['name', 'email']),
       ).not.toThrow();
     });
 
     it('should throw for missing fields', () => {
-      expect(() =>
-        validateRequiredFields({ name: 'John' }, ['name', 'email']),
-      ).toThrow('Missing required fields: email');
+      expect(() => validateRequiredFields({ name: 'John' }, ['name', 'email'])).toThrow(
+        'Missing required fields: email',
+      );
     });
 
     it('should throw for empty string fields', () => {
@@ -161,10 +153,7 @@ describe('Helpers', () => {
     it('should return true for valid signature', () => {
       const payload = '{"test":"data"}';
       const secret = 'test-secret';
-      const expectedSignature = crypto
-        .createHmac('sha256', secret)
-        .update(payload)
-        .digest('hex');
+      const expectedSignature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
 
       const result = verifyWebhookSignature(payload, expectedSignature, secret);
       expect(result).toBe(true);

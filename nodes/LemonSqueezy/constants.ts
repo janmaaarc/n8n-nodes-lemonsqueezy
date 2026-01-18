@@ -50,21 +50,81 @@ export const RESOURCE_ID_PARAMS: Record<string, string> = {
  * Webhook event types with descriptions
  */
 export const WEBHOOK_EVENTS = [
-  { name: 'Order Created', value: 'order_created', description: 'Triggered when a new order is created' },
-  { name: 'Order Refunded', value: 'order_refunded', description: 'Triggered when an order is refunded' },
-  { name: 'Subscription Created', value: 'subscription_created', description: 'Triggered when a new subscription is created' },
-  { name: 'Subscription Updated', value: 'subscription_updated', description: 'Triggered when a subscription is updated' },
-  { name: 'Subscription Cancelled', value: 'subscription_cancelled', description: 'Triggered when a subscription is cancelled' },
-  { name: 'Subscription Resumed', value: 'subscription_resumed', description: 'Triggered when a subscription is resumed' },
-  { name: 'Subscription Expired', value: 'subscription_expired', description: 'Triggered when a subscription expires' },
-  { name: 'Subscription Paused', value: 'subscription_paused', description: 'Triggered when a subscription is paused' },
-  { name: 'Subscription Unpaused', value: 'subscription_unpaused', description: 'Triggered when a subscription is unpaused' },
-  { name: 'Subscription Payment Success', value: 'subscription_payment_success', description: 'Triggered when a subscription payment succeeds' },
-  { name: 'Subscription Payment Failed', value: 'subscription_payment_failed', description: 'Triggered when a subscription payment fails' },
-  { name: 'Subscription Payment Recovered', value: 'subscription_payment_recovered', description: 'Triggered when a failed payment is recovered' },
-  { name: 'Subscription Payment Refunded', value: 'subscription_payment_refunded', description: 'Triggered when a subscription payment is refunded' },
-  { name: 'License Key Created', value: 'license_key_created', description: 'Triggered when a license key is created' },
-  { name: 'License Key Updated', value: 'license_key_updated', description: 'Triggered when a license key is updated' },
+  {
+    name: 'Order Created',
+    value: 'order_created',
+    description: 'Triggered when a new order is created',
+  },
+  {
+    name: 'Order Refunded',
+    value: 'order_refunded',
+    description: 'Triggered when an order is refunded',
+  },
+  {
+    name: 'Subscription Created',
+    value: 'subscription_created',
+    description: 'Triggered when a new subscription is created',
+  },
+  {
+    name: 'Subscription Updated',
+    value: 'subscription_updated',
+    description: 'Triggered when a subscription is updated',
+  },
+  {
+    name: 'Subscription Cancelled',
+    value: 'subscription_cancelled',
+    description: 'Triggered when a subscription is cancelled',
+  },
+  {
+    name: 'Subscription Resumed',
+    value: 'subscription_resumed',
+    description: 'Triggered when a subscription is resumed',
+  },
+  {
+    name: 'Subscription Expired',
+    value: 'subscription_expired',
+    description: 'Triggered when a subscription expires',
+  },
+  {
+    name: 'Subscription Paused',
+    value: 'subscription_paused',
+    description: 'Triggered when a subscription is paused',
+  },
+  {
+    name: 'Subscription Unpaused',
+    value: 'subscription_unpaused',
+    description: 'Triggered when a subscription is unpaused',
+  },
+  {
+    name: 'Subscription Payment Success',
+    value: 'subscription_payment_success',
+    description: 'Triggered when a subscription payment succeeds',
+  },
+  {
+    name: 'Subscription Payment Failed',
+    value: 'subscription_payment_failed',
+    description: 'Triggered when a subscription payment fails',
+  },
+  {
+    name: 'Subscription Payment Recovered',
+    value: 'subscription_payment_recovered',
+    description: 'Triggered when a failed payment is recovered',
+  },
+  {
+    name: 'Subscription Payment Refunded',
+    value: 'subscription_payment_refunded',
+    description: 'Triggered when a subscription payment is refunded',
+  },
+  {
+    name: 'License Key Created',
+    value: 'license_key_created',
+    description: 'Triggered when a license key is created',
+  },
+  {
+    name: 'License Key Updated',
+    value: 'license_key_updated',
+    description: 'Triggered when a license key is updated',
+  },
 ];
 
 /**
@@ -125,7 +185,11 @@ export const DISCOUNT_AMOUNT_TYPES = [
  */
 export const DISCOUNT_DURATION_TYPES = [
   { name: 'Once', value: 'once', description: 'Applied only to the first payment' },
-  { name: 'Repeating', value: 'repeating', description: 'Applied for a specified number of months' },
+  {
+    name: 'Repeating',
+    value: 'repeating',
+    description: 'Applied for a specified number of months',
+  },
   { name: 'Forever', value: 'forever', description: 'Applied to all payments' },
 ];
 

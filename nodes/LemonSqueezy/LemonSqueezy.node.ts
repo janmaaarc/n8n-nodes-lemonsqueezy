@@ -41,7 +41,11 @@ async function handleCreate(
     const code = ctx.getNodeParameter('discountCode', itemIndex) as string;
     const amount = ctx.getNodeParameter('discountAmount', itemIndex) as number;
     const amountType = ctx.getNodeParameter('discountAmountType', itemIndex) as string;
-    const additionalOptions = ctx.getNodeParameter('additionalOptions', itemIndex, {}) as IDataObject;
+    const additionalOptions = ctx.getNodeParameter(
+      'additionalOptions',
+      itemIndex,
+      {},
+    ) as IDataObject;
 
     const attributes: IDataObject = {
       name,
@@ -70,7 +74,9 @@ async function handleCreate(
       attributes.test_mode = additionalOptions.testMode;
     }
 
-    const body = buildJsonApiBody('discounts', attributes, { store: { type: 'stores', id: storeId } });
+    const body = buildJsonApiBody('discounts', attributes, {
+      store: { type: 'stores', id: storeId },
+    });
 
     return await lemonSqueezyApiRequest.call(ctx, 'POST', '/discounts', body);
   }
@@ -78,7 +84,11 @@ async function handleCreate(
   if (resource === 'checkout') {
     const storeId = ctx.getNodeParameter('checkoutStoreId', itemIndex) as string;
     const variantId = ctx.getNodeParameter('checkoutVariantId', itemIndex) as string;
-    const additionalOptions = ctx.getNodeParameter('additionalOptions', itemIndex, {}) as IDataObject;
+    const additionalOptions = ctx.getNodeParameter(
+      'additionalOptions',
+      itemIndex,
+      {},
+    ) as IDataObject;
     const checkoutOptions = ctx.getNodeParameter('checkoutOptions', itemIndex, {}) as IDataObject;
 
     const attributes: IDataObject = {};
@@ -169,7 +179,11 @@ async function handleCreate(
     const url = ctx.getNodeParameter('webhookUrl', itemIndex) as string;
     const events = ctx.getNodeParameter('webhookEvents', itemIndex) as string[];
     const secret = ctx.getNodeParameter('webhookSecret', itemIndex) as string;
-    const additionalOptions = ctx.getNodeParameter('additionalOptions', itemIndex, {}) as IDataObject;
+    const additionalOptions = ctx.getNodeParameter(
+      'additionalOptions',
+      itemIndex,
+      {},
+    ) as IDataObject;
 
     const attributes: IDataObject = { url, events, secret };
 
@@ -177,7 +191,9 @@ async function handleCreate(
       attributes.test_mode = additionalOptions.testMode;
     }
 
-    const body = buildJsonApiBody('webhooks', attributes, { store: { type: 'stores', id: storeId } });
+    const body = buildJsonApiBody('webhooks', attributes, {
+      store: { type: 'stores', id: storeId },
+    });
 
     return await lemonSqueezyApiRequest.call(ctx, 'POST', '/webhooks', body);
   }
@@ -219,7 +235,12 @@ async function handleUpdate(
 
     const body = buildJsonApiBody('subscriptions', attributes, undefined, subscriptionId);
 
-    return await lemonSqueezyApiRequest.call(ctx, 'PATCH', `/subscriptions/${subscriptionId}`, body);
+    return await lemonSqueezyApiRequest.call(
+      ctx,
+      'PATCH',
+      `/subscriptions/${subscriptionId}`,
+      body,
+    );
   }
 
   if (resource === 'customer') {
@@ -343,11 +364,22 @@ export class LemonSqueezy implements INodeType {
           const qs = buildFilterParams(filters);
 
           if (returnAll) {
-            responseData = await lemonSqueezyApiRequestAllItems.call(this, 'GET', `/${endpoint}`, qs);
+            responseData = await lemonSqueezyApiRequestAllItems.call(
+              this,
+              'GET',
+              `/${endpoint}`,
+              qs,
+            );
           } else {
             const limit = this.getNodeParameter('limit', i);
             qs['page[size]'] = limit;
-            const response = await lemonSqueezyApiRequest.call(this, 'GET', `/${endpoint}`, undefined, qs);
+            const response = await lemonSqueezyApiRequest.call(
+              this,
+              'GET',
+              `/${endpoint}`,
+              undefined,
+              qs,
+            );
             responseData = (response as unknown as LemonSqueezyResponse).data;
           }
         } else if (operation === 'create') {
@@ -360,26 +392,52 @@ export class LemonSqueezy implements INodeType {
           responseData = await lemonSqueezyApiRequest.call(this, 'DELETE', `/${endpoint}/${id}`);
         } else if (operation === 'cancel' && resource === 'subscription') {
           const subscriptionId = this.getNodeParameter('subscriptionId', i) as string;
-          responseData = await lemonSqueezyApiRequest.call(this, 'DELETE', `/subscriptions/${subscriptionId}`);
+          responseData = await lemonSqueezyApiRequest.call(
+            this,
+            'DELETE',
+            `/subscriptions/${subscriptionId}`,
+          );
         } else if (operation === 'resume' && resource === 'subscription') {
           const subscriptionId = this.getNodeParameter('subscriptionId', i) as string;
-          const body = buildJsonApiBody('subscriptions', { pause: null }, undefined, subscriptionId);
-          responseData = await lemonSqueezyApiRequest.call(this, 'PATCH', `/subscriptions/${subscriptionId}`, body);
+          const body = buildJsonApiBody(
+            'subscriptions',
+            { pause: null },
+            undefined,
+            subscriptionId,
+          );
+          responseData = await lemonSqueezyApiRequest.call(
+            this,
+            'PATCH',
+            `/subscriptions/${subscriptionId}`,
+            body,
+          );
         } else if (operation === 'refund' && resource === 'order') {
           const orderId = this.getNodeParameter('orderId', i) as string;
-          responseData = await lemonSqueezyApiRequest.call(this, 'POST', `/orders/${orderId}/refund`);
+          responseData = await lemonSqueezyApiRequest.call(
+            this,
+            'POST',
+            `/orders/${orderId}/refund`,
+          );
         } else if (resource === 'licenseKey') {
           if (operation === 'validate') {
             const licenseKey = this.getNodeParameter('licenseKey', i) as string;
-            responseData = await lemonSqueezyApiRequest.call(this, 'POST', '/licenses/validate', { license_key: licenseKey });
+            responseData = await lemonSqueezyApiRequest.call(this, 'POST', '/licenses/validate', {
+              license_key: licenseKey,
+            });
           } else if (operation === 'activate') {
             const licenseKey = this.getNodeParameter('licenseKey', i) as string;
             const instanceName = this.getNodeParameter('instanceName', i) as string;
-            responseData = await lemonSqueezyApiRequest.call(this, 'POST', '/licenses/activate', { license_key: licenseKey, instance_name: instanceName });
+            responseData = await lemonSqueezyApiRequest.call(this, 'POST', '/licenses/activate', {
+              license_key: licenseKey,
+              instance_name: instanceName,
+            });
           } else if (operation === 'deactivate') {
             const licenseKey = this.getNodeParameter('licenseKey', i) as string;
             const instanceId = this.getNodeParameter('instanceId', i) as string;
-            responseData = await lemonSqueezyApiRequest.call(this, 'POST', '/licenses/deactivate', { license_key: licenseKey, instance_id: instanceId });
+            responseData = await lemonSqueezyApiRequest.call(this, 'POST', '/licenses/deactivate', {
+              license_key: licenseKey,
+              instance_id: instanceId,
+            });
           }
         }
 

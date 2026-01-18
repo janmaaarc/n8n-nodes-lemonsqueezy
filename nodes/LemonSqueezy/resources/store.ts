@@ -9,8 +9,18 @@ export const storeOperations: INodeProperties = {
     show: { resource: ['store'] },
   },
   options: [
-    { name: 'Get', value: 'get', action: 'Get a store', description: 'Retrieve a single store by ID' },
-    { name: 'Get Many', value: 'getAll', action: 'Get many stores', description: 'Retrieve all stores' },
+    {
+      name: 'Get',
+      value: 'get',
+      action: 'Get a store',
+      description: 'Retrieve a single store by ID',
+    },
+    {
+      name: 'Get Many',
+      value: 'getAll',
+      action: 'Get many stores',
+      description: 'Retrieve all stores',
+    },
   ],
   default: 'getAll',
 };

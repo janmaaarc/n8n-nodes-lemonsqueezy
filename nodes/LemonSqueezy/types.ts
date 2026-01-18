@@ -137,7 +137,13 @@ export interface CustomerAttributes extends BaseAttributes {
   store_id: number;
   name: string;
   email: string;
-  status: 'subscribed' | 'unsubscribed' | 'archived' | 'requires_verification' | 'invalid_email' | 'bounced';
+  status:
+    | 'subscribed'
+    | 'unsubscribed'
+    | 'archived'
+    | 'requires_verification'
+    | 'invalid_email'
+    | 'bounced';
   status_formatted: string;
   city: string | null;
   region: string | null;
@@ -354,7 +360,10 @@ export type LicenseKey = JsonApiResource<'license-keys', LicenseKeyAttributes>;
 export type Discount = JsonApiResource<'discounts', DiscountAttributes>;
 export type Checkout = JsonApiResource<'checkouts', CheckoutAttributes>;
 export type Webhook = JsonApiResource<'webhooks', WebhookAttributes>;
-export type LicenseKeyInstance = JsonApiResource<'license-key-instances', LicenseKeyInstanceAttributes>;
+export type LicenseKeyInstance = JsonApiResource<
+  'license-key-instances',
+  LicenseKeyInstanceAttributes
+>;
 
 /**
  * Webhook event types

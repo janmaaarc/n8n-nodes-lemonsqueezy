@@ -116,20 +116,15 @@ export class LemonSqueezyTrigger implements INodeType {
 
         // Check if a webhook with our URL already exists
         try {
-          const response = await lemonSqueezyApiRequest.call(
-            this,
-            'GET',
-            '/webhooks',
-            undefined,
-            { 'filter[store_id]': storeId },
-          );
+          const response = await lemonSqueezyApiRequest.call(this, 'GET', '/webhooks', undefined, {
+            'filter[store_id]': storeId,
+          });
 
           const responseData = response;
           const webhooks = responseData.data as IDataObject[] | undefined;
           if (Array.isArray(webhooks)) {
             const existingWebhook = webhooks.find(
-              (webhook) =>
-                (webhook.attributes as IDataObject)?.url === webhookUrl,
+              (webhook) => (webhook.attributes as IDataObject)?.url === webhookUrl,
             );
 
             if (existingWebhook) {
@@ -172,12 +167,7 @@ export class LemonSqueezyTrigger implements INodeType {
           },
         };
 
-        const response = await lemonSqueezyApiRequest.call(
-          this,
-          'POST',
-          '/webhooks',
-          body,
-        );
+        const response = await lemonSqueezyApiRequest.call(this, 'POST', '/webhooks', body);
 
         const responseData = response;
         const data = responseData.data as IDataObject | undefined;

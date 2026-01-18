@@ -10,9 +10,24 @@ export const orderOperations: INodeProperties = {
     show: { resource: ['order'] },
   },
   options: [
-    { name: 'Get', value: 'get', action: 'Get an order', description: 'Retrieve a single order by ID' },
-    { name: 'Get Many', value: 'getAll', action: 'Get many orders', description: 'Retrieve multiple orders' },
-    { name: 'Refund', value: 'refund', action: 'Refund an order', description: 'Issue a refund for an order' },
+    {
+      name: 'Get',
+      value: 'get',
+      action: 'Get an order',
+      description: 'Retrieve a single order by ID',
+    },
+    {
+      name: 'Get Many',
+      value: 'getAll',
+      action: 'Get many orders',
+      description: 'Retrieve multiple orders',
+    },
+    {
+      name: 'Refund',
+      value: 'refund',
+      action: 'Refund an order',
+      description: 'Issue a refund for an order',
+    },
   ],
   default: 'getAll',
 };

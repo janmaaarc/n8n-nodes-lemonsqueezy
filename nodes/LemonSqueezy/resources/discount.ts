@@ -10,10 +10,30 @@ export const discountOperations: INodeProperties = {
     show: { resource: ['discount'] },
   },
   options: [
-    { name: 'Create', value: 'create', action: 'Create a discount', description: 'Create a new discount code' },
-    { name: 'Delete', value: 'delete', action: 'Delete a discount', description: 'Delete a discount code' },
-    { name: 'Get', value: 'get', action: 'Get a discount', description: 'Retrieve a single discount by ID' },
-    { name: 'Get Many', value: 'getAll', action: 'Get many discounts', description: 'Retrieve multiple discounts' },
+    {
+      name: 'Create',
+      value: 'create',
+      action: 'Create a discount',
+      description: 'Create a new discount code',
+    },
+    {
+      name: 'Delete',
+      value: 'delete',
+      action: 'Delete a discount',
+      description: 'Delete a discount code',
+    },
+    {
+      name: 'Get',
+      value: 'get',
+      action: 'Get a discount',
+      description: 'Retrieve a single discount by ID',
+    },
+    {
+      name: 'Get Many',
+      value: 'getAll',
+      action: 'Get many discounts',
+      description: 'Retrieve multiple discounts',
+    },
   ],
   default: 'getAll',
 };

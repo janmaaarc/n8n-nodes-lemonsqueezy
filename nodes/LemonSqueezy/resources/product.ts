@@ -10,8 +10,18 @@ export const productOperations: INodeProperties = {
     show: { resource: ['product'] },
   },
   options: [
-    { name: 'Get', value: 'get', action: 'Get a product', description: 'Retrieve a single product by ID' },
-    { name: 'Get Many', value: 'getAll', action: 'Get many products', description: 'Retrieve multiple products' },
+    {
+      name: 'Get',
+      value: 'get',
+      action: 'Get a product',
+      description: 'Retrieve a single product by ID',
+    },
+    {
+      name: 'Get Many',
+      value: 'getAll',
+      action: 'Get many products',
+      description: 'Retrieve multiple products',
+    },
   ],
   default: 'getAll',
 };

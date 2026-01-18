@@ -10,11 +10,36 @@ export const customerOperations: INodeProperties = {
     show: { resource: ['customer'] },
   },
   options: [
-    { name: 'Create', value: 'create', action: 'Create a customer', description: 'Create a new customer' },
-    { name: 'Delete', value: 'delete', action: 'Delete a customer', description: 'Archive a customer' },
-    { name: 'Get', value: 'get', action: 'Get a customer', description: 'Retrieve a single customer by ID' },
-    { name: 'Get Many', value: 'getAll', action: 'Get many customers', description: 'Retrieve multiple customers' },
-    { name: 'Update', value: 'update', action: 'Update a customer', description: 'Update a customer' },
+    {
+      name: 'Create',
+      value: 'create',
+      action: 'Create a customer',
+      description: 'Create a new customer',
+    },
+    {
+      name: 'Delete',
+      value: 'delete',
+      action: 'Delete a customer',
+      description: 'Archive a customer',
+    },
+    {
+      name: 'Get',
+      value: 'get',
+      action: 'Get a customer',
+      description: 'Retrieve a single customer by ID',
+    },
+    {
+      name: 'Get Many',
+      value: 'getAll',
+      action: 'Get many customers',
+      description: 'Retrieve multiple customers',
+    },
+    {
+      name: 'Update',
+      value: 'update',
+      action: 'Update a customer',
+      description: 'Update a customer',
+    },
   ],
   default: 'getAll',
 };

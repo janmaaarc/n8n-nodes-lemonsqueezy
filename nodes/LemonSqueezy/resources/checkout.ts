@@ -9,9 +9,24 @@ export const checkoutOperations: INodeProperties = {
     show: { resource: ['checkout'] },
   },
   options: [
-    { name: 'Create', value: 'create', action: 'Create a checkout', description: 'Create a new checkout link' },
-    { name: 'Get', value: 'get', action: 'Get a checkout', description: 'Retrieve a single checkout by ID' },
-    { name: 'Get Many', value: 'getAll', action: 'Get many checkouts', description: 'Retrieve multiple checkouts' },
+    {
+      name: 'Create',
+      value: 'create',
+      action: 'Create a checkout',
+      description: 'Create a new checkout link',
+    },
+    {
+      name: 'Get',
+      value: 'get',
+      action: 'Get a checkout',
+      description: 'Retrieve a single checkout by ID',
+    },
+    {
+      name: 'Get Many',
+      value: 'getAll',
+      action: 'Get many checkouts',
+      description: 'Retrieve multiple checkouts',
+    },
   ],
   default: 'create',
 };

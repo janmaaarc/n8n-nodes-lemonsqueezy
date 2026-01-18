@@ -8,7 +8,13 @@ import type {
   JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
-import { API_BASE_URL, DEFAULT_PAGE_SIZE, MAX_RETRIES, RETRY_DELAY_MS, RATE_LIMIT_DELAY_MS } from './constants';
+import {
+  API_BASE_URL,
+  DEFAULT_PAGE_SIZE,
+  MAX_RETRIES,
+  RETRY_DELAY_MS,
+  RATE_LIMIT_DELAY_MS,
+} from './constants';
 import type { LemonSqueezyResponse } from './types';
 
 /**
@@ -77,11 +83,11 @@ export async function lemonSqueezyApiRequest(
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
-      return await this.helpers.requestWithAuthentication.call(
+      return (await this.helpers.requestWithAuthentication.call(
         this,
         'lemonSqueezyApi',
         options,
-      ) as IDataObject;
+      )) as IDataObject;
     } catch (error) {
       lastError = error;
 
@@ -140,11 +146,11 @@ export async function lemonSqueezyApiRequestAllItems(
     let responseData: LemonSqueezyResponse;
 
     try {
-      responseData = await this.helpers.requestWithAuthentication.call(
+      responseData = (await this.helpers.requestWithAuthentication.call(
         this,
         'lemonSqueezyApi',
         options,
-      ) as LemonSqueezyResponse;
+      )) as LemonSqueezyResponse;
     } catch (error) {
       if (isRateLimitError(error)) {
         await sleep(RATE_LIMIT_DELAY_MS);
@@ -218,9 +224,7 @@ export function validateRequiredFields(
 /**
  * Build filter query string parameters
  */
-export function buildFilterParams(
-  filters: IDataObject,
-): Record<string, string | number> {
+export function buildFilterParams(filters: IDataObject): Record<string, string | number> {
   const qs: Record<string, string | number> = {};
 
   for (const [key, value] of Object.entries(filters)) {

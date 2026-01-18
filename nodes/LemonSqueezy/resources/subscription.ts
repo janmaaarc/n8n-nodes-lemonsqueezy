@@ -10,11 +10,36 @@ export const subscriptionOperations: INodeProperties = {
     show: { resource: ['subscription'] },
   },
   options: [
-    { name: 'Cancel', value: 'cancel', action: 'Cancel a subscription', description: 'Cancel a subscription' },
-    { name: 'Get', value: 'get', action: 'Get a subscription', description: 'Retrieve a single subscription by ID' },
-    { name: 'Get Many', value: 'getAll', action: 'Get many subscriptions', description: 'Retrieve multiple subscriptions' },
-    { name: 'Resume', value: 'resume', action: 'Resume a subscription', description: 'Resume a paused subscription' },
-    { name: 'Update', value: 'update', action: 'Update a subscription', description: 'Update a subscription' },
+    {
+      name: 'Cancel',
+      value: 'cancel',
+      action: 'Cancel a subscription',
+      description: 'Cancel a subscription',
+    },
+    {
+      name: 'Get',
+      value: 'get',
+      action: 'Get a subscription',
+      description: 'Retrieve a single subscription by ID',
+    },
+    {
+      name: 'Get Many',
+      value: 'getAll',
+      action: 'Get many subscriptions',
+      description: 'Retrieve multiple subscriptions',
+    },
+    {
+      name: 'Resume',
+      value: 'resume',
+      action: 'Resume a subscription',
+      description: 'Resume a paused subscription',
+    },
+    {
+      name: 'Update',
+      value: 'update',
+      action: 'Update a subscription',
+      description: 'Update a subscription',
+    },
   ],
   default: 'getAll',
 };
@@ -142,7 +167,8 @@ export const subscriptionFields: INodeProperties[] = [
         name: 'cancelled',
         type: 'boolean',
         default: false,
-        description: 'Whether the subscription should be cancelled at the end of the billing period',
+        description:
+          'Whether the subscription should be cancelled at the end of the billing period',
       },
       {
         displayName: 'Billing Anchor',

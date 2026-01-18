@@ -9,8 +9,18 @@ export const variantOperations: INodeProperties = {
     show: { resource: ['variant'] },
   },
   options: [
-    { name: 'Get', value: 'get', action: 'Get a variant', description: 'Retrieve a single variant by ID' },
-    { name: 'Get Many', value: 'getAll', action: 'Get many variants', description: 'Retrieve multiple variants' },
+    {
+      name: 'Get',
+      value: 'get',
+      action: 'Get a variant',
+      description: 'Retrieve a single variant by ID',
+    },
+    {
+      name: 'Get Many',
+      value: 'getAll',
+      action: 'Get many variants',
+      description: 'Retrieve multiple variants',
+    },
   ],
   default: 'getAll',
 };

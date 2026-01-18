@@ -10,12 +10,42 @@ export const licenseKeyOperations: INodeProperties = {
     show: { resource: ['licenseKey'] },
   },
   options: [
-    { name: 'Activate', value: 'activate', action: 'Activate a license key', description: 'Activate a license key instance' },
-    { name: 'Deactivate', value: 'deactivate', action: 'Deactivate a license key', description: 'Deactivate a license key instance' },
-    { name: 'Get', value: 'get', action: 'Get a license key', description: 'Retrieve a single license key by ID' },
-    { name: 'Get Many', value: 'getAll', action: 'Get many license keys', description: 'Retrieve multiple license keys' },
-    { name: 'Update', value: 'update', action: 'Update a license key', description: 'Update a license key' },
-    { name: 'Validate', value: 'validate', action: 'Validate a license key', description: 'Validate a license key' },
+    {
+      name: 'Activate',
+      value: 'activate',
+      action: 'Activate a license key',
+      description: 'Activate a license key instance',
+    },
+    {
+      name: 'Deactivate',
+      value: 'deactivate',
+      action: 'Deactivate a license key',
+      description: 'Deactivate a license key instance',
+    },
+    {
+      name: 'Get',
+      value: 'get',
+      action: 'Get a license key',
+      description: 'Retrieve a single license key by ID',
+    },
+    {
+      name: 'Get Many',
+      value: 'getAll',
+      action: 'Get many license keys',
+      description: 'Retrieve multiple license keys',
+    },
+    {
+      name: 'Update',
+      value: 'update',
+      action: 'Update a license key',
+      description: 'Update a license key',
+    },
+    {
+      name: 'Validate',
+      value: 'validate',
+      action: 'Validate a license key',
+      description: 'Validate a license key',
+    },
   ],
   default: 'getAll',
 };
@@ -85,7 +115,8 @@ export const licenseKeyFields: INodeProperties[] = [
         name: 'activationLimit',
         type: 'number',
         default: 0,
-        description: 'The maximum number of instances this license key can be activated on (0 for unlimited)',
+        description:
+          'The maximum number of instances this license key can be activated on (0 for unlimited)',
         typeOptions: { minValue: 0 },
       },
       {
