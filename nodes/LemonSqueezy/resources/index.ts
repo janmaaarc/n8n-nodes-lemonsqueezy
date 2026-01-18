@@ -1,14 +1,19 @@
 import type { INodeProperties } from 'n8n-workflow';
 import { productOperations, productFields } from './product';
 import { orderOperations, orderFields } from './order';
+import { orderItemOperations, orderItemFields } from './orderItem';
 import { subscriptionOperations, subscriptionFields } from './subscription';
+import { subscriptionInvoiceOperations, subscriptionInvoiceFields } from './subscriptionInvoice';
 import { customerOperations, customerFields } from './customer';
 import { licenseKeyOperations, licenseKeyFields } from './licenseKey';
+import { licenseKeyInstanceOperations, licenseKeyInstanceFields } from './licenseKeyInstance';
 import { discountOperations, discountFields } from './discount';
+import { discountRedemptionOperations, discountRedemptionFields } from './discountRedemption';
 import { storeOperations, storeFields } from './store';
 import { variantOperations, variantFields } from './variant';
 import { checkoutOperations, checkoutFields } from './checkout';
 import { webhookOperations, webhookFields } from './webhook';
+import { usageRecordOperations, usageRecordFields } from './usageRecord';
 
 export const resourceProperty: INodeProperties = {
   displayName: 'Resource',
@@ -19,11 +24,16 @@ export const resourceProperty: INodeProperties = {
     { name: 'Checkout', value: 'checkout' },
     { name: 'Customer', value: 'customer' },
     { name: 'Discount', value: 'discount' },
+    { name: 'Discount Redemption', value: 'discountRedemption' },
     { name: 'License Key', value: 'licenseKey' },
+    { name: 'License Key Instance', value: 'licenseKeyInstance' },
     { name: 'Order', value: 'order' },
+    { name: 'Order Item', value: 'orderItem' },
     { name: 'Product', value: 'product' },
     { name: 'Store', value: 'store' },
     { name: 'Subscription', value: 'subscription' },
+    { name: 'Subscription Invoice', value: 'subscriptionInvoice' },
+    { name: 'Usage Record', value: 'usageRecord' },
     { name: 'Variant', value: 'variant' },
     { name: 'Webhook', value: 'webhook' },
   ],
@@ -33,27 +43,37 @@ export const resourceProperty: INodeProperties = {
 export const allOperations: INodeProperties[] = [
   productOperations,
   orderOperations,
+  ...orderItemOperations,
   subscriptionOperations,
+  ...subscriptionInvoiceOperations,
   customerOperations,
   licenseKeyOperations,
+  ...licenseKeyInstanceOperations,
   discountOperations,
+  ...discountRedemptionOperations,
   storeOperations,
   variantOperations,
   checkoutOperations,
   webhookOperations,
+  ...usageRecordOperations,
 ];
 
 export const allFields: INodeProperties[] = [
   ...productFields,
   ...orderFields,
+  ...orderItemFields,
   ...subscriptionFields,
+  ...subscriptionInvoiceFields,
   ...customerFields,
   ...licenseKeyFields,
+  ...licenseKeyInstanceFields,
   ...discountFields,
+  ...discountRedemptionFields,
   ...storeFields,
   ...variantFields,
   ...checkoutFields,
   ...webhookFields,
+  ...usageRecordFields,
 ];
 
 export {
@@ -61,14 +81,22 @@ export {
   productFields,
   orderOperations,
   orderFields,
+  orderItemOperations,
+  orderItemFields,
   subscriptionOperations,
   subscriptionFields,
+  subscriptionInvoiceOperations,
+  subscriptionInvoiceFields,
   customerOperations,
   customerFields,
   licenseKeyOperations,
   licenseKeyFields,
+  licenseKeyInstanceOperations,
+  licenseKeyInstanceFields,
   discountOperations,
   discountFields,
+  discountRedemptionOperations,
+  discountRedemptionFields,
   storeOperations,
   storeFields,
   variantOperations,
@@ -77,4 +105,6 @@ export {
   checkoutFields,
   webhookOperations,
   webhookFields,
+  usageRecordOperations,
+  usageRecordFields,
 };

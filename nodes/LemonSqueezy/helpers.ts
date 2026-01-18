@@ -17,6 +17,100 @@ import {
 } from './constants';
 import type { LemonSqueezyResponse } from './types';
 
+// ============================================================================
+// Validation Helpers
+// ============================================================================
+
+/**
+ * Validate email format
+ */
+export function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+/**
+ * Validate URL format
+ */
+export function isValidUrl(url: string): boolean {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Validate ISO 8601 date format
+ */
+export function isValidIsoDate(dateString: string): boolean {
+  const date = new Date(dateString);
+  return !isNaN(date.getTime()) && dateString.includes('-');
+}
+
+/**
+ * Validate that a value is a positive integer
+ */
+export function isPositiveInteger(value: unknown): boolean {
+  return typeof value === 'number' && Number.isInteger(value) && value > 0;
+}
+
+/**
+ * Validate field with specific type and throw descriptive error
+ */
+export function validateField(
+  fieldName: string,
+  value: unknown,
+  validationType: 'email' | 'url' | 'date' | 'positiveInteger' | 'required',
+): void {
+  if (validationType === 'required') {
+    if (value === undefined || value === null || value === '') {
+      throw new Error(`${fieldName} is required`);
+    }
+    return;
+  }
+
+  // Skip validation if value is empty (use 'required' for mandatory fields)
+  if (value === undefined || value === null || value === '') {
+    return;
+  }
+
+  switch (validationType) {
+    case 'email':
+      if (typeof value !== 'string' || !isValidEmail(value)) {
+        throw new Error(`${fieldName} must be a valid email address`);
+      }
+      break;
+    case 'url':
+      if (typeof value !== 'string' || !isValidUrl(value)) {
+        throw new Error(`${fieldName} must be a valid URL`);
+      }
+      break;
+    case 'date':
+      if (typeof value !== 'string' || !isValidIsoDate(value)) {
+        throw new Error(`${fieldName} must be a valid ISO 8601 date`);
+      }
+      break;
+    case 'positiveInteger':
+      if (!isPositiveInteger(value)) {
+        throw new Error(`${fieldName} must be a positive integer`);
+      }
+      break;
+  }
+}
+
+/**
+ * Safely parse JSON with error handling
+ */
+export function safeJsonParse<T = unknown>(jsonString: string, fieldName: string): T {
+  try {
+    return JSON.parse(jsonString) as T;
+  } catch {
+    throw new Error(`${fieldName} contains invalid JSON`);
+  }
+}
+
 /**
  * Sleep for a specified number of milliseconds
  */
@@ -169,28 +263,65 @@ export async function lemonSqueezyApiRequestAllItems(
 }
 
 /**
- * Extract error message from error object
+ * Lemon Squeezy API error codes and their meanings
+ */
+const ERROR_MESSAGES: Record<number, string> = {
+  400: 'Bad Request: The request was invalid or malformed',
+  401: 'Unauthorized: Invalid or missing API key',
+  403: 'Forbidden: You do not have permission to access this resource',
+  404: 'Not Found: The requested resource does not exist',
+  409: 'Conflict: The resource already exists or there is a conflict',
+  422: 'Unprocessable Entity: The request data is invalid',
+  429: 'Rate Limited: Too many requests. Please wait before retrying',
+  500: 'Internal Server Error: Something went wrong on the server',
+  502: 'Bad Gateway: The server is temporarily unavailable',
+  503: 'Service Unavailable: The API is temporarily unavailable',
+};
+
+/**
+ * Extract detailed error message from error object
  */
 function getErrorMessage(error: unknown): string {
   if (error && typeof error === 'object') {
     const err = error as {
       message?: string;
+      statusCode?: number;
       response?: {
+        statusCode?: number;
         body?: {
-          errors?: Array<{ detail?: string; title?: string }>;
+          errors?: Array<{
+            detail?: string;
+            title?: string;
+            status?: string;
+            source?: { pointer?: string };
+          }>;
           message?: string;
         };
       };
     };
 
+    const statusCode = err.statusCode || err.response?.statusCode;
+
     // Check for JSON:API error format
-    if (err.response?.body?.errors?.[0]) {
-      const apiError = err.response.body.errors[0];
-      return apiError.detail || apiError.title || 'Unknown API error';
+    if (err.response?.body?.errors && err.response.body.errors.length > 0) {
+      const apiErrors = err.response.body.errors;
+      const errorMessages = apiErrors.map((e) => {
+        let msg = e.detail || e.title || 'Unknown error';
+        if (e.source?.pointer) {
+          msg += ` (field: ${e.source.pointer.replace('/data/attributes/', '')})`;
+        }
+        return msg;
+      });
+      return errorMessages.join('; ');
     }
 
     if (err.response?.body?.message) {
       return err.response.body.message;
+    }
+
+    // Use status code mapping
+    if (statusCode && ERROR_MESSAGES[statusCode]) {
+      return ERROR_MESSAGES[statusCode];
     }
 
     if (err.message) {
@@ -289,4 +420,87 @@ export function verifyWebhookSignature(
   } catch {
     return false;
   }
+}
+
+// ============================================================================
+// Advanced Query Helpers
+// ============================================================================
+
+/**
+ * Build query params with relationship expansion (include)
+ */
+export function buildIncludeParams(includes: string[]): Record<string, string> {
+  if (includes.length === 0) {
+    return {};
+  }
+  return { include: includes.join(',') };
+}
+
+/**
+ * Build advanced filter params with date range support
+ */
+export function buildAdvancedFilterParams(
+  filters: IDataObject,
+  options?: {
+    dateFields?: string[];
+    sortField?: string;
+    sortDirection?: 'asc' | 'desc';
+  },
+): Record<string, string | number> {
+  const qs: Record<string, string | number> = {};
+
+  for (const [key, value] of Object.entries(filters)) {
+    if (value === undefined || value === null || value === '') {
+      continue;
+    }
+
+    // Convert camelCase to snake_case for API
+    const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+
+    // Handle date range filters
+    if (options?.dateFields?.includes(key)) {
+      if (typeof value === 'object' && value !== null) {
+        const dateRange = value as { from?: string; to?: string };
+        if (dateRange.from) {
+          qs[`filter[${snakeKey}_after]`] = dateRange.from;
+        }
+        if (dateRange.to) {
+          qs[`filter[${snakeKey}_before]`] = dateRange.to;
+        }
+      } else {
+        qs[`filter[${snakeKey}]`] = value as string | number;
+      }
+    } else {
+      qs[`filter[${snakeKey}]`] = value as string | number;
+    }
+  }
+
+  // Add sorting
+  if (options?.sortField) {
+    const sortPrefix = options.sortDirection === 'desc' ? '-' : '';
+    const snakeSortField = options.sortField.replace(/([A-Z])/g, '_$1').toLowerCase();
+    qs.sort = `${sortPrefix}${snakeSortField}`;
+  }
+
+  return qs;
+}
+
+/**
+ * Extract data from JSON:API response with proper typing
+ */
+export function extractResponseData<T = IDataObject>(response: IDataObject): T | T[] | undefined {
+  if (!response || typeof response !== 'object') {
+    return undefined;
+  }
+  return response.data as T | T[] | undefined;
+}
+
+/**
+ * Extract included resources from JSON:API response
+ */
+export function extractIncludedResources(response: IDataObject): IDataObject[] {
+  if (!response || typeof response !== 'object') {
+    return [];
+  }
+  return (response.included as IDataObject[]) || [];
 }

@@ -5,12 +5,27 @@ import {
   buildJsonApiBody,
   validateRequiredFields,
   verifyWebhookSignature,
+  isValidEmail,
+  isValidUrl,
+  isValidIsoDate,
+  isPositiveInteger,
+  validateField,
+  safeJsonParse,
+  buildIncludeParams,
+  buildAdvancedFilterParams,
+  extractResponseData,
+  extractIncludedResources,
 } from '../nodes/LemonSqueezy/helpers';
 import {
   RESOURCE_ENDPOINTS,
   RESOURCE_ID_PARAMS,
   WEBHOOK_EVENTS,
   API_BASE_URL,
+  SUBSCRIPTION_STATUSES,
+  ORDER_STATUSES,
+  CUSTOMER_STATUSES,
+  DISCOUNT_AMOUNT_TYPES,
+  PAUSE_MODES,
 } from '../nodes/LemonSqueezy/constants';
 
 describe('Constants', () => {
@@ -174,5 +189,210 @@ describe('Types', () => {
   it('should export all necessary types', async () => {
     const types = await import('../nodes/LemonSqueezy/types');
     expect(types).toBeDefined();
+  });
+});
+
+describe('Validation Helpers', () => {
+  describe('isValidEmail', () => {
+    it('should return true for valid emails', () => {
+      expect(isValidEmail('test@example.com')).toBe(true);
+      expect(isValidEmail('user.name@domain.org')).toBe(true);
+      expect(isValidEmail('user+tag@example.co.uk')).toBe(true);
+    });
+
+    it('should return false for invalid emails', () => {
+      expect(isValidEmail('invalid')).toBe(false);
+      expect(isValidEmail('invalid@')).toBe(false);
+      expect(isValidEmail('@domain.com')).toBe(false);
+      expect(isValidEmail('user @domain.com')).toBe(false);
+      expect(isValidEmail('')).toBe(false);
+    });
+  });
+
+  describe('isValidUrl', () => {
+    it('should return true for valid URLs', () => {
+      expect(isValidUrl('https://example.com')).toBe(true);
+      expect(isValidUrl('http://localhost:3000')).toBe(true);
+      expect(isValidUrl('https://example.com/path?query=value')).toBe(true);
+    });
+
+    it('should return false for invalid URLs', () => {
+      expect(isValidUrl('not-a-url')).toBe(false);
+      expect(isValidUrl('example.com')).toBe(false);
+      expect(isValidUrl('')).toBe(false);
+    });
+  });
+
+  describe('isValidIsoDate', () => {
+    it('should return true for valid ISO dates', () => {
+      expect(isValidIsoDate('2024-01-15')).toBe(true);
+      expect(isValidIsoDate('2024-01-15T10:30:00Z')).toBe(true);
+      expect(isValidIsoDate('2024-01-15T10:30:00.000Z')).toBe(true);
+    });
+
+    it('should return false for invalid dates', () => {
+      expect(isValidIsoDate('invalid')).toBe(false);
+      expect(isValidIsoDate('01/15/2024')).toBe(false);
+      expect(isValidIsoDate('')).toBe(false);
+    });
+  });
+
+  describe('isPositiveInteger', () => {
+    it('should return true for positive integers', () => {
+      expect(isPositiveInteger(1)).toBe(true);
+      expect(isPositiveInteger(100)).toBe(true);
+      expect(isPositiveInteger(999999)).toBe(true);
+    });
+
+    it('should return false for non-positive integers', () => {
+      expect(isPositiveInteger(0)).toBe(false);
+      expect(isPositiveInteger(-1)).toBe(false);
+      expect(isPositiveInteger(1.5)).toBe(false);
+      expect(isPositiveInteger('1')).toBe(false);
+      expect(isPositiveInteger(null)).toBe(false);
+    });
+  });
+
+  describe('validateField', () => {
+    it('should validate required fields', () => {
+      expect(() => validateField('name', 'John', 'required')).not.toThrow();
+      expect(() => validateField('name', '', 'required')).toThrow('name is required');
+      expect(() => validateField('name', null, 'required')).toThrow('name is required');
+    });
+
+    it('should validate email fields', () => {
+      expect(() => validateField('email', 'test@example.com', 'email')).not.toThrow();
+      expect(() => validateField('email', 'invalid', 'email')).toThrow(
+        'email must be a valid email address',
+      );
+    });
+
+    it('should validate URL fields', () => {
+      expect(() => validateField('url', 'https://example.com', 'url')).not.toThrow();
+      expect(() => validateField('url', 'invalid', 'url')).toThrow('url must be a valid URL');
+    });
+
+    it('should skip validation for empty optional fields', () => {
+      expect(() => validateField('email', '', 'email')).not.toThrow();
+      expect(() => validateField('url', null, 'url')).not.toThrow();
+    });
+  });
+
+  describe('safeJsonParse', () => {
+    it('should parse valid JSON', () => {
+      expect(safeJsonParse('{"key":"value"}', 'data')).toEqual({ key: 'value' });
+      expect(safeJsonParse('[1,2,3]', 'array')).toEqual([1, 2, 3]);
+    });
+
+    it('should throw descriptive error for invalid JSON', () => {
+      expect(() => safeJsonParse('invalid', 'customData')).toThrow(
+        'customData contains invalid JSON',
+      );
+    });
+  });
+});
+
+describe('Advanced Query Helpers', () => {
+  describe('buildIncludeParams', () => {
+    it('should build include params for relationships', () => {
+      expect(buildIncludeParams(['store', 'product'])).toEqual({
+        include: 'store,product',
+      });
+    });
+
+    it('should return empty object for empty array', () => {
+      expect(buildIncludeParams([])).toEqual({});
+    });
+  });
+
+  describe('buildAdvancedFilterParams', () => {
+    it('should build basic filter params', () => {
+      const result = buildAdvancedFilterParams({ storeId: '123' });
+      expect(result['filter[store_id]']).toBe('123');
+    });
+
+    it('should add sorting', () => {
+      const result = buildAdvancedFilterParams(
+        { storeId: '123' },
+        { sortField: 'createdAt', sortDirection: 'desc' },
+      );
+      expect(result.sort).toBe('-created_at');
+    });
+
+    it('should handle ascending sort', () => {
+      const result = buildAdvancedFilterParams({}, { sortField: 'name', sortDirection: 'asc' });
+      expect(result.sort).toBe('name');
+    });
+  });
+
+  describe('extractResponseData', () => {
+    it('should extract data from response', () => {
+      const response = { data: { id: '123', type: 'customers' } };
+      expect(extractResponseData(response)).toEqual({ id: '123', type: 'customers' });
+    });
+
+    it('should return undefined for invalid response', () => {
+      expect(extractResponseData(null as unknown as Record<string, unknown>)).toBeUndefined();
+    });
+  });
+
+  describe('extractIncludedResources', () => {
+    it('should extract included resources', () => {
+      const response = {
+        data: { id: '123' },
+        included: [{ id: '456', type: 'stores' }],
+      };
+      expect(extractIncludedResources(response)).toEqual([{ id: '456', type: 'stores' }]);
+    });
+
+    it('should return empty array if no included', () => {
+      const response = { data: { id: '123' } };
+      expect(extractIncludedResources(response)).toEqual([]);
+    });
+  });
+});
+
+describe('Additional Constants', () => {
+  describe('SUBSCRIPTION_STATUSES', () => {
+    it('should contain all subscription statuses', () => {
+      const statusValues = SUBSCRIPTION_STATUSES.map((s) => s.value);
+      expect(statusValues).toContain('active');
+      expect(statusValues).toContain('cancelled');
+      expect(statusValues).toContain('paused');
+      expect(statusValues).toContain('on_trial');
+    });
+  });
+
+  describe('ORDER_STATUSES', () => {
+    it('should contain all order statuses', () => {
+      const statusValues = ORDER_STATUSES.map((s) => s.value);
+      expect(statusValues).toContain('paid');
+      expect(statusValues).toContain('refunded');
+      expect(statusValues).toContain('pending');
+    });
+  });
+
+  describe('CUSTOMER_STATUSES', () => {
+    it('should contain all customer statuses', () => {
+      const statusValues = CUSTOMER_STATUSES.map((s) => s.value);
+      expect(statusValues).toContain('subscribed');
+      expect(statusValues).toContain('archived');
+    });
+  });
+
+  describe('DISCOUNT_AMOUNT_TYPES', () => {
+    it('should contain percent and fixed types', () => {
+      const typeValues = DISCOUNT_AMOUNT_TYPES.map((t) => t.value);
+      expect(typeValues).toContain('percent');
+      expect(typeValues).toContain('fixed');
+    });
+  });
+
+  describe('PAUSE_MODES', () => {
+    it('should contain pause modes', () => {
+      const modeValues = PAUSE_MODES.map((m) => m.value);
+      expect(modeValues).toContain('void');
+      expect(modeValues).toContain('free');
+    });
   });
 });

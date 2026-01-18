@@ -18,15 +18,19 @@ export const RATE_LIMIT_DELAY_MS = 60000;
 export const RESOURCE_ENDPOINTS: Record<string, string> = {
   product: 'products',
   order: 'orders',
+  orderItem: 'order-items',
   subscription: 'subscriptions',
+  subscriptionInvoice: 'subscription-invoices',
   customer: 'customers',
   licenseKey: 'license-keys',
+  licenseKeyInstance: 'license-key-instances',
   discount: 'discounts',
+  discountRedemption: 'discount-redemptions',
   store: 'stores',
   variant: 'variants',
   checkout: 'checkouts',
   webhook: 'webhooks',
-  licenseKeyInstance: 'license-key-instances',
+  usageRecord: 'usage-records',
 };
 
 /**
@@ -35,15 +39,19 @@ export const RESOURCE_ENDPOINTS: Record<string, string> = {
 export const RESOURCE_ID_PARAMS: Record<string, string> = {
   product: 'productId',
   order: 'orderId',
+  orderItem: 'orderItemId',
   subscription: 'subscriptionId',
+  subscriptionInvoice: 'subscriptionInvoiceId',
   customer: 'customerId',
   licenseKey: 'licenseKeyId',
+  licenseKeyInstance: 'licenseKeyInstanceId',
   discount: 'discountId',
+  discountRedemption: 'discountRedemptionId',
   store: 'storeId',
   variant: 'variantId',
   checkout: 'checkoutId',
   webhook: 'webhookId',
-  licenseKeyInstance: 'licenseKeyInstanceId',
+  usageRecord: 'usageRecordId',
 };
 
 /**

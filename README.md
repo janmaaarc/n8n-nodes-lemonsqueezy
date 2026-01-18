@@ -2,6 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/n8n-nodes-lemonsqueezy.svg)](https://www.npmjs.com/package/n8n-nodes-lemonsqueezy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/janmaaarc/n8n-nodes-lemonsqueezy/actions/workflows/ci.yml/badge.svg)](https://github.com/janmaaarc/n8n-nodes-lemonsqueezy/actions/workflows/ci.yml)
 
 An [n8n](https://n8n.io/) community node for [Lemon Squeezy](https://lemonsqueezy.com) - a platform for selling digital products, subscriptions, and software licenses.
 
@@ -12,6 +13,8 @@ An [n8n](https://n8n.io/) community node for [Lemon Squeezy](https://lemonsqueez
 - **License Key Management** - Validate, activate, and deactivate license keys
 - **Checkout Links** - Create dynamic checkout URLs with custom options
 - **Rate Limiting** - Built-in retry logic with exponential backoff
+- **Input Validation** - Email, URL, and date format validation
+- **Detailed Error Messages** - Descriptive error messages with field-level details
 - **Type Safety** - Full TypeScript support with comprehensive type definitions
 
 ## Installation
@@ -51,11 +54,16 @@ The main node for interacting with the Lemon Squeezy API.
 | **Checkout** | Create, Get, Get Many |
 | **Customer** | Create, Update, Delete, Get, Get Many |
 | **Discount** | Create, Delete, Get, Get Many |
+| **Discount Redemption** | Get, Get Many |
 | **License Key** | Get, Get Many, Update, Validate, Activate, Deactivate |
+| **License Key Instance** | Get, Get Many |
 | **Order** | Get, Get Many, Refund |
+| **Order Item** | Get, Get Many |
 | **Product** | Get, Get Many |
 | **Store** | Get, Get Many |
 | **Subscription** | Get, Get Many, Update, Cancel, Resume |
+| **Subscription Invoice** | Get, Get Many |
+| **Usage Record** | Get, Get Many |
 | **Variant** | Get, Get Many |
 | **Webhook** | Create, Update, Delete, Get, Get Many |
 
@@ -129,19 +137,36 @@ Most "Get Many" operations support filtering:
 | Filter | Description | Available On |
 |--------|-------------|--------------|
 | `storeId` | Filter by store | All resources |
-| `status` | Filter by status | Orders, Subscriptions, Customers, License Keys |
+| `status` | Filter by status | Orders, Subscriptions, Customers, License Keys, Subscription Invoices |
 | `email` | Filter by email | Orders, Customers |
-| `productId` | Filter by product | Subscriptions, License Keys, Variants |
-| `variantId` | Filter by variant | Subscriptions, Checkouts |
-| `orderId` | Filter by order | Subscriptions, License Keys |
+| `productId` | Filter by product | Subscriptions, License Keys, Variants, Order Items |
+| `variantId` | Filter by variant | Subscriptions, Checkouts, Order Items |
+| `orderId` | Filter by order | Subscriptions, License Keys, Order Items, Discount Redemptions |
+| `subscriptionId` | Filter by subscription | Subscription Invoices |
+| `licenseKeyId` | Filter by license key | License Key Instances |
+| `discountId` | Filter by discount | Discount Redemptions |
 
 ## Error Handling
 
-The node includes built-in error handling:
+The node includes built-in error handling with detailed messages:
 
 - **Rate Limiting**: Automatically waits and retries when rate limited (429 errors)
 - **Retry Logic**: Retries failed requests with exponential backoff for 5xx errors
 - **Continue on Fail**: Enable to process remaining items even if some fail
+- **Detailed Errors**: Field-level error details for validation failures
+
+### Error Code Reference
+
+| Status Code | Description |
+|-------------|-------------|
+| 400 | Bad Request - Invalid or malformed request |
+| 401 | Unauthorized - Invalid or missing API key |
+| 403 | Forbidden - No permission to access resource |
+| 404 | Not Found - Resource does not exist |
+| 409 | Conflict - Resource already exists |
+| 422 | Unprocessable Entity - Invalid request data |
+| 429 | Rate Limited - Too many requests |
+| 500+ | Server Error - Something went wrong on the server |
 
 ## Troubleshooting
 
@@ -172,6 +197,14 @@ The node handles rate limiting automatically, but if you're hitting limits frequ
 2. Use "Return All" sparingly for large datasets
 3. Consider caching responses where appropriate
 
+### Validation Errors
+
+If you receive validation errors:
+
+1. Check email fields contain valid email addresses
+2. Verify URLs are complete (including https://)
+3. Ensure dates are in ISO 8601 format (e.g., 2024-01-15T10:30:00Z)
+
 ## Development
 
 ```bash
@@ -184,11 +217,17 @@ npm run build
 # Run tests
 npm test
 
+# Run tests with coverage
+npm run test:coverage
+
 # Run linter
 npm run lint
 
 # Format code
 npm run format
+
+# Type check
+npm run typecheck
 ```
 
 ## Contributing
@@ -206,6 +245,25 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [Lemon Squeezy API Documentation](https://docs.lemonsqueezy.com/api)
 - [n8n Community Nodes Documentation](https://docs.n8n.io/integrations/community-nodes/)
 - [n8n Community Forum](https://community.n8n.io/)
+
+## Changelog
+
+### v0.3.0
+
+- Added new resources: Order Items, Subscription Invoices, License Key Instances, Discount Redemptions, Usage Records
+- Added input validation for emails, URLs, and dates
+- Improved error messages with field-level details
+- Added advanced filtering with sorting support
+- Added relationship expansion helpers
+- Improved test coverage
+- Added security audit in CI pipeline
+- Added coverage reporting
+
+### v0.2.0
+
+- Initial release with full Lemon Squeezy API support
+- Webhook trigger node
+- Rate limiting and retry logic
 
 ## License
 
