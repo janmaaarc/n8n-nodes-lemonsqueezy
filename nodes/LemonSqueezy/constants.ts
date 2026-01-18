@@ -31,6 +31,7 @@ export const RESOURCE_ENDPOINTS: Record<string, string> = {
   checkout: 'checkouts',
   webhook: 'webhooks',
   usageRecord: 'usage-records',
+  user: 'users',
 };
 
 /**

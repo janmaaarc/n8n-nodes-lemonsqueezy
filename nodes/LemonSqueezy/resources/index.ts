@@ -14,6 +14,7 @@ import { variantOperations, variantFields } from './variant';
 import { checkoutOperations, checkoutFields } from './checkout';
 import { webhookOperations, webhookFields } from './webhook';
 import { usageRecordOperations, usageRecordFields } from './usageRecord';
+import { userOperations, userFields } from './user';
 
 export const resourceProperty: INodeProperties = {
   displayName: 'Resource',
@@ -34,6 +35,7 @@ export const resourceProperty: INodeProperties = {
     { name: 'Subscription', value: 'subscription' },
     { name: 'Subscription Invoice', value: 'subscriptionInvoice' },
     { name: 'Usage Record', value: 'usageRecord' },
+    { name: 'User', value: 'user' },
     { name: 'Variant', value: 'variant' },
     { name: 'Webhook', value: 'webhook' },
   ],
@@ -56,6 +58,7 @@ export const allOperations: INodeProperties[] = [
   checkoutOperations,
   webhookOperations,
   ...usageRecordOperations,
+  ...userOperations,
 ];
 
 export const allFields: INodeProperties[] = [
@@ -74,6 +77,7 @@ export const allFields: INodeProperties[] = [
   ...checkoutFields,
   ...webhookFields,
   ...usageRecordFields,
+  ...userFields,
 ];
 
 export {
@@ -107,4 +111,6 @@ export {
   webhookFields,
   usageRecordOperations,
   usageRecordFields,
+  userOperations,
+  userFields,
 };

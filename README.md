@@ -64,6 +64,7 @@ The main node for interacting with the Lemon Squeezy API.
 | **Subscription** | Get, Get Many, Update, Cancel, Resume |
 | **Subscription Invoice** | Get, Get Many |
 | **Usage Record** | Get, Get Many |
+| **User** | Get Current |
 | **Variant** | Get, Get Many |
 | **Webhook** | Create, Update, Delete, Get, Get Many |
 
@@ -191,11 +192,20 @@ The node includes built-in error handling with detailed messages:
 
 ### Rate Limiting Issues
 
-The node handles rate limiting automatically, but if you're hitting limits frequently:
+The node handles rate limiting automatically with the following defaults:
+
+| Setting | Value | Description |
+|---------|-------|-------------|
+| Max Retries | 3 | Maximum retry attempts for failed requests |
+| Retry Delay | 1 second | Initial delay between retries (exponential backoff) |
+| Rate Limit Wait | 60 seconds | Wait time when rate limited (429 response) |
+
+If you're hitting rate limits frequently:
 
 1. Reduce the frequency of API calls
 2. Use "Return All" sparingly for large datasets
 3. Consider caching responses where appropriate
+4. Space out bulk operations with delays
 
 ### Validation Errors
 
@@ -248,6 +258,14 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Changelog
 
+### v0.4.0
+
+- Added User resource for fetching authenticated user information (`getCurrent` operation)
+- Expanded test suite to 130 tests with 85%+ statement coverage
+- Added comprehensive tests for credentials, node descriptions, and helpers
+- Fixed TypeScript strict mode warnings in test files
+- Updated coverage thresholds to 70%
+
 ### v0.3.0
 
 - Added new resources: Order Items, Subscription Invoices, License Key Instances, Discount Redemptions, Usage Records
@@ -255,9 +273,8 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - Improved error messages with field-level details
 - Added advanced filtering with sorting support
 - Added relationship expansion helpers
-- Improved test coverage
 - Added security audit in CI pipeline
-- Added coverage reporting
+- Added coverage reporting with lcov output
 
 ### v0.2.0
 

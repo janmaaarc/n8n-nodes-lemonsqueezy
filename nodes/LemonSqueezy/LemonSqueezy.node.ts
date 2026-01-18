@@ -122,9 +122,9 @@ async function handleCreate(
     }
     if (additionalOptions.customData) {
       try {
-        checkoutData.custom = JSON.parse(additionalOptions.customData as string);
+        checkoutData.custom = JSON.parse(additionalOptions.customData as string) as IDataObject;
       } catch {
-        checkoutData.custom = additionalOptions.customData;
+        checkoutData.custom = additionalOptions.customData as IDataObject;
       }
     }
     if (additionalOptions.expiresAt) {
@@ -439,6 +439,8 @@ export class LemonSqueezy implements INodeType {
               instance_id: instanceId,
             });
           }
+        } else if (resource === 'user' && operation === 'getCurrent') {
+          responseData = await lemonSqueezyApiRequest.call(this, 'GET', '/users/me');
         }
 
         const executionData = this.helpers.constructExecutionMetaData(
