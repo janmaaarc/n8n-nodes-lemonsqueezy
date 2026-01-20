@@ -12,6 +12,9 @@ export const RETRY_DELAY_MS = 1000;
 
 export const RATE_LIMIT_DELAY_MS = 60000;
 
+/** Default timeout for API requests in milliseconds (30 seconds) */
+export const DEFAULT_REQUEST_TIMEOUT_MS = 30000;
+
 /**
  * Resource to API endpoint mapping
  */

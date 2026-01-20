@@ -11,6 +11,7 @@ import {
   lemonSqueezyApiRequestAllItems,
   buildFilterParams,
   buildJsonApiBody,
+  validateField,
 } from './helpers';
 import { resourceProperty, allOperations, allFields } from './resources';
 import type { LemonSqueezyResponse } from './types';
@@ -25,6 +26,9 @@ async function handleCreate(
     const name = ctx.getNodeParameter('customerName', itemIndex) as string;
     const email = ctx.getNodeParameter('customerEmail', itemIndex) as string;
     const additionalFields = ctx.getNodeParameter('additionalFields', itemIndex);
+
+    // Validate required fields before API call
+    validateField('email', email, 'email');
 
     const body = buildJsonApiBody(
       'customers',
@@ -100,6 +104,8 @@ async function handleCreate(
       attributes.custom_price = additionalOptions.customPrice;
     }
     if (additionalOptions.email) {
+      // Validate email before API call
+      validateField('email', additionalOptions.email as string, 'email');
       checkoutData.email = additionalOptions.email;
     }
     if (additionalOptions.name) {
@@ -109,12 +115,16 @@ async function handleCreate(
       checkoutData.discount_code = additionalOptions.discountCode;
     }
     if (additionalOptions.redirectUrl) {
+      // Validate URL before API call
+      validateField('redirectUrl', additionalOptions.redirectUrl as string, 'url');
       productOptions.redirect_url = additionalOptions.redirectUrl;
     }
     if (additionalOptions.receiptButtonText) {
       productOptions.receipt_button_text = additionalOptions.receiptButtonText;
     }
     if (additionalOptions.receiptLinkUrl) {
+      // Validate URL before API call
+      validateField('receiptLinkUrl', additionalOptions.receiptLinkUrl as string, 'url');
       productOptions.receipt_link_url = additionalOptions.receiptLinkUrl;
     }
     if (additionalOptions.receiptThankYouNote) {
@@ -199,6 +209,14 @@ async function handleCreate(
       {},
     ) as IDataObject;
 
+    // Validate URL before API call
+    validateField('url', url, 'url');
+
+    // Validate webhook secret minimum length for security
+    if (secret.length < 16) {
+      throw new Error('Webhook secret must be at least 16 characters for security');
+    }
+
     const attributes: IDataObject = { url, events, secret };
 
     if (additionalOptions.testMode !== undefined) {
@@ -267,6 +285,8 @@ async function handleUpdate(
       attributes.name = updateFields.name;
     }
     if (updateFields.email) {
+      // Validate email before API call
+      validateField('email', updateFields.email as string, 'email');
       attributes.email = updateFields.email;
     }
     if (updateFields.city) {
@@ -315,12 +335,18 @@ async function handleUpdate(
     const attributes: IDataObject = {};
 
     if (updateFields.url) {
+      // Validate URL before API call
+      validateField('url', updateFields.url as string, 'url');
       attributes.url = updateFields.url;
     }
     if (updateFields.events) {
       attributes.events = updateFields.events;
     }
     if (updateFields.secret) {
+      // Validate webhook secret minimum length for security
+      if ((updateFields.secret as string).length < 16) {
+        throw new Error('Webhook secret must be at least 16 characters for security');
+      }
       attributes.secret = updateFields.secret;
     }
 

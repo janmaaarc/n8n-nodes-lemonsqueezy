@@ -311,6 +311,29 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Changelog
 
+### v0.6.0
+
+**Reliability & Error Handling:**
+- Improved webhook management error handling with proper 404 vs other error distinction
+- Added detailed logging for webhook lifecycle (create, check, delete operations)
+- Added logging for filtered/unsubscribed webhook events to aid debugging
+- Added rate limit visibility logging with wait time information
+- Added retry attempt logging with exponential backoff details
+
+**Input Validation:**
+- Added pre-API validation for email fields (customer create/update, checkout)
+- Added pre-API validation for URL fields (webhook URL, redirect URLs, receipt link URLs)
+- Added webhook secret minimum length validation (16 characters) for security
+- Validation errors now fail fast before making API requests
+
+**Performance:**
+- Added configurable request timeout (default: 30 seconds) for all API requests
+- Timeout prevents hanging requests and improves workflow reliability
+
+**Code Quality:**
+- Added common filter field generators to reduce code duplication
+- Added createFiltersField, createStatusFilter factory functions
+
 ### v0.5.0
 
 **Security & Stability Improvements:**

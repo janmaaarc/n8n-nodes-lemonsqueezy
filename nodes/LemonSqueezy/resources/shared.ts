@@ -154,7 +154,103 @@ export const RESOURCE_INCLUDES: Record<string, Array<{ name: string; value: stri
 };
 
 /**
+ * Creates a filters collection field for a resource
+ * @param resource - The resource name
+ * @param filterOptions - Array of filter field definitions
+ * @param operations - Operations where this field applies
+ */
+export function createFiltersField(
+  resource: string,
+  filterOptions: INodeProperties['options'],
+  operations: string[] = ['getAll'],
+): INodeProperties {
+  return {
+    displayName: 'Filters',
+    name: 'filters',
+    type: 'collection',
+    placeholder: 'Add Filter',
+    default: {},
+    displayOptions: {
+      show: { resource: [resource], operation: operations },
+    },
+    options: filterOptions,
+  };
+}
+
+/**
+ * Common filter field: Store ID
+ */
+export const storeIdFilter: INodeProperties = {
+  displayName: 'Store ID',
+  name: 'storeId',
+  type: 'string',
+  default: '',
+  description: 'Filter by store ID',
+};
+
+/**
+ * Common filter field: Status (generic)
+ */
+export function createStatusFilter(
+  statusOptions: Array<{ name: string; value: string }>,
+): INodeProperties {
+  return {
+    displayName: 'Status',
+    name: 'status',
+    type: 'options',
+    options: statusOptions,
+    default: '',
+    description: 'Filter by status',
+  };
+}
+
+/**
+ * Common filter field: Email
+ */
+export const emailFilter: INodeProperties = {
+  displayName: 'Email',
+  name: 'email',
+  type: 'string',
+  default: '',
+  description: 'Filter by email address',
+};
+
+/**
+ * Common filter field: Product ID
+ */
+export const productIdFilter: INodeProperties = {
+  displayName: 'Product ID',
+  name: 'productId',
+  type: 'string',
+  default: '',
+  description: 'Filter by product ID',
+};
+
+/**
+ * Common filter field: Variant ID
+ */
+export const variantIdFilter: INodeProperties = {
+  displayName: 'Variant ID',
+  name: 'variantId',
+  type: 'string',
+  default: '',
+  description: 'Filter by variant ID',
+};
+
+/**
+ * Common filter field: Order ID
+ */
+export const orderIdFilter: INodeProperties = {
+  displayName: 'Order ID',
+  name: 'orderId',
+  type: 'string',
+  default: '',
+  description: 'Filter by order ID',
+};
+
+/**
  * Generate advanced options field for a specific resource
+ * Includes sorting, relationship expansion, and pagination timeout
  */
 export function createAdvancedOptionsField(
   resource: string,

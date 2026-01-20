@@ -27,6 +27,7 @@ import {
   MAX_RETRIES,
   RETRY_DELAY_MS,
   RATE_LIMIT_DELAY_MS,
+  DEFAULT_REQUEST_TIMEOUT_MS,
 } from './constants';
 import type { LemonSqueezyResponse, PaginationOptions } from './types';
 
@@ -321,6 +322,7 @@ export function isRetryableError(error: unknown): boolean {
  * - Automatic authentication using stored credentials
  * - Rate limit handling with automatic retry after delay
  * - Exponential backoff for server errors (5xx)
+ * - Configurable request timeout (default: 30 seconds)
  * - Detailed error messages using NodeApiError
  *
  * @param this - The n8n execution context
@@ -328,8 +330,9 @@ export function isRetryableError(error: unknown): boolean {
  * @param endpoint - API endpoint path (e.g., '/v1/products')
  * @param body - Optional request body for POST/PATCH requests
  * @param qs - Optional query string parameters
+ * @param timeout - Request timeout in milliseconds (default: 30000)
  * @returns The API response data
- * @throws NodeApiError if the request fails after all retries
+ * @throws NodeApiError if the request fails after all retries or times out
  *
  * @example
  * // GET request
@@ -339,6 +342,9 @@ export function isRetryableError(error: unknown): boolean {
  * const checkout = await lemonSqueezyApiRequest.call(this, 'POST', '/v1/checkouts', {
  *   data: { type: 'checkouts', attributes: { ... } }
  * })
+ *
+ * // Request with custom timeout (60 seconds)
+ * const data = await lemonSqueezyApiRequest.call(this, 'GET', '/v1/orders', undefined, {}, 60000)
  */
 export async function lemonSqueezyApiRequest(
   this: IExecuteFunctions | IWebhookFunctions | IHookFunctions,
@@ -346,6 +352,7 @@ export async function lemonSqueezyApiRequest(
   endpoint: string,
   body?: IDataObject,
   qs: Record<string, string | number> = {},
+  timeout: number = DEFAULT_REQUEST_TIMEOUT_MS,
 ): Promise<IDataObject> {
   const options: {
     method: IHttpRequestMethods;
@@ -353,11 +360,13 @@ export async function lemonSqueezyApiRequest(
     qs: Record<string, string | number>;
     body?: IDataObject;
     json: boolean;
+    timeout: number;
   } = {
     method,
     url: `${API_BASE_URL}${endpoint}`,
     qs,
     json: true,
+    timeout,
   };
 
   if (body) {
@@ -377,14 +386,22 @@ export async function lemonSqueezyApiRequest(
       lastError = error;
 
       if (isRateLimitError(error)) {
-        // Wait for rate limit to reset (usually 60 seconds)
+        // Log rate limit for visibility
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[LemonSqueezy] Rate limited (429) on ${method} ${endpoint}. Waiting ${RATE_LIMIT_DELAY_MS / 1000}s before retry...`,
+        );
         await sleep(RATE_LIMIT_DELAY_MS);
         continue;
       }
 
       if (isRetryableError(error) && attempt < MAX_RETRIES - 1) {
-        // Exponential backoff for retryable errors
-        await sleep(RETRY_DELAY_MS * Math.pow(2, attempt));
+        const delayMs = RETRY_DELAY_MS * Math.pow(2, attempt);
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[LemonSqueezy] Retryable error on ${method} ${endpoint} (attempt ${attempt + 1}/${MAX_RETRIES}). Retrying in ${delayMs}ms...`,
+        );
+        await sleep(delayMs);
         continue;
       }
 
@@ -476,6 +493,10 @@ export async function lemonSqueezyApiRequestAllItems(
       )) as LemonSqueezyResponse;
     } catch (error) {
       if (isRateLimitError(error)) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[LemonSqueezy] Rate limited during pagination (${returnData.length} items fetched). Waiting ${RATE_LIMIT_DELAY_MS / 1000}s...`,
+        );
         await sleep(RATE_LIMIT_DELAY_MS);
         continue;
       }
