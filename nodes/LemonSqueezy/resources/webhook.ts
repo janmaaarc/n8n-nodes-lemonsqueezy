@@ -64,7 +64,9 @@ export const webhookFields: INodeProperties[] = [
     type: 'string',
     required: true,
     default: '',
-    description: 'The ID of the store this webhook belongs to',
+    placeholder: 'e.g., 12345',
+    description:
+      'The ID of the store this webhook belongs to. Find this in your <a href="https://app.lemonsqueezy.com/settings/stores" target="_blank">Lemon Squeezy Dashboard</a>.',
     displayOptions: {
       show: { resource: ['webhook'], operation: ['create'] },
     },
@@ -76,7 +78,8 @@ export const webhookFields: INodeProperties[] = [
     required: true,
     default: '',
     placeholder: 'https://your-app.com/webhooks/lemonsqueezy',
-    description: 'The URL to send webhook events to',
+    description:
+      'The publicly accessible HTTPS URL to receive webhook events. Must be reachable from the internet.',
     displayOptions: {
       show: { resource: ['webhook'], operation: ['create'] },
     },
@@ -88,7 +91,8 @@ export const webhookFields: INodeProperties[] = [
     required: true,
     options: WEBHOOK_EVENTS,
     default: [],
-    description: 'The events to subscribe to',
+    description:
+      'Select which events should trigger this webhook. See <a href="https://docs.lemonsqueezy.com/api/webhooks#event-types" target="_blank">Lemon Squeezy Webhook Events</a> for details.',
     displayOptions: {
       show: { resource: ['webhook'], operation: ['create'] },
     },
@@ -100,7 +104,9 @@ export const webhookFields: INodeProperties[] = [
     required: true,
     default: '',
     typeOptions: { password: true },
-    description: 'A secret string used to sign webhook payloads for verification',
+    placeholder: 'e.g., a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6',
+    description:
+      'A secure random string (minimum 32 characters) used to sign webhook payloads. Generate one using: openssl rand -hex 32',
     displayOptions: {
       show: { resource: ['webhook'], operation: ['create'] },
     },
@@ -140,7 +146,8 @@ export const webhookFields: INodeProperties[] = [
         name: 'url',
         type: 'string',
         default: '',
-        description: 'The URL to send webhook events to',
+        placeholder: 'https://your-app.com/webhooks/lemonsqueezy',
+        description: 'The publicly accessible HTTPS URL to receive webhook events',
       },
       {
         displayName: 'Events',
@@ -148,7 +155,8 @@ export const webhookFields: INodeProperties[] = [
         type: 'multiOptions',
         options: WEBHOOK_EVENTS,
         default: [],
-        description: 'The events to subscribe to',
+        description:
+          'Select which events should trigger this webhook. See <a href="https://docs.lemonsqueezy.com/api/webhooks#event-types" target="_blank">Lemon Squeezy docs</a> for details.',
       },
       {
         displayName: 'Secret',
@@ -156,7 +164,9 @@ export const webhookFields: INodeProperties[] = [
         type: 'string',
         typeOptions: { password: true },
         default: '',
-        description: 'A secret string used to sign webhook payloads',
+        placeholder: 'e.g., a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6',
+        description:
+          'A secure random string (minimum 32 characters) used to sign webhook payloads. Generate one using: openssl rand -hex 32',
       },
     ],
   },

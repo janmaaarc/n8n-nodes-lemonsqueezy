@@ -198,6 +198,20 @@ async function handleCreate(
     return await lemonSqueezyApiRequest.call(ctx, 'POST', '/checkouts', body);
   }
 
+  if (resource === 'usageRecord') {
+    const subscriptionItemId = ctx.getNodeParameter('subscriptionItemId', itemIndex) as string;
+    const quantity = ctx.getNodeParameter('quantity', itemIndex) as number;
+    const action = ctx.getNodeParameter('action', itemIndex) as string;
+
+    const body = buildJsonApiBody(
+      'usage-records',
+      { quantity, action },
+      { 'subscription-item': { type: 'subscription-items', id: subscriptionItemId } },
+    );
+
+    return await lemonSqueezyApiRequest.call(ctx, 'POST', '/usage-records', body);
+  }
+
   if (resource === 'webhook') {
     const storeId = ctx.getNodeParameter('webhookStoreId', itemIndex) as string;
     const url = ctx.getNodeParameter('webhookUrl', itemIndex) as string;
@@ -212,9 +226,11 @@ async function handleCreate(
     // Validate URL before API call
     validateField('url', url, 'url');
 
-    // Validate webhook secret minimum length for security
-    if (secret.length < 16) {
-      throw new Error('Webhook secret must be at least 16 characters for security');
+    // Validate webhook secret minimum length for security (32+ chars recommended)
+    if (secret.length < 32) {
+      throw new Error(
+        'Webhook secret must be at least 32 characters for security. Generate one using: openssl rand -hex 32',
+      );
     }
 
     const attributes: IDataObject = { url, events, secret };
@@ -343,9 +359,11 @@ async function handleUpdate(
       attributes.events = updateFields.events;
     }
     if (updateFields.secret) {
-      // Validate webhook secret minimum length for security
-      if ((updateFields.secret as string).length < 16) {
-        throw new Error('Webhook secret must be at least 16 characters for security');
+      // Validate webhook secret minimum length for security (32+ chars recommended)
+      if ((updateFields.secret as string).length < 32) {
+        throw new Error(
+          'Webhook secret must be at least 32 characters for security. Generate one using: openssl rand -hex 32',
+        );
       }
       attributes.secret = updateFields.secret;
     }
@@ -420,11 +438,16 @@ export class LemonSqueezy implements INodeType {
           }
 
           if (returnAll) {
+            // Convert pagination timeout from seconds to milliseconds (0 = no timeout)
+            const paginationTimeout = (advancedOptions.paginationTimeout as number) ?? 300;
             responseData = await lemonSqueezyApiRequestAllItems.call(
               this,
               'GET',
               `/${endpoint}`,
               qs,
+              {
+                timeout: paginationTimeout > 0 ? paginationTimeout * 1000 : 0,
+              },
             );
           } else {
             const limit = this.getNodeParameter('limit', i);

@@ -65,7 +65,7 @@ The main node for interacting with the Lemon Squeezy API.
 | **Store** | Get, Get Many |
 | **Subscription** | Get, Get Many, Update, Cancel, Resume |
 | **Subscription Invoice** | Get, Get Many |
-| **Usage Record** | Get, Get Many |
+| **Usage Record** | Create, Get, Get Many |
 | **User** | Get Current |
 | **Variant** | Get, Get Many |
 | **Webhook** | Create, Update, Delete, Get, Get Many |
@@ -310,6 +310,21 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [n8n Community Forum](https://community.n8n.io/)
 
 ## Changelog
+
+### v0.7.0
+
+**New Features:**
+- Added Usage Record Create operation for metered billing support
+- Added configurable pagination timeout in Advanced Options UI for "Return All" operations
+- Added field hints with examples and documentation links for better UX
+- Added CHANGELOG.md with migration guide for breaking changes
+
+**Security:**
+- Increased webhook secret minimum length from 16 to 32 characters
+- Added webhook creation deduplication to prevent race conditions
+
+**Bug Fixes:**
+- Fixed pagination timeout=0 handling (now correctly treated as "no timeout")
 
 ### v0.6.0
 

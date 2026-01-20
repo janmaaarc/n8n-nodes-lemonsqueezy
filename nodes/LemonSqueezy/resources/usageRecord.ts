@@ -13,6 +13,12 @@ export const usageRecordOperations: INodeProperties[] = [
     },
     options: [
       {
+        name: 'Create',
+        value: 'create',
+        description: 'Create a usage record',
+        action: 'Create a usage record',
+      },
+      {
         name: 'Get',
         value: 'get',
         description: 'Get a usage record by ID',
@@ -30,6 +36,64 @@ export const usageRecordOperations: INodeProperties[] = [
 ];
 
 export const usageRecordFields: INodeProperties[] = [
+  // Create
+  {
+    displayName: 'Subscription Item ID',
+    name: 'subscriptionItemId',
+    type: 'string',
+    required: true,
+    default: '',
+    displayOptions: {
+      show: {
+        resource: ['usageRecord'],
+        operation: ['create'],
+      },
+    },
+    description: 'The ID of the subscription item to record usage for',
+  },
+  {
+    displayName: 'Quantity',
+    name: 'quantity',
+    type: 'number',
+    required: true,
+    default: 1,
+    typeOptions: {
+      minValue: 1,
+    },
+    displayOptions: {
+      show: {
+        resource: ['usageRecord'],
+        operation: ['create'],
+      },
+    },
+    description: 'The usage quantity to record',
+  },
+  {
+    displayName: 'Action',
+    name: 'action',
+    type: 'options',
+    default: 'increment',
+    displayOptions: {
+      show: {
+        resource: ['usageRecord'],
+        operation: ['create'],
+      },
+    },
+    options: [
+      {
+        name: 'Increment',
+        value: 'increment',
+        description: 'Add to existing usage',
+      },
+      {
+        name: 'Set',
+        value: 'set',
+        description: 'Set the usage to an exact value',
+      },
+    ],
+    description: 'Whether to increment the existing usage or set it to an exact value',
+  },
+
   // Get
   {
     displayName: 'Usage Record ID',

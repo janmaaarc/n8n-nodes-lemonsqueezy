@@ -275,6 +275,15 @@ export function createAdvancedOptionsField(
       default: 'desc',
       description: 'Direction to sort results',
     },
+    {
+      displayName: 'Pagination Timeout (Seconds)',
+      name: 'paginationTimeout',
+      type: 'number',
+      default: 300,
+      description:
+        'Maximum time in seconds to wait for paginated results when using Return All. Set to 0 for no timeout.',
+      typeOptions: { minValue: 0, maxValue: 600 },
+    },
   ];
 
   if (includes.length > 0) {

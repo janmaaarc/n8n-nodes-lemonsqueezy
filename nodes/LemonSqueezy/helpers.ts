@@ -464,8 +464,8 @@ export async function lemonSqueezyApiRequestAllItems(
   qs['page[size]'] = pageSize;
 
   do {
-    // Check timeout
-    if (Date.now() - startTime > timeout) {
+    // Check timeout (0 = no timeout)
+    if (timeout > 0 && Date.now() - startTime > timeout) {
       throw new NodeApiError(this.getNode(), {} as JsonObject, {
         message: `Pagination timeout exceeded (${timeout}ms). Retrieved ${returnData.length} items before timeout.`,
       });
