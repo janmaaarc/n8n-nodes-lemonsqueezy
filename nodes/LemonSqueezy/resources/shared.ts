@@ -3,10 +3,90 @@ import type { INodeProperties } from 'n8n-workflow';
 /**
  * Shared field definitions for advanced query options
  * Used across multiple resources for consistent sorting and relationship expansion
+ *
+ * This module reduces code duplication by providing reusable field definitions
+ * for common patterns like pagination (returnAll, limit), sorting, and filtering.
  */
 
+// ============================================================================
+// Common Field Generators
+// ============================================================================
+
 /**
- * Sort direction options
+ * Creates a 'Return All' toggle field for a resource
+ * @param resource - The resource name (e.g., 'product', 'order')
+ * @param operations - Operations where this field applies (default: ['getAll'])
+ */
+export function createReturnAllField(
+  resource: string,
+  operations: string[] = ['getAll'],
+): INodeProperties {
+  return {
+    displayName: 'Return All',
+    name: 'returnAll',
+    type: 'boolean',
+    default: false,
+    description: 'Whether to return all results or only up to a given limit',
+    displayOptions: {
+      show: { resource: [resource], operation: operations },
+    },
+  };
+}
+
+/**
+ * Creates a 'Limit' number field for a resource
+ * @param resource - The resource name
+ * @param operations - Operations where this field applies
+ */
+export function createLimitField(
+  resource: string,
+  operations: string[] = ['getAll'],
+): INodeProperties {
+  return {
+    displayName: 'Limit',
+    name: 'limit',
+    type: 'number',
+    default: 50,
+    description: 'Max number of results to return',
+    typeOptions: { minValue: 1, maxValue: 100 },
+    displayOptions: {
+      show: { resource: [resource], operation: operations, returnAll: [false] },
+    },
+  };
+}
+
+/**
+ * Creates a resource ID field
+ * @param resource - The resource name
+ * @param idName - The parameter name for the ID (e.g., 'productId')
+ * @param displayName - Display name shown in UI
+ * @param operations - Operations where this field applies
+ */
+export function createIdField(
+  resource: string,
+  idName: string,
+  displayName: string,
+  operations: string[] = ['get', 'delete'],
+): INodeProperties {
+  return {
+    displayName,
+    name: idName,
+    type: 'string',
+    required: true,
+    default: '',
+    description: `The ID of the ${resource}`,
+    displayOptions: {
+      show: { resource: [resource], operation: operations },
+    },
+  };
+}
+
+// ============================================================================
+// Sort Options
+// ============================================================================
+
+/**
+ * Sort direction options for API queries
  */
 export const SORT_DIRECTIONS = [
   { name: 'Ascending', value: 'asc' },

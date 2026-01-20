@@ -326,6 +326,18 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - Added sorting support (created_at, updated_at) for "Get Many" operations
 - Added relationship expansion (include) for fetching related resources in single requests
 - Advanced options available for: Order, Subscription, Customer, License Key, Product, Variant, Checkout, Discount
+- Added pagination timeout protection (default: 5 minutes) to prevent long-running requests
+- Added maxItems limit support for memory optimization on large datasets
+
+**Code Quality:**
+- Added comprehensive JSDoc documentation to all helper functions
+- Created shared field generators to reduce code duplication
+- Added TypeScript types for webhooks, errors, and pagination (WebhookMeta, ApiError, PaginationOptions)
+- Improved type safety throughout the codebase
+
+**Documentation:**
+- Added SECURITY.md with security policy and vulnerability reporting guidelines
+- Added CONTRIBUTING.md with development setup and contribution guidelines
 
 **Test Coverage:**
 - Expanded test suite from 132 to 176 tests (+33%)

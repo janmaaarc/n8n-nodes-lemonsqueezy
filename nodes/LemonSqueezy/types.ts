@@ -386,15 +386,77 @@ export type WebhookEventType =
   | 'license_key_updated';
 
 /**
- * Webhook payload
+ * Webhook payload received from Lemon Squeezy
  */
-export interface WebhookPayload {
-  meta: {
-    event_name: WebhookEventType;
-    custom_data?: IDataObject;
-    test_mode: boolean;
+export interface WebhookPayload<T = IDataObject> {
+  meta: WebhookMeta;
+  data: T;
+}
+
+/**
+ * Webhook metadata
+ */
+export interface WebhookMeta {
+  event_name: WebhookEventType;
+  custom_data?: IDataObject;
+  test_mode: boolean;
+  webhook_id?: string;
+}
+
+/**
+ * API Error response structure
+ */
+export interface ApiError {
+  errors: ApiErrorDetail[];
+}
+
+/**
+ * Individual API error detail
+ */
+export interface ApiErrorDetail {
+  detail: string;
+  title?: string;
+  status?: string;
+  source?: {
+    pointer?: string;
+    parameter?: string;
   };
-  data: IDataObject;
+}
+
+/**
+ * Pagination metadata from API responses
+ */
+export interface PaginationMeta {
+  page: {
+    currentPage: number;
+    from: number;
+    lastPage: number;
+    perPage: number;
+    to: number;
+    total: number;
+  };
+}
+
+/**
+ * Pagination links from API responses
+ */
+export interface PaginationLinks {
+  first?: string;
+  last?: string;
+  next?: string;
+  prev?: string;
+}
+
+/**
+ * Options for paginated requests
+ */
+export interface PaginationOptions {
+  /** Maximum number of items to fetch (default: no limit) */
+  maxItems?: number;
+  /** Request timeout in milliseconds (default: 30000) */
+  timeout?: number;
+  /** Page size for each request (default: 100) */
+  pageSize?: number;
 }
 
 /**
