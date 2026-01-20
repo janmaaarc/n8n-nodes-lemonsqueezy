@@ -4,9 +4,10 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 0.7.x   | :white_check_mark: |
+| 0.6.x   | :white_check_mark: |
 | 0.5.x   | :white_check_mark: |
-| 0.4.x   | :white_check_mark: |
-| < 0.4   | :x:                |
+| < 0.5   | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -74,6 +75,15 @@ This node implements several security measures:
    - Don't store sensitive data unnecessarily
 
 ## Security Changelog
+
+### v0.7.0
+- Increased webhook secret minimum length from 16 to 32 characters
+- Added webhook creation deduplication to prevent race conditions
+
+### v0.6.0
+- Added webhook secret minimum length validation (16 characters)
+- Added pre-API validation for email and URL fields
+- Added configurable request timeout to prevent hanging requests
 
 ### v0.5.0
 - Removed option to disable webhook signature verification
