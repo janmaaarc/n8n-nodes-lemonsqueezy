@@ -22,19 +22,62 @@ import type { LemonSqueezyResponse } from './types';
 // ============================================================================
 
 /**
- * Validate email format
+ * Validate email format using RFC 5322 compliant regex
  */
 export function isValidEmail(email: string): boolean {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  // More robust email validation based on RFC 5322
+  // Checks for: local part, @ symbol, domain with proper TLD
+  const emailRegex =
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
   return emailRegex.test(email);
 }
 
 /**
- * Validate URL format
+ * Validate URL format and ensure it's a safe external URL
  */
 export function isValidUrl(url: string): boolean {
   try {
-    new URL(url);
+    const parsedUrl = new URL(url);
+
+    // Only allow http and https protocols
+    if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+      return false;
+    }
+
+    // Block internal/private network URLs for security
+    const hostname = parsedUrl.hostname.toLowerCase();
+    const blockedPatterns = [
+      'localhost',
+      '127.0.0.1',
+      '0.0.0.0',
+      '::1',
+      '10.',
+      '172.16.',
+      '172.17.',
+      '172.18.',
+      '172.19.',
+      '172.20.',
+      '172.21.',
+      '172.22.',
+      '172.23.',
+      '172.24.',
+      '172.25.',
+      '172.26.',
+      '172.27.',
+      '172.28.',
+      '172.29.',
+      '172.30.',
+      '172.31.',
+      '192.168.',
+      '169.254.',
+    ];
+
+    for (const pattern of blockedPatterns) {
+      if (hostname === pattern || hostname.startsWith(pattern)) {
+        return false;
+      }
+    }
+
     return true;
   } catch {
     return false;

@@ -15,6 +15,16 @@ import { checkoutOperations, checkoutFields } from './checkout';
 import { webhookOperations, webhookFields } from './webhook';
 import { usageRecordOperations, usageRecordFields } from './usageRecord';
 import { userOperations, userFields } from './user';
+import {
+  orderAdvancedOptions,
+  subscriptionAdvancedOptions,
+  customerAdvancedOptions,
+  licenseKeyAdvancedOptions,
+  productAdvancedOptions,
+  variantAdvancedOptions,
+  checkoutAdvancedOptions,
+  discountAdvancedOptions,
+} from './shared';
 
 export const resourceProperty: INodeProperties = {
   displayName: 'Resource',
@@ -63,18 +73,26 @@ export const allOperations: INodeProperties[] = [
 
 export const allFields: INodeProperties[] = [
   ...productFields,
+  productAdvancedOptions,
   ...orderFields,
+  orderAdvancedOptions,
   ...orderItemFields,
   ...subscriptionFields,
+  subscriptionAdvancedOptions,
   ...subscriptionInvoiceFields,
   ...customerFields,
+  customerAdvancedOptions,
   ...licenseKeyFields,
+  licenseKeyAdvancedOptions,
   ...licenseKeyInstanceFields,
   ...discountFields,
+  discountAdvancedOptions,
   ...discountRedemptionFields,
   ...storeFields,
   ...variantFields,
+  variantAdvancedOptions,
   ...checkoutFields,
+  checkoutAdvancedOptions,
   ...webhookFields,
   ...usageRecordFields,
   ...userFields,

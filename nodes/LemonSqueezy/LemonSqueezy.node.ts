@@ -120,11 +120,25 @@ async function handleCreate(
     if (additionalOptions.receiptThankYouNote) {
       productOptions.receipt_thank_you_note = additionalOptions.receiptThankYouNote;
     }
-    if (additionalOptions.customData) {
-      try {
-        checkoutData.custom = JSON.parse(additionalOptions.customData as string) as IDataObject;
-      } catch {
-        checkoutData.custom = additionalOptions.customData as IDataObject;
+    if (additionalOptions.customData !== undefined && additionalOptions.customData !== null) {
+      const customDataValue = additionalOptions.customData;
+      if (typeof customDataValue === 'string') {
+        try {
+          const parsed: unknown = JSON.parse(customDataValue);
+          if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            checkoutData.custom = parsed as IDataObject;
+          } else {
+            throw new Error('customData must be a valid JSON object');
+          }
+        } catch (error) {
+          throw new Error(
+            `Invalid customData: ${error instanceof Error ? error.message : 'must be valid JSON object'}`,
+          );
+        }
+      } else if (typeof customDataValue === 'object' && !Array.isArray(customDataValue)) {
+        checkoutData.custom = customDataValue as IDataObject;
+      } else {
+        throw new Error('customData must be a JSON string or object');
       }
     }
     if (additionalOptions.expiresAt) {
@@ -361,7 +375,23 @@ export class LemonSqueezy implements INodeType {
         } else if (operation === 'getAll') {
           const returnAll = this.getNodeParameter('returnAll', i) as boolean;
           const filters = this.getNodeParameter('filters', i, {});
+          const advancedOptions = this.getNodeParameter('advancedOptions', i, {}) as IDataObject;
           const qs = buildFilterParams(filters);
+
+          // Apply sorting if specified
+          if (advancedOptions.sortField) {
+            const sortDirection = (advancedOptions.sortDirection as string) || 'desc';
+            const sortPrefix = sortDirection === 'desc' ? '-' : '';
+            qs.sort = `${sortPrefix}${advancedOptions.sortField as string}`;
+          }
+
+          // Apply relationship expansion if specified
+          if (advancedOptions.include && Array.isArray(advancedOptions.include)) {
+            const includes = advancedOptions.include as string[];
+            if (includes.length > 0) {
+              qs.include = includes.join(',');
+            }
+          }
 
           if (returnAll) {
             responseData = await lemonSqueezyApiRequestAllItems.call(

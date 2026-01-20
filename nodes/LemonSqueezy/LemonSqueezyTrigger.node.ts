@@ -79,11 +79,12 @@ export class LemonSqueezyTrigger implements INodeType {
             description: 'Whether to only receive test mode events',
           },
           {
-            displayName: 'Verify Signature',
-            name: 'verifySignature',
-            type: 'boolean',
-            default: true,
-            description: 'Whether to verify the webhook signature (recommended)',
+            displayName: 'Max Event Age (Minutes)',
+            name: 'maxEventAgeMinutes',
+            type: 'number',
+            default: 5,
+            description:
+              'Maximum age of webhook events in minutes. Events older than this will be rejected to prevent replay attacks. Set to 0 to disable.',
           },
         ],
       },
@@ -107,8 +108,13 @@ export class LemonSqueezyTrigger implements INodeType {
               `/webhooks/${String(webhookData.webhookId)}`,
             );
             return true;
-          } catch {
-            // Webhook doesn't exist anymore
+          } catch (error) {
+            // Webhook doesn't exist anymore or API error occurred
+            // Log for debugging but don't fail - we'll recreate the webhook
+            // eslint-disable-next-line no-console
+            console.debug(
+              `Webhook ${String(webhookData.webhookId)} check failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            );
             delete webhookData.webhookId;
             return false;
           }
@@ -132,8 +138,13 @@ export class LemonSqueezyTrigger implements INodeType {
               return true;
             }
           }
-        } catch {
-          // Error checking webhooks, assume doesn't exist
+        } catch (error) {
+          // Error checking webhooks - log for debugging
+          // This could indicate API issues, but we'll try to create a new webhook
+          // eslint-disable-next-line no-console
+          console.debug(
+            `Error checking existing webhooks: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          );
         }
 
         return false;
@@ -189,8 +200,13 @@ export class LemonSqueezyTrigger implements INodeType {
               'DELETE',
               `/webhooks/${String(webhookData.webhookId)}`,
             );
-          } catch {
-            // Webhook might already be deleted
+          } catch (error) {
+            // Webhook might already be deleted or API error
+            // Log for debugging but don't fail - we're cleaning up anyway
+            // eslint-disable-next-line no-console
+            console.debug(
+              `Webhook ${String(webhookData.webhookId)} deletion failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            );
           }
 
           delete webhookData.webhookId;
@@ -205,36 +221,80 @@ export class LemonSqueezyTrigger implements INodeType {
     const options = this.getNodeParameter('options') as IDataObject;
     const webhookSecret = this.getNodeParameter('webhookSecret') as string;
 
-    // Verify signature if enabled
-    if (options.verifySignature !== false) {
-      const signature = this.getHeaderData()['x-signature'] as string | undefined;
+    // Always verify signature - this is a security requirement
+    const signature = this.getHeaderData()['x-signature'] as string | undefined;
 
-      if (!signature) {
-        return {
-          webhookResponse: {
-            status: 401,
-            body: { error: 'Missing signature header' },
-          },
-        };
-      }
+    if (!signature) {
+      return {
+        webhookResponse: {
+          status: 401,
+          body: { error: 'Missing signature header' },
+        },
+      };
+    }
 
-      const bodyData = this.getBodyData();
-      const rawBody = JSON.stringify(bodyData);
-      const isValid = verifyWebhookSignature(rawBody, signature, webhookSecret);
+    const bodyData = this.getBodyData();
+    const rawBody = JSON.stringify(bodyData);
+    const isValid = verifyWebhookSignature(rawBody, signature, webhookSecret);
 
-      if (!isValid) {
-        return {
-          webhookResponse: {
-            status: 401,
-            body: { error: 'Invalid signature' },
-          },
-        };
-      }
+    if (!isValid) {
+      return {
+        webhookResponse: {
+          status: 401,
+          body: { error: 'Invalid signature' },
+        },
+      };
     }
 
     const body = this.getBodyData();
     const meta = body.meta as IDataObject | undefined;
     const eventName = meta?.event_name as string | undefined;
+
+    // Replay attack protection: check event timestamp
+    const maxEventAgeMinutes =
+      typeof options.maxEventAgeMinutes === 'number' ? options.maxEventAgeMinutes : 5;
+
+    if (maxEventAgeMinutes > 0 && meta?.custom_data) {
+      const customData = meta.custom_data as IDataObject;
+      const eventTimestamp = customData.event_created_at as string | undefined;
+
+      if (eventTimestamp) {
+        const eventTime = new Date(eventTimestamp).getTime();
+        const now = Date.now();
+        const maxAgeMs = maxEventAgeMinutes * 60 * 1000;
+
+        if (now - eventTime > maxAgeMs) {
+          return {
+            webhookResponse: {
+              status: 400,
+              body: { error: 'Event too old - possible replay attack' },
+            },
+          };
+        }
+      }
+    }
+
+    // Also check the created_at field in the data payload if available
+    if (maxEventAgeMinutes > 0) {
+      const data = body.data as IDataObject | undefined;
+      const attributes = data?.attributes as IDataObject | undefined;
+      const createdAt = attributes?.created_at as string | undefined;
+
+      if (createdAt) {
+        const eventTime = new Date(createdAt).getTime();
+        const now = Date.now();
+        const maxAgeMs = maxEventAgeMinutes * 60 * 1000;
+
+        if (now - eventTime > maxAgeMs) {
+          return {
+            webhookResponse: {
+              status: 400,
+              body: { error: 'Event too old - possible replay attack' },
+            },
+          };
+        }
+      }
+    }
 
     // Check if we should process this event
     const subscribedEvents = this.getNodeParameter('events') as string[];

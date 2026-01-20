@@ -13,9 +13,11 @@ An [n8n](https://n8n.io/) community node for [Lemon Squeezy](https://lemonsqueez
 - **License Key Management** - Validate, activate, and deactivate license keys
 - **Checkout Links** - Create dynamic checkout URLs with custom options
 - **Rate Limiting** - Built-in retry logic with exponential backoff
-- **Input Validation** - Email, URL, and date format validation
+- **Input Validation** - RFC 5322 compliant email validation, secure URL validation (blocks internal networks)
 - **Detailed Error Messages** - Descriptive error messages with field-level details
 - **Type Safety** - Full TypeScript support with comprehensive type definitions
+- **Advanced Query Options** - Sorting and relationship expansion for "Get Many" operations
+- **Security Hardened** - Mandatory webhook signature verification with replay attack protection
 
 ## Installation
 
@@ -147,6 +149,57 @@ Most "Get Many" operations support filtering:
 | `licenseKeyId` | Filter by license key | License Key Instances |
 | `discountId` | Filter by discount | Discount Redemptions |
 
+## Advanced Options
+
+"Get Many" operations support advanced query options for sorting and including related resources.
+
+### Sorting
+
+Sort results by any of the following fields:
+
+| Sort Field | Description |
+|------------|-------------|
+| `created_at` | Sort by creation date |
+| `updated_at` | Sort by last update date |
+
+Choose ascending or descending order.
+
+### Relationship Expansion
+
+Include related resources in a single request to reduce API calls:
+
+| Resource | Available Relationships |
+|----------|------------------------|
+| **Order** | store, customer, order-items, subscriptions, license-keys, discount-redemptions |
+| **Subscription** | store, customer, order, order-item, product, variant |
+| **Customer** | store, orders, subscriptions, license-keys |
+| **License Key** | store, customer, order, order-item, product, license-key-instances |
+| **Product** | store, variants |
+| **Variant** | product, files |
+| **Checkout** | store, variant |
+| **Discount** | store, discount-redemptions |
+
+**Example:** When fetching orders, include `customer` and `order-items` to get all related data in one request.
+
+## Security
+
+### Webhook Security
+
+The webhook trigger includes built-in security features:
+
+- **Mandatory Signature Verification** - All webhooks are verified using HMAC-SHA256 signatures
+- **Replay Attack Protection** - Events older than the configured threshold (default: 5 minutes) are rejected
+- **Configurable Event Age** - Set `Max Event Age (Minutes)` option (0 to disable)
+
+### Input Validation
+
+- **Email Validation** - RFC 5322 compliant validation
+- **URL Validation** - Blocks internal/private network URLs to prevent SSRF attacks:
+  - localhost, 127.0.0.1, 0.0.0.0
+  - Private ranges: 10.x.x.x, 172.16-31.x.x, 192.168.x.x
+  - Link-local: 169.254.x.x (AWS metadata endpoint)
+  - Only allows http:// and https:// protocols
+
 ## Error Handling
 
 The node includes built-in error handling with detailed messages:
@@ -257,6 +310,21 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [n8n Community Forum](https://community.n8n.io/)
 
 ## Changelog
+
+### v0.5.0
+
+**Security & Stability Improvements:**
+- Mandatory webhook signature verification (removed option to disable)
+- Added replay attack protection with configurable event age threshold
+- Improved email validation using RFC 5322 compliant regex
+- Enhanced URL validation to block internal/private network URLs (SSRF protection)
+- Fixed silent error catching - all errors now logged for debugging
+- Added proper null checks and type safety for custom data handling
+
+**New Features:**
+- Added sorting support (created_at, updated_at) for "Get Many" operations
+- Added relationship expansion (include) for fetching related resources in single requests
+- Advanced options available for: Order, Subscription, Customer, License Key, Product, Variant, Checkout, Discount
 
 ### v0.4.0
 

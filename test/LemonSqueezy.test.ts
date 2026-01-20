@@ -715,12 +715,12 @@ describe('Validation Helpers', () => {
   });
 
   describe('isValidUrl', () => {
-    it('should return true for valid URLs', () => {
+    it('should return true for valid external URLs', () => {
       expect(isValidUrl('https://example.com')).toBe(true);
-      expect(isValidUrl('http://localhost:3000')).toBe(true);
       expect(isValidUrl('https://example.com/path?query=value')).toBe(true);
       expect(isValidUrl('https://sub.domain.example.com/path')).toBe(true);
-      expect(isValidUrl('ftp://files.example.com')).toBe(true);
+      expect(isValidUrl('http://example.com')).toBe(true);
+      expect(isValidUrl('https://api.lemonsqueezy.com/v1')).toBe(true);
     });
 
     it('should return false for invalid URLs', () => {
@@ -728,6 +728,22 @@ describe('Validation Helpers', () => {
       expect(isValidUrl('example.com')).toBe(false);
       expect(isValidUrl('')).toBe(false);
       expect(isValidUrl('://missing-protocol.com')).toBe(false);
+    });
+
+    it('should return false for non-http(s) protocols', () => {
+      expect(isValidUrl('ftp://files.example.com')).toBe(false);
+      expect(isValidUrl('file:///etc/passwd')).toBe(false);
+      expect(isValidUrl('javascript:alert(1)')).toBe(false);
+    });
+
+    it('should return false for internal/private network URLs (security)', () => {
+      expect(isValidUrl('http://localhost:3000')).toBe(false);
+      expect(isValidUrl('http://127.0.0.1:8080')).toBe(false);
+      expect(isValidUrl('http://0.0.0.0')).toBe(false);
+      expect(isValidUrl('http://192.168.1.1')).toBe(false);
+      expect(isValidUrl('http://10.0.0.1')).toBe(false);
+      expect(isValidUrl('http://172.16.0.1')).toBe(false);
+      expect(isValidUrl('http://169.254.169.254')).toBe(false); // AWS metadata
     });
   });
 
