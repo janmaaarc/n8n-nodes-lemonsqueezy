@@ -318,6 +318,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - Added replay attack protection with configurable event age threshold
 - Improved email validation using RFC 5322 compliant regex
 - Enhanced URL validation to block internal/private network URLs (SSRF protection)
+- IPv6 localhost blocking (`[::1]`) for complete SSRF protection
 - Fixed silent error catching - all errors now logged for debugging
 - Added proper null checks and type safety for custom data handling
 
@@ -325,6 +326,14 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - Added sorting support (created_at, updated_at) for "Get Many" operations
 - Added relationship expansion (include) for fetching related resources in single requests
 - Advanced options available for: Order, Subscription, Customer, License Key, Product, Variant, Checkout, Discount
+
+**Test Coverage:**
+- Expanded test suite from 132 to 176 tests (+33%)
+- Added tests for retry logic helpers (sleep, isRateLimitError, isRetryableError)
+- Added webhook signature edge case tests (unicode, long payloads, special characters)
+- Added shared resource options tests
+- Added input validation edge case tests
+- Overall coverage improved to 87%+ statements
 
 ### v0.4.0
 

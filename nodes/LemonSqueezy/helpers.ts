@@ -51,6 +51,7 @@ export function isValidUrl(url: string): boolean {
       '127.0.0.1',
       '0.0.0.0',
       '::1',
+      '[::1]',
       '10.',
       '172.16.',
       '172.17.',
@@ -157,14 +158,14 @@ export function safeJsonParse<T = unknown>(jsonString: string, fieldName: string
 /**
  * Sleep for a specified number of milliseconds
  */
-function sleep(ms: number): Promise<void> {
+export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
  * Check if error is a rate limit error
  */
-function isRateLimitError(error: unknown): boolean {
+export function isRateLimitError(error: unknown): boolean {
   if (error && typeof error === 'object') {
     const err = error as { statusCode?: number; response?: { statusCode?: number } };
     return err.statusCode === 429 || err.response?.statusCode === 429;
@@ -175,7 +176,7 @@ function isRateLimitError(error: unknown): boolean {
 /**
  * Check if error is retryable (5xx errors or network errors)
  */
-function isRetryableError(error: unknown): boolean {
+export function isRetryableError(error: unknown): boolean {
   if (error && typeof error === 'object') {
     const err = error as { statusCode?: number; response?: { statusCode?: number }; code?: string };
     const statusCode = err.statusCode || err.response?.statusCode;

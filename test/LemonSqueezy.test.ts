@@ -15,6 +15,9 @@ import {
   buildAdvancedFilterParams,
   extractResponseData,
   extractIncludedResources,
+  sleep,
+  isRateLimitError,
+  isRetryableError,
 } from '../nodes/LemonSqueezy/helpers';
 import {
   RESOURCE_ENDPOINTS,
@@ -1064,5 +1067,326 @@ describe('Resource Exports', () => {
     expect(values).toContain('subscription');
     expect(values).toContain('customer');
     expect(values).toContain('user');
+  });
+});
+
+// ============================================================================
+// Retry Logic & Error Detection Tests
+// ============================================================================
+
+describe('Retry Logic Helpers', () => {
+  describe('sleep', () => {
+    it('should resolve after specified time', async () => {
+      const start = Date.now();
+      await sleep(50);
+      const elapsed = Date.now() - start;
+      expect(elapsed).toBeGreaterThanOrEqual(45); // Allow small timing variance
+      expect(elapsed).toBeLessThan(150);
+    });
+
+    it('should resolve immediately for 0ms', async () => {
+      const start = Date.now();
+      await sleep(0);
+      const elapsed = Date.now() - start;
+      expect(elapsed).toBeLessThan(50);
+    });
+  });
+
+  describe('isRateLimitError', () => {
+    it('should return true for 429 statusCode', () => {
+      expect(isRateLimitError({ statusCode: 429 })).toBe(true);
+    });
+
+    it('should return true for 429 in response.statusCode', () => {
+      expect(isRateLimitError({ response: { statusCode: 429 } })).toBe(true);
+    });
+
+    it('should return false for other status codes', () => {
+      expect(isRateLimitError({ statusCode: 400 })).toBe(false);
+      expect(isRateLimitError({ statusCode: 401 })).toBe(false);
+      expect(isRateLimitError({ statusCode: 404 })).toBe(false);
+      expect(isRateLimitError({ statusCode: 500 })).toBe(false);
+    });
+
+    it('should return false for null/undefined', () => {
+      expect(isRateLimitError(null)).toBe(false);
+      expect(isRateLimitError(undefined)).toBe(false);
+    });
+
+    it('should return false for non-object values', () => {
+      expect(isRateLimitError('error')).toBe(false);
+      expect(isRateLimitError(429)).toBe(false);
+      expect(isRateLimitError(true)).toBe(false);
+    });
+
+    it('should return false for empty object', () => {
+      expect(isRateLimitError({})).toBe(false);
+    });
+  });
+
+  describe('isRetryableError', () => {
+    it('should return true for 5xx status codes', () => {
+      expect(isRetryableError({ statusCode: 500 })).toBe(true);
+      expect(isRetryableError({ statusCode: 502 })).toBe(true);
+      expect(isRetryableError({ statusCode: 503 })).toBe(true);
+      expect(isRetryableError({ statusCode: 504 })).toBe(true);
+      expect(isRetryableError({ statusCode: 599 })).toBe(true);
+    });
+
+    it('should return true for 5xx in response.statusCode', () => {
+      expect(isRetryableError({ response: { statusCode: 500 } })).toBe(true);
+      expect(isRetryableError({ response: { statusCode: 503 } })).toBe(true);
+    });
+
+    it('should return true for network error codes', () => {
+      expect(isRetryableError({ code: 'ECONNRESET' })).toBe(true);
+      expect(isRetryableError({ code: 'ETIMEDOUT' })).toBe(true);
+      expect(isRetryableError({ code: 'ECONNREFUSED' })).toBe(true);
+    });
+
+    it('should return false for 4xx status codes', () => {
+      expect(isRetryableError({ statusCode: 400 })).toBe(false);
+      expect(isRetryableError({ statusCode: 401 })).toBe(false);
+      expect(isRetryableError({ statusCode: 403 })).toBe(false);
+      expect(isRetryableError({ statusCode: 404 })).toBe(false);
+      expect(isRetryableError({ statusCode: 422 })).toBe(false);
+      expect(isRetryableError({ statusCode: 429 })).toBe(false);
+    });
+
+    it('should return false for other error codes', () => {
+      expect(isRetryableError({ code: 'ENOTFOUND' })).toBe(false);
+      expect(isRetryableError({ code: 'ENOENT' })).toBe(false);
+    });
+
+    it('should return false for null/undefined', () => {
+      expect(isRetryableError(null)).toBe(false);
+      expect(isRetryableError(undefined)).toBe(false);
+    });
+
+    it('should return false for non-object values', () => {
+      expect(isRetryableError('error')).toBe(false);
+      expect(isRetryableError(500)).toBe(false);
+    });
+
+    it('should return false for empty object', () => {
+      expect(isRetryableError({})).toBe(false);
+    });
+
+    it('should return false for status code 600 (not 5xx)', () => {
+      expect(isRetryableError({ statusCode: 600 })).toBe(false);
+    });
+
+    it('should return false for status code 499 (not 5xx)', () => {
+      expect(isRetryableError({ statusCode: 499 })).toBe(false);
+    });
+  });
+});
+
+// ============================================================================
+// Webhook Signature Edge Cases
+// ============================================================================
+
+describe('Webhook Signature Edge Cases', () => {
+  it('should handle unicode characters in payload', () => {
+    const payload = '{"name":"日本語テスト","emoji":"🎉"}';
+    const secret = 'test-secret';
+    const signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+    expect(verifyWebhookSignature(payload, signature, secret)).toBe(true);
+  });
+
+  it('should handle very long payloads', () => {
+    const payload = JSON.stringify({ data: 'x'.repeat(10000) });
+    const secret = 'test-secret';
+    const signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+    expect(verifyWebhookSignature(payload, signature, secret)).toBe(true);
+  });
+
+  it('should handle special characters in secret', () => {
+    const payload = '{"test":"data"}';
+    const secret = 'secret!@#$%^&*()_+-=[]{}|;:,.<>?';
+    const signature = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+    expect(verifyWebhookSignature(payload, signature, secret)).toBe(true);
+  });
+
+  it('should return false for tampered payload', () => {
+    const originalPayload = '{"amount":100}';
+    const tamperedPayload = '{"amount":999}';
+    const secret = 'test-secret';
+    const signature = crypto.createHmac('sha256', secret).update(originalPayload).digest('hex');
+    expect(verifyWebhookSignature(tamperedPayload, signature, secret)).toBe(false);
+  });
+
+  it('should return false for empty signature', () => {
+    const payload = '{"test":"data"}';
+    const secret = 'test-secret';
+    expect(verifyWebhookSignature(payload, '', secret)).toBe(false);
+  });
+});
+
+// ============================================================================
+// Shared Resource Options Tests
+// ============================================================================
+
+describe('Shared Resource Options', () => {
+  it('should export advanced options for resources', async () => {
+    const shared = await import('../nodes/LemonSqueezy/resources/shared');
+    expect(shared.orderAdvancedOptions).toBeDefined();
+    expect(shared.subscriptionAdvancedOptions).toBeDefined();
+    expect(shared.customerAdvancedOptions).toBeDefined();
+    expect(shared.licenseKeyAdvancedOptions).toBeDefined();
+    expect(shared.productAdvancedOptions).toBeDefined();
+    expect(shared.variantAdvancedOptions).toBeDefined();
+    expect(shared.checkoutAdvancedOptions).toBeDefined();
+    expect(shared.discountAdvancedOptions).toBeDefined();
+  });
+
+  it('should have sort fields in advanced options', async () => {
+    const shared = await import('../nodes/LemonSqueezy/resources/shared');
+    expect(shared.COMMON_SORT_FIELDS).toContainEqual({ name: 'Created At', value: 'created_at' });
+    expect(shared.COMMON_SORT_FIELDS).toContainEqual({ name: 'Updated At', value: 'updated_at' });
+  });
+
+  it('should have sort direction options', async () => {
+    const shared = await import('../nodes/LemonSqueezy/resources/shared');
+    expect(shared.SORT_DIRECTIONS).toContainEqual({ name: 'Ascending', value: 'asc' });
+    expect(shared.SORT_DIRECTIONS).toContainEqual({ name: 'Descending', value: 'desc' });
+  });
+
+  it('should have resource-specific includes', async () => {
+    const shared = await import('../nodes/LemonSqueezy/resources/shared');
+    expect(shared.RESOURCE_INCLUDES.order).toBeDefined();
+    expect(shared.RESOURCE_INCLUDES.order.length).toBeGreaterThan(0);
+    expect(shared.RESOURCE_INCLUDES.subscription).toBeDefined();
+    expect(shared.RESOURCE_INCLUDES.customer).toBeDefined();
+  });
+
+  it('should create advanced options field with correct structure', async () => {
+    const shared = await import('../nodes/LemonSqueezy/resources/shared');
+    const field = shared.createAdvancedOptionsField('order');
+    expect(field.displayName).toBe('Advanced Options');
+    expect(field.name).toBe('advancedOptions');
+    expect(field.type).toBe('collection');
+    expect(field.displayOptions?.show?.resource).toContain('order');
+  });
+});
+
+// ============================================================================
+// Input Validation Edge Cases
+// ============================================================================
+
+describe('Input Validation Edge Cases', () => {
+  describe('Email validation edge cases', () => {
+    it('should accept valid complex emails', () => {
+      expect(isValidEmail('user.name+tag@example.co.uk')).toBe(true);
+      expect(isValidEmail('user123@sub.domain.example.com')).toBe(true);
+      expect(isValidEmail("user!#$%&'*+/=?^_`{|}~-@example.com")).toBe(true);
+    });
+
+    it('should reject emails without proper TLD', () => {
+      expect(isValidEmail('user@localhost')).toBe(false);
+      expect(isValidEmail('user@domain')).toBe(false);
+    });
+  });
+
+  describe('URL validation edge cases', () => {
+    it('should accept URLs with ports', () => {
+      expect(isValidUrl('https://example.com:8080')).toBe(true);
+      expect(isValidUrl('https://example.com:443/path')).toBe(true);
+    });
+
+    it('should accept URLs with query strings and fragments', () => {
+      expect(isValidUrl('https://example.com/path?query=value&other=123')).toBe(true);
+      expect(isValidUrl('https://example.com/path#section')).toBe(true);
+    });
+
+    it('should block all private IPv4 ranges', () => {
+      // 10.0.0.0/8
+      expect(isValidUrl('http://10.255.255.255')).toBe(false);
+      // 172.16.0.0/12
+      expect(isValidUrl('http://172.31.255.255')).toBe(false);
+      // 192.168.0.0/16
+      expect(isValidUrl('http://192.168.255.255')).toBe(false);
+    });
+
+    it('should block IPv6 localhost', () => {
+      expect(isValidUrl('http://[::1]')).toBe(false);
+    });
+  });
+
+  describe('ISO date validation edge cases', () => {
+    it('should accept various ISO 8601 formats', () => {
+      expect(isValidIsoDate('2024-01-15')).toBe(true);
+      expect(isValidIsoDate('2024-01-15T10:30:00Z')).toBe(true);
+      expect(isValidIsoDate('2024-01-15T10:30:00.123Z')).toBe(true);
+      expect(isValidIsoDate('2024-01-15T10:30:00+05:30')).toBe(true);
+    });
+
+    it('should reject invalid date formats', () => {
+      expect(isValidIsoDate('15-01-2024')).toBe(false);
+      expect(isValidIsoDate('2024/01/15')).toBe(false);
+      expect(isValidIsoDate('Jan 15, 2024')).toBe(false);
+    });
+  });
+});
+
+// ============================================================================
+// Node Description Detailed Tests
+// ============================================================================
+
+describe('Node Description Details', () => {
+  describe('LemonSqueezy Node Operations', () => {
+    const node = new LemonSqueezy();
+
+    it('should have operations for each resource', () => {
+      const props = node.description.properties;
+      const operationProps = props.filter((p) => p.name === 'operation');
+      expect(operationProps.length).toBeGreaterThan(0);
+    });
+
+    it('should have filters for getAll operations', () => {
+      const props = node.description.properties;
+      const filterProps = props.filter((p) => p.name === 'filters');
+      expect(filterProps.length).toBeGreaterThan(0);
+    });
+
+    it('should have returnAll and limit options', () => {
+      const props = node.description.properties;
+      const returnAllProps = props.filter((p) => p.name === 'returnAll');
+      const limitProps = props.filter((p) => p.name === 'limit');
+      expect(returnAllProps.length).toBeGreaterThan(0);
+      expect(limitProps.length).toBeGreaterThan(0);
+    });
+
+    it('should have advancedOptions for supported resources', () => {
+      const props = node.description.properties;
+      const advancedProps = props.filter((p) => p.name === 'advancedOptions');
+      expect(advancedProps.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('LemonSqueezyTrigger Node Details', () => {
+    const triggerNode = new LemonSqueezyTrigger();
+
+    it('should have storeId as required field', () => {
+      const storeIdProp = triggerNode.description.properties.find((p) => p.name === 'storeId');
+      expect(storeIdProp?.required).toBe(true);
+    });
+
+    it('should have webhookSecret as required field', () => {
+      const secretProp = triggerNode.description.properties.find((p) => p.name === 'webhookSecret');
+      expect(secretProp?.required).toBe(true);
+      expect(secretProp?.typeOptions?.password).toBe(true);
+    });
+
+    it('should have maxEventAgeMinutes in options', () => {
+      const optionsProp = triggerNode.description.properties.find((p) => p.name === 'options');
+      const options = optionsProp?.options as Array<{ name: string }> | undefined;
+      const maxAgeOption = options?.find((o) => o.name === 'maxEventAgeMinutes');
+      expect(maxAgeOption).toBeDefined();
+    });
+
+    it('should have correct webhook response mode', () => {
+      expect(triggerNode.description.webhooks?.[0].responseMode).toBe('onReceived');
+    });
   });
 });
