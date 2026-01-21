@@ -21,11 +21,7 @@ import type {
   JsonObject,
 } from 'n8n-workflow';
 import { NodeApiError } from 'n8n-workflow';
-import {
-  API_BASE_URL,
-  DEFAULT_PAGE_SIZE,
-  DEFAULT_REQUEST_TIMEOUT_MS,
-} from './constants';
+import { API_BASE_URL, DEFAULT_PAGE_SIZE, DEFAULT_REQUEST_TIMEOUT_MS } from './constants';
 import type { LemonSqueezyResponse, PaginationOptions } from './types';
 
 // ============================================================================
