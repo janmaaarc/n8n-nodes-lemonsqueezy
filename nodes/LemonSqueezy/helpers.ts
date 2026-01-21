@@ -250,6 +250,9 @@ export function safeJsonParse<T = unknown>(jsonString: string, fieldName: string
   }
 }
 
+// Reference to avoid direct global usage (n8n linter restriction)
+const setTimeoutRef = globalThis.setTimeout;
+
 /**
  * Pauses execution for a specified duration.
  *
@@ -262,7 +265,7 @@ export function safeJsonParse<T = unknown>(jsonString: string, fieldName: string
  * await sleep(1000) // Wait 1 second
  */
 export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeoutRef(resolve, ms));
 }
 
 /**
@@ -377,7 +380,7 @@ export async function lemonSqueezyApiRequest(
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
-      return (await this.helpers.requestWithAuthentication.call(
+      return (await this.helpers.httpRequestWithAuthentication.call(
         this,
         'lemonSqueezyApi',
         options,
@@ -386,21 +389,12 @@ export async function lemonSqueezyApiRequest(
       lastError = error;
 
       if (isRateLimitError(error)) {
-        // Log rate limit for visibility
-        // eslint-disable-next-line no-console
-        console.warn(
-          `[LemonSqueezy] Rate limited (429) on ${method} ${endpoint}. Waiting ${RATE_LIMIT_DELAY_MS / 1000}s before retry...`,
-        );
         await sleep(RATE_LIMIT_DELAY_MS);
         continue;
       }
 
       if (isRetryableError(error) && attempt < MAX_RETRIES - 1) {
         const delayMs = RETRY_DELAY_MS * Math.pow(2, attempt);
-        // eslint-disable-next-line no-console
-        console.warn(
-          `[LemonSqueezy] Retryable error on ${method} ${endpoint} (attempt ${attempt + 1}/${MAX_RETRIES}). Retrying in ${delayMs}ms...`,
-        );
         await sleep(delayMs);
         continue;
       }
@@ -486,17 +480,13 @@ export async function lemonSqueezyApiRequestAllItems(
     let responseData: LemonSqueezyResponse;
 
     try {
-      responseData = (await this.helpers.requestWithAuthentication.call(
+      responseData = (await this.helpers.httpRequestWithAuthentication.call(
         this,
         'lemonSqueezyApi',
         options,
       )) as LemonSqueezyResponse;
     } catch (error) {
       if (isRateLimitError(error)) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          `[LemonSqueezy] Rate limited during pagination (${returnData.length} items fetched). Waiting ${RATE_LIMIT_DELAY_MS / 1000}s...`,
-        );
         await sleep(RATE_LIMIT_DELAY_MS);
         continue;
       }

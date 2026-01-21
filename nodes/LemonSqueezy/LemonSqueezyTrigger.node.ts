@@ -98,15 +98,6 @@ export class LemonSqueezyTrigger implements INodeType {
         const storeId = this.getNodeParameter('storeId') as string;
         const webhookData = this.getWorkflowStaticData('node');
 
-        // Helper to check if error is a 404 (webhook not found)
-        const isNotFoundError = (error: unknown): boolean => {
-          if (error && typeof error === 'object') {
-            const err = error as { statusCode?: number; httpCode?: number; code?: number };
-            return err.statusCode === 404 || err.httpCode === 404 || err.code === 404;
-          }
-          return false;
-        };
-
         // Check if we have stored webhook data
         if (webhookData.webhookId) {
           try {
@@ -118,20 +109,9 @@ export class LemonSqueezyTrigger implements INodeType {
             );
             return true;
           } catch (error) {
-            const webhookId = String(webhookData.webhookId);
-
-            if (isNotFoundError(error)) {
-              // Webhook was deleted externally - this is expected, recreate it
-              // eslint-disable-next-line no-console
-              console.log(`[LemonSqueezy] Webhook ${webhookId} not found (404) - will recreate`);
-            } else {
-              // Unexpected error - could be auth, network, or server issue
-              // eslint-disable-next-line no-console
-              console.warn(
-                `[LemonSqueezy] Webhook ${webhookId} check failed with unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}. Will attempt to recreate.`,
-              );
-            }
-
+            // Webhook not found or error occurred - will recreate
+            // Silently handle both 404 (deleted externally) and other errors
+            void error; // Acknowledge error without logging
             delete webhookData.webhookId;
             return false;
           }
@@ -152,19 +132,11 @@ export class LemonSqueezyTrigger implements INodeType {
 
             if (existingWebhook) {
               webhookData.webhookId = existingWebhook.id;
-              // eslint-disable-next-line no-console
-              console.log(
-                `[LemonSqueezy] Found existing webhook ${String(existingWebhook.id)} for URL ${webhookUrl}`,
-              );
               return true;
             }
           }
-        } catch (error) {
-          // Error checking webhooks - this is more serious as it could indicate API/auth issues
-          // eslint-disable-next-line no-console
-          console.error(
-            `[LemonSqueezy] Error checking existing webhooks for store ${storeId}: ${error instanceof Error ? error.message : 'Unknown error'}. Will attempt to create new webhook.`,
-          );
+        } catch {
+          // Error checking webhooks - will attempt to create new webhook
         }
 
         return false;
@@ -205,8 +177,6 @@ export class LemonSqueezyTrigger implements INodeType {
           const data = responseData.data as IDataObject | undefined;
           if (data?.id) {
             webhookData.webhookId = data.id;
-            // eslint-disable-next-line no-console
-            console.log(`[LemonSqueezy] Webhook ${String(data.id)} created successfully`);
             return true;
           }
         } catch (error) {
@@ -219,11 +189,6 @@ export class LemonSqueezyTrigger implements INodeType {
               (error as { statusCode?: number }).statusCode === 422);
 
           if (isConflictOrDuplicate) {
-            // eslint-disable-next-line no-console
-            console.log(
-              `[LemonSqueezy] Webhook creation conflict - checking for existing webhook with URL ${webhookUrl}`,
-            );
-
             // Try to find the existing webhook
             try {
               const existingResponse = await lemonSqueezyApiRequest.call(
@@ -241,18 +206,11 @@ export class LemonSqueezyTrigger implements INodeType {
                 );
                 if (existingWebhook?.id) {
                   webhookData.webhookId = existingWebhook.id;
-                  // eslint-disable-next-line no-console
-                  console.log(
-                    `[LemonSqueezy] Found existing webhook ${String(existingWebhook.id)} after conflict`,
-                  );
                   return true;
                 }
               }
-            } catch (fetchError) {
-              // eslint-disable-next-line no-console
-              console.error(
-                `[LemonSqueezy] Failed to fetch existing webhook after conflict: ${fetchError instanceof Error ? fetchError.message : 'Unknown error'}`,
-              );
+            } catch {
+              // Failed to fetch existing webhook after conflict - will re-throw original error
             }
           }
 
@@ -271,27 +229,8 @@ export class LemonSqueezyTrigger implements INodeType {
 
           try {
             await lemonSqueezyApiRequest.call(this, 'DELETE', `/webhooks/${webhookId}`);
-            // eslint-disable-next-line no-console
-            console.log(`[LemonSqueezy] Webhook ${webhookId} deleted successfully`);
-          } catch (error) {
-            // Check if it's a 404 (already deleted) vs other errors
-            const is404 =
-              error &&
-              typeof error === 'object' &&
-              ((error as { statusCode?: number }).statusCode === 404 ||
-                (error as { httpCode?: number }).httpCode === 404);
-
-            if (is404) {
-              // Webhook was already deleted - this is fine
-              // eslint-disable-next-line no-console
-              console.log(`[LemonSqueezy] Webhook ${webhookId} already deleted (404)`);
-            } else {
-              // Unexpected error during deletion - log as warning
-              // eslint-disable-next-line no-console
-              console.warn(
-                `[LemonSqueezy] Webhook ${webhookId} deletion failed: ${error instanceof Error ? error.message : 'Unknown error'}. Continuing cleanup.`,
-              );
-            }
+          } catch {
+            // Silently handle deletion errors (404 = already deleted, others = continue cleanup)
           }
 
           delete webhookData.webhookId;
@@ -385,11 +324,6 @@ export class LemonSqueezyTrigger implements INodeType {
     const subscribedEvents = this.getNodeParameter('events') as string[];
     if (!eventName || !subscribedEvents.includes(eventName)) {
       // Event not subscribed, acknowledge but don't trigger workflow
-      // Log for debugging - helps identify misconfigured webhooks
-      // eslint-disable-next-line no-console
-      console.log(
-        `[LemonSqueezy] Received event '${eventName || 'unknown'}' but not in subscribed events [${subscribedEvents.join(', ')}]. Acknowledged but not processed.`,
-      );
       return {
         webhookResponse: {
           status: 200,
