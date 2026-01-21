@@ -311,6 +311,13 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Changelog
 
+### v0.7.1
+
+**n8n Community Package Compliance:**
+- Resolved all n8n community package scanner ESLint violations
+- Replaced deprecated `requestWithAuthentication` with `httpRequestWithAuthentication`
+- Fixed restricted `setTimeout` global usage
+
 ### v0.7.0
 
 **New Features:**
@@ -330,10 +337,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 **Reliability & Error Handling:**
 - Improved webhook management error handling with proper 404 vs other error distinction
-- Added detailed logging for webhook lifecycle (create, check, delete operations)
-- Added logging for filtered/unsubscribed webhook events to aid debugging
-- Added rate limit visibility logging with wait time information
-- Added retry attempt logging with exponential backoff details
 
 **Input Validation:**
 - Added pre-API validation for email fields (customer create/update, checkout)
@@ -357,7 +360,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - Improved email validation using RFC 5322 compliant regex
 - Enhanced URL validation to block internal/private network URLs (SSRF protection)
 - IPv6 localhost blocking (`[::1]`) for complete SSRF protection
-- Fixed silent error catching - all errors now logged for debugging
+- Improved error handling with proper error propagation
 - Added proper null checks and type safety for custom data handling
 
 **New Features:**

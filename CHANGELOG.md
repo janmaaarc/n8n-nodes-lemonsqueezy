@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1] - 2025-01-21
+
+### Fixed
+- **n8n community package scanner compliance** - Resolved all ESLint violations:
+  - Removed console.log/warn/error statements (n8n requirement)
+  - Replaced deprecated `requestWithAuthentication` with `httpRequestWithAuthentication`
+  - Fixed restricted `setTimeout` global usage
+
+### Changed
+- Webhook lifecycle errors now handled silently (compliant with n8n community package requirements)
+- Rate limiting and retry logic now operate without console output
+
 ## [0.7.0] - 2025-01-20
 
 ### Added
@@ -24,10 +36,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Improved webhook management error handling with proper 404 vs other error distinction
-- Detailed logging for webhook lifecycle (create, check, delete operations)
-- Logging for filtered/unsubscribed webhook events to aid debugging
-- Rate limit visibility logging with wait time information
-- Retry attempt logging with exponential backoff details
 - Pre-API validation for email fields (customer create/update, checkout)
 - Pre-API validation for URL fields (webhook URL, redirect URLs, receipt link URLs)
 - Webhook secret minimum length validation (16 characters) for security
@@ -55,7 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved email validation using RFC 5322 compliant regex
 - Enhanced URL validation to block internal/private network URLs (SSRF protection)
 - IPv6 localhost blocking for complete SSRF protection
-- Fixed silent error catching - all errors now logged
+- Improved error handling with proper error propagation
 
 ### Security
 - Removed option to disable webhook signature verification

@@ -76,6 +76,10 @@ This node implements several security measures:
 
 ## Security Changelog
 
+### v0.7.1
+- Updated to use `httpRequestWithAuthentication` (n8n recommended auth method)
+- Removed console output for improved security (no sensitive data in logs)
+
 ### v0.7.0
 - Increased webhook secret minimum length from 16 to 32 characters
 - Added webhook creation deduplication to prevent race conditions
@@ -90,7 +94,7 @@ This node implements several security measures:
 - Added replay attack protection with configurable event age
 - Enhanced URL validation to block private networks
 - Added IPv6 localhost blocking
-- Fixed silent error catching
+- Improved error propagation
 
 ### v0.4.0
 - Added comprehensive input validation
