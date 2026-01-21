@@ -303,7 +303,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Changelog
 
-### v0.7.1
+### v0.7.2
 
 **n8n Community Package Compliance:**
 - Resolved all n8n community package scanner ESLint violations
