@@ -79,6 +79,7 @@ This node implements several security measures:
 ### v0.7.1
 - Updated to use `httpRequestWithAuthentication` (n8n recommended auth method)
 - Removed console output for improved security (no sensitive data in logs)
+- Removed manual delay mechanisms (compliant with n8n restricted globals policy)
 
 ### v0.7.0
 - Increased webhook secret minimum length from 16 to 32 characters

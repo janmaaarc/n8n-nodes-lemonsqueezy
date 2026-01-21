@@ -204,10 +204,9 @@ The webhook trigger includes built-in security features:
 
 The node includes built-in error handling with detailed messages:
 
-- **Rate Limiting**: Automatically waits and retries when rate limited (429 errors)
-- **Retry Logic**: Retries failed requests with exponential backoff for 5xx errors
 - **Continue on Fail**: Enable to process remaining items even if some fail
 - **Detailed Errors**: Field-level error details for validation failures
+- **Workflow Retry**: Use n8n's built-in workflow error handling for retry logic
 
 ### Error Code Reference
 
@@ -245,20 +244,13 @@ The node includes built-in error handling with detailed messages:
 
 ### Rate Limiting Issues
 
-The node handles rate limiting automatically with the following defaults:
+If you encounter rate limiting (429 errors):
 
-| Setting | Value | Description |
-|---------|-------|-------------|
-| Max Retries | 3 | Maximum retry attempts for failed requests |
-| Retry Delay | 1 second | Initial delay between retries (exponential backoff) |
-| Rate Limit Wait | 60 seconds | Wait time when rate limited (429 response) |
-
-If you're hitting rate limits frequently:
-
-1. Reduce the frequency of API calls
-2. Use "Return All" sparingly for large datasets
-3. Consider caching responses where appropriate
-4. Space out bulk operations with delays
+1. Configure n8n's workflow error handling to retry on failure
+2. Reduce the frequency of API calls
+3. Use "Return All" sparingly for large datasets
+4. Consider caching responses where appropriate
+5. Space out bulk operations using the Wait node
 
 ### Validation Errors
 
@@ -316,7 +308,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 **n8n Community Package Compliance:**
 - Resolved all n8n community package scanner ESLint violations
 - Replaced deprecated `requestWithAuthentication` with `httpRequestWithAuthentication`
-- Fixed restricted `setTimeout` global usage
+- Removed restricted globals (use n8n's built-in workflow retry for error handling)
 
 ### v0.7.0
 

@@ -11,11 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **n8n community package scanner compliance** - Resolved all ESLint violations:
   - Removed console.log/warn/error statements (n8n requirement)
   - Replaced deprecated `requestWithAuthentication` with `httpRequestWithAuthentication`
-  - Fixed restricted `setTimeout` global usage
+  - Removed restricted globals (`setTimeout`, `globalThis`)
 
 ### Changed
 - Webhook lifecycle errors now handled silently (compliant with n8n community package requirements)
-- Rate limiting and retry logic now operate without console output
+- Removed manual retry logic with delays (use n8n's built-in error handling and workflow retry instead)
+- API requests now use simplified single-attempt pattern
 
 ## [0.7.0] - 2025-01-20
 

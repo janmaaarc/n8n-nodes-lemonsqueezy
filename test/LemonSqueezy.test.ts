@@ -15,7 +15,6 @@ import {
   buildAdvancedFilterParams,
   extractResponseData,
   extractIncludedResources,
-  sleep,
   isRateLimitError,
   isRetryableError,
 } from '../nodes/LemonSqueezy/helpers';
@@ -30,9 +29,6 @@ import {
   DISCOUNT_AMOUNT_TYPES,
   PAUSE_MODES,
   DEFAULT_PAGE_SIZE,
-  MAX_RETRIES,
-  RETRY_DELAY_MS,
-  RATE_LIMIT_DELAY_MS,
   LICENSE_KEY_STATUSES,
   DISCOUNT_DURATION_TYPES,
   PRODUCT_STATUSES,
@@ -241,18 +237,6 @@ describe('Constants', () => {
 
     it('should have default page size of 100', () => {
       expect(DEFAULT_PAGE_SIZE).toBe(100);
-    });
-
-    it('should have max retries of 3', () => {
-      expect(MAX_RETRIES).toBe(3);
-    });
-
-    it('should have retry delay of 1000ms', () => {
-      expect(RETRY_DELAY_MS).toBe(1000);
-    });
-
-    it('should have rate limit delay of 60000ms', () => {
-      expect(RATE_LIMIT_DELAY_MS).toBe(60000);
     });
   });
 
@@ -1075,23 +1059,6 @@ describe('Resource Exports', () => {
 // ============================================================================
 
 describe('Retry Logic Helpers', () => {
-  describe('sleep', () => {
-    it('should resolve after specified time', async () => {
-      const start = Date.now();
-      await sleep(50);
-      const elapsed = Date.now() - start;
-      expect(elapsed).toBeGreaterThanOrEqual(45); // Allow small timing variance
-      expect(elapsed).toBeLessThan(150);
-    });
-
-    it('should resolve immediately for 0ms', async () => {
-      const start = Date.now();
-      await sleep(0);
-      const elapsed = Date.now() - start;
-      expect(elapsed).toBeLessThan(50);
-    });
-  });
-
   describe('isRateLimitError', () => {
     it('should return true for 429 statusCode', () => {
       expect(isRateLimitError({ statusCode: 429 })).toBe(true);

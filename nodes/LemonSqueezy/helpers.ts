@@ -24,9 +24,6 @@ import { NodeApiError } from 'n8n-workflow';
 import {
   API_BASE_URL,
   DEFAULT_PAGE_SIZE,
-  MAX_RETRIES,
-  RETRY_DELAY_MS,
-  RATE_LIMIT_DELAY_MS,
   DEFAULT_REQUEST_TIMEOUT_MS,
 } from './constants';
 import type { LemonSqueezyResponse, PaginationOptions } from './types';
@@ -250,24 +247,6 @@ export function safeJsonParse<T = unknown>(jsonString: string, fieldName: string
   }
 }
 
-// Reference to avoid direct global usage (n8n linter restriction)
-const setTimeoutRef = globalThis.setTimeout;
-
-/**
- * Pauses execution for a specified duration.
- *
- * Used for implementing retry delays and rate limit backoff.
- *
- * @param ms - The number of milliseconds to sleep
- * @returns A promise that resolves after the specified duration
- *
- * @example
- * await sleep(1000) // Wait 1 second
- */
-export function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeoutRef(resolve, ms));
-}
-
 /**
  * Checks if an error is a rate limit error (HTTP 429).
  *
@@ -376,40 +355,17 @@ export async function lemonSqueezyApiRequest(
     options.body = body;
   }
 
-  let lastError: unknown;
-
-  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    try {
-      return (await this.helpers.httpRequestWithAuthentication.call(
-        this,
-        'lemonSqueezyApi',
-        options,
-      )) as IDataObject;
-    } catch (error) {
-      lastError = error;
-
-      if (isRateLimitError(error)) {
-        await sleep(RATE_LIMIT_DELAY_MS);
-        continue;
-      }
-
-      if (isRetryableError(error) && attempt < MAX_RETRIES - 1) {
-        const delayMs = RETRY_DELAY_MS * Math.pow(2, attempt);
-        await sleep(delayMs);
-        continue;
-      }
-
-      // Non-retryable error, throw immediately
-      throw new NodeApiError(this.getNode(), error as JsonObject, {
-        message: getErrorMessage(error),
-      });
-    }
+  try {
+    return (await this.helpers.httpRequestWithAuthentication.call(
+      this,
+      'lemonSqueezyApi',
+      options,
+    )) as IDataObject;
+  } catch (error) {
+    throw new NodeApiError(this.getNode(), error as JsonObject, {
+      message: getErrorMessage(error),
+    });
   }
-
-  // All retries exhausted
-  throw new NodeApiError(this.getNode(), lastError as JsonObject, {
-    message: getErrorMessage(lastError),
-  });
 }
 
 /**
@@ -486,10 +442,6 @@ export async function lemonSqueezyApiRequestAllItems(
         options,
       )) as LemonSqueezyResponse;
     } catch (error) {
-      if (isRateLimitError(error)) {
-        await sleep(RATE_LIMIT_DELAY_MS);
-        continue;
-      }
       throw new NodeApiError(this.getNode(), error as JsonObject, {
         message: getErrorMessage(error),
       });
