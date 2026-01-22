@@ -52,7 +52,8 @@ export const customerFields: INodeProperties[] = [
     type: 'string',
     required: true,
     default: '',
-    description: 'The ID of the customer',
+    placeholder: 'e.g., 12345',
+    description: 'The ID of the customer (numeric string)',
     displayOptions: {
       show: { resource: ['customer'], operation: ['get', 'update', 'delete'] },
     },
@@ -64,7 +65,9 @@ export const customerFields: INodeProperties[] = [
     type: 'string',
     required: true,
     default: '',
-    description: 'The ID of the store this customer belongs to',
+    placeholder: 'e.g., 12345',
+    description:
+      'The ID of the store this customer belongs to. Find this in your <a href="https://app.lemonsqueezy.com/settings/stores" target="_blank">Lemon Squeezy Dashboard</a>.',
     displayOptions: {
       show: { resource: ['customer'], operation: ['create'] },
     },
@@ -198,8 +201,8 @@ export const customerFields: INodeProperties[] = [
     name: 'limit',
     type: 'number',
     default: 50,
-    description: 'Max number of results to return',
-    typeOptions: { minValue: 1 },
+    description: 'Max number of results to return (API maximum is 100 per page)',
+    typeOptions: { minValue: 1, maxValue: 100 },
     displayOptions: {
       show: { resource: ['customer'], operation: ['getAll'], returnAll: [false] },
     },

@@ -348,6 +348,23 @@ export interface LicenseKeyInstanceAttributes extends BaseAttributes {
 }
 
 /**
+ * File attributes
+ */
+export interface FileAttributes extends BaseAttributes {
+  variant_id: number;
+  identifier: string;
+  name: string;
+  extension: string;
+  download_url: string;
+  size: number;
+  size_formatted: string;
+  version: string;
+  sort: number;
+  status: 'draft' | 'published';
+  test_mode: boolean;
+}
+
+/**
  * Resource types
  */
 export type Store = JsonApiResource<'stores', StoreAttributes>;
@@ -364,6 +381,7 @@ export type LicenseKeyInstance = JsonApiResource<
   'license-key-instances',
   LicenseKeyInstanceAttributes
 >;
+export type File = JsonApiResource<'files', FileAttributes>;
 
 /**
  * Webhook event types
@@ -473,7 +491,8 @@ export type ResourceName =
   | 'variant'
   | 'checkout'
   | 'webhook'
-  | 'licenseKeyInstance';
+  | 'licenseKeyInstance'
+  | 'file';
 
 /**
  * Operation types

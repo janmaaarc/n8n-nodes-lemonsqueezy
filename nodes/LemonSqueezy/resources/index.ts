@@ -15,6 +15,7 @@ import { checkoutOperations, checkoutFields } from './checkout';
 import { webhookOperations, webhookFields } from './webhook';
 import { usageRecordOperations, usageRecordFields } from './usageRecord';
 import { userOperations, userFields } from './user';
+import { fileOperations, fileFields } from './file';
 import {
   orderAdvancedOptions,
   subscriptionAdvancedOptions,
@@ -36,6 +37,7 @@ export const resourceProperty: INodeProperties = {
     { name: 'Customer', value: 'customer' },
     { name: 'Discount', value: 'discount' },
     { name: 'Discount Redemption', value: 'discountRedemption' },
+    { name: 'File', value: 'file' },
     { name: 'License Key', value: 'licenseKey' },
     { name: 'License Key Instance', value: 'licenseKeyInstance' },
     { name: 'Order', value: 'order' },
@@ -69,6 +71,7 @@ export const allOperations: INodeProperties[] = [
   webhookOperations,
   ...usageRecordOperations,
   ...userOperations,
+  fileOperations,
 ];
 
 export const allFields: INodeProperties[] = [
@@ -96,6 +99,7 @@ export const allFields: INodeProperties[] = [
   ...webhookFields,
   ...usageRecordFields,
   ...userFields,
+  ...fileFields,
 ];
 
 export {
@@ -131,4 +135,6 @@ export {
   usageRecordFields,
   userOperations,
   userFields,
+  fileOperations,
+  fileFields,
 };

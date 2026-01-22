@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2025-01-23
+
+### Added
+- **File resource** - Get and list product files (digital downloads)
+- **Discount Update operation** - Update existing discount codes (name, code, amount, duration, etc.)
+- **Discount amount validation** - Validates percent (0-100) and fixed (positive integer) amounts
+- **HTTPS validation for webhooks** - Webhook URLs now require HTTPS (Lemon Squeezy requirement)
+- **Tests for new features** - 178 tests total with comprehensive coverage
+
+### Changed
+- Improved field descriptions with examples and placeholders (Store ID, Customer ID, etc.)
+- Added API limit hints (max 100 per page) to limit fields
+- Better error messages for webhook URL validation
+
 ## [0.7.2] - 2025-01-21
 
 ### Fixed

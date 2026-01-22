@@ -34,21 +34,28 @@ export const discountOperations: INodeProperties = {
       action: 'Get many discounts',
       description: 'Retrieve multiple discounts',
     },
+    {
+      name: 'Update',
+      value: 'update',
+      action: 'Update a discount',
+      description: 'Update an existing discount code',
+    },
   ],
   default: 'getAll',
 };
 
 export const discountFields: INodeProperties[] = [
-  // Discount ID for Get/Delete operations
+  // Discount ID for Get/Update/Delete operations
   {
     displayName: 'Discount ID',
     name: 'discountId',
     type: 'string',
     required: true,
     default: '',
-    description: 'The ID of the discount',
+    placeholder: 'e.g., 12345',
+    description: 'The ID of the discount (numeric string)',
     displayOptions: {
-      show: { resource: ['discount'], operation: ['get', 'delete'] },
+      show: { resource: ['discount'], operation: ['get', 'update', 'delete'] },
     },
   },
   // Create Fields
@@ -164,6 +171,87 @@ export const discountFields: INodeProperties[] = [
       },
     ],
   },
+  // Update Fields
+  {
+    displayName: 'Update Fields',
+    name: 'updateFields',
+    type: 'collection',
+    placeholder: 'Add Field',
+    default: {},
+    displayOptions: {
+      show: { resource: ['discount'], operation: ['update'] },
+    },
+    options: [
+      {
+        displayName: 'Name',
+        name: 'name',
+        type: 'string',
+        default: '',
+        description: 'Internal name for the discount (not visible to customers)',
+      },
+      {
+        displayName: 'Code',
+        name: 'code',
+        type: 'string',
+        default: '',
+        description: 'The discount code customers will use at checkout',
+      },
+      {
+        displayName: 'Amount',
+        name: 'amount',
+        type: 'number',
+        default: 0,
+        description:
+          'Discount amount (percentage 0-100 for percent type, or fixed amount in cents for fixed type)',
+      },
+      {
+        displayName: 'Amount Type',
+        name: 'amountType',
+        type: 'options',
+        options: DISCOUNT_AMOUNT_TYPES,
+        default: 'percent',
+        description: 'Whether the discount is a percentage or fixed amount',
+      },
+      {
+        displayName: 'Duration',
+        name: 'duration',
+        type: 'options',
+        options: DISCOUNT_DURATION_TYPES,
+        default: 'once',
+        description: 'How long the discount should apply for subscriptions',
+      },
+      {
+        displayName: 'Duration In Months',
+        name: 'durationInMonths',
+        type: 'number',
+        default: 1,
+        description: 'Number of months the discount applies (only for "repeating" duration)',
+        typeOptions: { minValue: 1 },
+      },
+      {
+        displayName: 'Max Redemptions',
+        name: 'maxRedemptions',
+        type: 'number',
+        default: 0,
+        description: 'Maximum number of times this discount can be used (0 for unlimited)',
+        typeOptions: { minValue: 0 },
+      },
+      {
+        displayName: 'Starts At',
+        name: 'startsAt',
+        type: 'dateTime',
+        default: '',
+        description: 'When the discount becomes active (ISO 8601 format, e.g., 2024-01-15T10:30:00Z)',
+      },
+      {
+        displayName: 'Expires At',
+        name: 'expiresAt',
+        type: 'dateTime',
+        default: '',
+        description: 'When the discount expires (ISO 8601 format, e.g., 2024-12-31T23:59:59Z)',
+      },
+    ],
+  },
   // Return All
   {
     displayName: 'Return All',
@@ -181,8 +269,8 @@ export const discountFields: INodeProperties[] = [
     name: 'limit',
     type: 'number',
     default: 50,
-    description: 'Max number of results to return',
-    typeOptions: { minValue: 1 },
+    description: 'Max number of results to return (API maximum is 100 per page)',
+    typeOptions: { minValue: 1, maxValue: 100 },
     displayOptions: {
       show: { resource: ['discount'], operation: ['getAll'], returnAll: [false] },
     },

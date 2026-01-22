@@ -4,6 +4,7 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 0.8.x   | :white_check_mark: |
 | 0.7.x   | :white_check_mark: |
 | 0.6.x   | :white_check_mark: |
 | 0.5.x   | :white_check_mark: |
@@ -75,6 +76,11 @@ This node implements several security measures:
    - Don't store sensitive data unnecessarily
 
 ## Security Changelog
+
+### v0.8.0
+- Added HTTPS requirement validation for webhook URLs (Lemon Squeezy requires HTTPS)
+- Added discount amount validation (prevents invalid percent/fixed amounts)
+- Enhanced field validation with better error messages
 
 ### v0.7.1
 - Updated to use `httpRequestWithAuthentication` (n8n recommended auth method)

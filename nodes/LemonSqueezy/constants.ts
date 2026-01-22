@@ -35,6 +35,7 @@ export const RESOURCE_ENDPOINTS: Record<string, string> = {
   webhook: 'webhooks',
   usageRecord: 'usage-records',
   user: 'users',
+  file: 'files',
 };
 
 /**
@@ -56,6 +57,7 @@ export const RESOURCE_ID_PARAMS: Record<string, string> = {
   checkout: 'checkoutId',
   webhook: 'webhookId',
   usageRecord: 'usageRecordId',
+  file: 'fileId',
 };
 
 /**

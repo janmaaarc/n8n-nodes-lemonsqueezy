@@ -12,6 +12,7 @@ import {
   buildFilterParams,
   buildJsonApiBody,
   validateField,
+  validateDiscountAmount,
 } from './helpers';
 import { resourceProperty, allOperations, allFields } from './resources';
 import type { LemonSqueezyResponse } from './types';
@@ -50,6 +51,9 @@ async function handleCreate(
       itemIndex,
       {},
     ) as IDataObject;
+
+    // Validate discount amount based on type
+    validateDiscountAmount(amount, amountType);
 
     const attributes: IDataObject = {
       name,
@@ -223,8 +227,8 @@ async function handleCreate(
       {},
     ) as IDataObject;
 
-    // Validate URL before API call
-    validateField('url', url, 'url');
+    // Validate URL before API call - Lemon Squeezy requires HTTPS for webhooks
+    validateField('url', url, 'httpsUrl');
 
     // Validate webhook secret minimum length for security (32+ chars recommended)
     if (secret.length < 32) {
@@ -351,8 +355,8 @@ async function handleUpdate(
     const attributes: IDataObject = {};
 
     if (updateFields.url) {
-      // Validate URL before API call
-      validateField('url', updateFields.url as string, 'url');
+      // Validate URL before API call - Lemon Squeezy requires HTTPS for webhooks
+      validateField('url', updateFields.url as string, 'httpsUrl');
       attributes.url = updateFields.url;
     }
     if (updateFields.events) {
@@ -371,6 +375,49 @@ async function handleUpdate(
     const body = buildJsonApiBody('webhooks', attributes, undefined, webhookId);
 
     return await lemonSqueezyApiRequest.call(ctx, 'PATCH', `/webhooks/${webhookId}`, body);
+  }
+
+  if (resource === 'discount') {
+    const discountId = ctx.getNodeParameter('discountId', itemIndex) as string;
+    const updateFields = ctx.getNodeParameter('updateFields', itemIndex);
+
+    const attributes: IDataObject = {};
+
+    if (updateFields.name) {
+      attributes.name = updateFields.name;
+    }
+    if (updateFields.code) {
+      attributes.code = updateFields.code;
+    }
+    if (updateFields.amount !== undefined) {
+      // Validate discount amount if both amount and type are being updated
+      const amountType = (updateFields.amountType as string) || 'percent';
+      validateDiscountAmount(updateFields.amount as number, amountType);
+      attributes.amount = updateFields.amount;
+    }
+    if (updateFields.amountType) {
+      attributes.amount_type = updateFields.amountType;
+    }
+    if (updateFields.duration) {
+      attributes.duration = updateFields.duration;
+    }
+    if (updateFields.durationInMonths !== undefined) {
+      attributes.duration_in_months = updateFields.durationInMonths;
+    }
+    if (updateFields.maxRedemptions !== undefined) {
+      attributes.max_redemptions = updateFields.maxRedemptions;
+      attributes.is_limited_redemptions = (updateFields.maxRedemptions as number) > 0;
+    }
+    if (updateFields.startsAt) {
+      attributes.starts_at = updateFields.startsAt;
+    }
+    if (updateFields.expiresAt) {
+      attributes.expires_at = updateFields.expiresAt;
+    }
+
+    const body = buildJsonApiBody('discounts', attributes, undefined, discountId);
+
+    return await lemonSqueezyApiRequest.call(ctx, 'PATCH', `/discounts/${discountId}`, body);
   }
 
   throw new Error(`Update operation not supported for resource: ${resource}`);

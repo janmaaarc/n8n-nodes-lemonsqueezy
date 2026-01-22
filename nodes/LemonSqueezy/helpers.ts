@@ -62,6 +62,7 @@ export function isValidEmail(email: string): boolean {
  * This prevents Server-Side Request Forgery (SSRF) attacks.
  *
  * @param url - The URL to validate
+ * @param requireHttps - If true, only HTTPS URLs are allowed (default: false)
  * @returns True if the URL is valid and safe, false otherwise
  *
  * @example
@@ -69,10 +70,16 @@ export function isValidEmail(email: string): boolean {
  * isValidUrl('http://localhost:3000') // false (internal)
  * isValidUrl('ftp://files.example.com') // false (non-http protocol)
  * isValidUrl('http://169.254.169.254') // false (AWS metadata)
+ * isValidUrl('http://example.com', true) // false (HTTPS required)
  */
-export function isValidUrl(url: string): boolean {
+export function isValidUrl(url: string, requireHttps: boolean = false): boolean {
   try {
     const parsedUrl = new URL(url);
+
+    // If HTTPS is required, reject HTTP URLs
+    if (requireHttps && parsedUrl.protocol !== 'https:') {
+      return false;
+    }
 
     // Only allow http and https protocols (security: prevent file://, javascript:, etc.)
     if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
@@ -166,6 +173,7 @@ export function isPositiveInteger(value: unknown): boolean {
  * - 'required': Ensures value is not empty/null/undefined
  * - 'email': RFC 5322 compliant email validation
  * - 'url': Safe URL validation with SSRF protection
+ * - 'httpsUrl': Safe URL validation requiring HTTPS (for webhooks)
  * - 'date': ISO 8601 date format validation
  * - 'positiveInteger': Positive integer validation
  *
@@ -177,11 +185,12 @@ export function isPositiveInteger(value: unknown): boolean {
  * @example
  * validateField('email', 'user@example.com', 'email') // passes
  * validateField('email', 'invalid', 'email') // throws "email must be a valid email address"
+ * validateField('webhookUrl', 'http://example.com', 'httpsUrl') // throws "webhookUrl must be a valid HTTPS URL"
  */
 export function validateField(
   fieldName: string,
   value: unknown,
-  validationType: 'email' | 'url' | 'date' | 'positiveInteger' | 'required',
+  validationType: 'email' | 'url' | 'httpsUrl' | 'date' | 'positiveInteger' | 'required',
 ): void {
   if (validationType === 'required') {
     if (value === undefined || value === null || value === '') {
@@ -204,6 +213,13 @@ export function validateField(
     case 'url':
       if (typeof value !== 'string' || !isValidUrl(value)) {
         throw new Error(`${fieldName} must be a valid URL`);
+      }
+      break;
+    case 'httpsUrl':
+      if (typeof value !== 'string' || !isValidUrl(value, true)) {
+        throw new Error(
+          `${fieldName} must be a valid HTTPS URL (Lemon Squeezy requires HTTPS for webhooks)`,
+        );
       }
       break;
     case 'date':
@@ -240,6 +256,34 @@ export function safeJsonParse<T = unknown>(jsonString: string, fieldName: string
     return JSON.parse(jsonString) as T;
   } catch {
     throw new Error(`${fieldName} contains invalid JSON`);
+  }
+}
+
+/**
+ * Validates discount amount based on the amount type.
+ *
+ * - For 'percent' type: amount must be between 0 and 100 (inclusive)
+ * - For 'fixed' type: amount must be a positive integer (in cents)
+ *
+ * @param amount - The discount amount to validate
+ * @param amountType - The type of discount ('percent' or 'fixed')
+ * @throws Error if the amount is invalid for the given type
+ *
+ * @example
+ * validateDiscountAmount(50, 'percent') // passes (50%)
+ * validateDiscountAmount(150, 'percent') // throws "Percent discount must be between 0 and 100"
+ * validateDiscountAmount(1000, 'fixed') // passes ($10.00 in cents)
+ * validateDiscountAmount(-100, 'fixed') // throws "Fixed discount amount must be a positive integer"
+ */
+export function validateDiscountAmount(amount: number, amountType: string): void {
+  if (amountType === 'percent') {
+    if (amount < 0 || amount > 100) {
+      throw new Error('Percent discount must be between 0 and 100');
+    }
+  } else if (amountType === 'fixed') {
+    if (!Number.isInteger(amount) || amount < 0) {
+      throw new Error('Fixed discount amount must be a positive integer (in cents)');
+    }
   }
 }
 

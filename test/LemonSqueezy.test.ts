@@ -17,6 +17,7 @@ import {
   extractIncludedResources,
   isRateLimitError,
   isRetryableError,
+  validateDiscountAmount,
 } from '../nodes/LemonSqueezy/helpers';
 import {
   RESOURCE_ENDPOINTS,
@@ -258,10 +259,11 @@ describe('Constants', () => {
       expect(RESOURCE_ENDPOINTS.webhook).toBe('webhooks');
       expect(RESOURCE_ENDPOINTS.usageRecord).toBe('usage-records');
       expect(RESOURCE_ENDPOINTS.user).toBe('users');
+      expect(RESOURCE_ENDPOINTS.file).toBe('files');
     });
 
-    it('should have 16 resource endpoints', () => {
-      expect(Object.keys(RESOURCE_ENDPOINTS).length).toBe(16);
+    it('should have 17 resource endpoints', () => {
+      expect(Object.keys(RESOURCE_ENDPOINTS).length).toBe(17);
     });
   });
 
@@ -282,6 +284,7 @@ describe('Constants', () => {
       expect(RESOURCE_ID_PARAMS.checkout).toBe('checkoutId');
       expect(RESOURCE_ID_PARAMS.webhook).toBe('webhookId');
       expect(RESOURCE_ID_PARAMS.usageRecord).toBe('usageRecordId');
+      expect(RESOURCE_ID_PARAMS.file).toBe('fileId');
     });
   });
 
@@ -1292,6 +1295,58 @@ describe('Input Validation Edge Cases', () => {
       expect(isValidIsoDate('15-01-2024')).toBe(false);
       expect(isValidIsoDate('2024/01/15')).toBe(false);
       expect(isValidIsoDate('Jan 15, 2024')).toBe(false);
+    });
+  });
+
+  describe('isValidUrl with requireHttps', () => {
+    it('should accept HTTPS URLs when requireHttps is true', () => {
+      expect(isValidUrl('https://example.com', true)).toBe(true);
+      expect(isValidUrl('https://example.com/webhook', true)).toBe(true);
+    });
+
+    it('should reject HTTP URLs when requireHttps is true', () => {
+      expect(isValidUrl('http://example.com', true)).toBe(false);
+      expect(isValidUrl('http://example.com/webhook', true)).toBe(false);
+    });
+
+    it('should accept HTTP URLs when requireHttps is false', () => {
+      expect(isValidUrl('http://example.com', false)).toBe(true);
+      expect(isValidUrl('https://example.com', false)).toBe(true);
+    });
+  });
+
+  describe('validateDiscountAmount', () => {
+    it('should accept valid percent discounts (0-100)', () => {
+      expect(() => validateDiscountAmount(0, 'percent')).not.toThrow();
+      expect(() => validateDiscountAmount(50, 'percent')).not.toThrow();
+      expect(() => validateDiscountAmount(100, 'percent')).not.toThrow();
+    });
+
+    it('should reject invalid percent discounts', () => {
+      expect(() => validateDiscountAmount(-1, 'percent')).toThrow(
+        'Percent discount must be between 0 and 100',
+      );
+      expect(() => validateDiscountAmount(101, 'percent')).toThrow(
+        'Percent discount must be between 0 and 100',
+      );
+      expect(() => validateDiscountAmount(150, 'percent')).toThrow(
+        'Percent discount must be between 0 and 100',
+      );
+    });
+
+    it('should accept valid fixed discounts (positive integers)', () => {
+      expect(() => validateDiscountAmount(0, 'fixed')).not.toThrow();
+      expect(() => validateDiscountAmount(100, 'fixed')).not.toThrow();
+      expect(() => validateDiscountAmount(1000, 'fixed')).not.toThrow();
+    });
+
+    it('should reject invalid fixed discounts', () => {
+      expect(() => validateDiscountAmount(-100, 'fixed')).toThrow(
+        'Fixed discount amount must be a positive integer (in cents)',
+      );
+      expect(() => validateDiscountAmount(10.5, 'fixed')).toThrow(
+        'Fixed discount amount must be a positive integer (in cents)',
+      );
     });
   });
 });

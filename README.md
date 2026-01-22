@@ -55,8 +55,9 @@ The main node for interacting with the Lemon Squeezy API.
 |----------|------------|
 | **Checkout** | Create, Get, Get Many |
 | **Customer** | Create, Update, Delete, Get, Get Many |
-| **Discount** | Create, Delete, Get, Get Many |
+| **Discount** | Create, Update, Delete, Get, Get Many |
 | **Discount Redemption** | Get, Get Many |
+| **File** | Get, Get Many |
 | **License Key** | Get, Get Many, Update, Validate, Activate, Deactivate |
 | **License Key Instance** | Get, Get Many |
 | **Order** | Get, Get Many, Refund |
@@ -302,6 +303,19 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [n8n Community Forum](https://community.n8n.io/)
 
 ## Changelog
+
+### v0.8.0
+
+**New Features:**
+- Added **File resource** for accessing product files (digital downloads)
+- Added **Discount Update operation** for modifying existing discount codes
+- Added discount amount validation (0-100 for percent, positive integer for fixed)
+- Webhook URLs now require HTTPS (Lemon Squeezy requirement)
+
+**Improvements:**
+- Enhanced field descriptions with examples and placeholders
+- Added API limit hints (max 100 per page) to limit fields
+- 178 tests with comprehensive coverage
 
 ### v0.7.2
 
