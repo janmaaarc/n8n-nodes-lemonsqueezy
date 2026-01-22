@@ -71,8 +71,8 @@ jobs:
         run: npm audit --audit-level=high
         continue-on-error: true
 
-      - name: Run n8n community package scanner
-        run: npx @n8n/scan-community-package .
+      # n8n compliance is verified via ESLint in the build job
+      # The scanner CLI is designed for published packages only
 
   publish:
     needs: [build, security]
