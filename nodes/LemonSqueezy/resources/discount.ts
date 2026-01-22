@@ -241,7 +241,8 @@ export const discountFields: INodeProperties[] = [
         name: 'startsAt',
         type: 'dateTime',
         default: '',
-        description: 'When the discount becomes active (ISO 8601 format, e.g., 2024-01-15T10:30:00Z)',
+        description:
+          'When the discount becomes active (ISO 8601 format, e.g., 2024-01-15T10:30:00Z)',
       },
       {
         displayName: 'Expires At',
