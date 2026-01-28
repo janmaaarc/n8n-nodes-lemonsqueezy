@@ -270,14 +270,26 @@ npm install
 # Build the node
 npm run build
 
+# Watch mode (rebuild on changes)
+npm run dev
+
 # Run tests
 npm test
+
+# Run tests in watch mode
+npm run test:watch
 
 # Run tests with coverage
 npm run test:coverage
 
 # Run linter
 npm run lint
+
+# Run linter with auto-fix
+npm run lintfix
+
+# Check formatting
+npm run format:check
 
 # Format code
 npm run format
