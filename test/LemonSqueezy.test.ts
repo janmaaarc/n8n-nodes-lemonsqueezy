@@ -18,6 +18,8 @@ import {
   isRateLimitError,
   isRetryableError,
   validateDiscountAmount,
+  validateCustomDataSize,
+  getRetryAfterSeconds,
 } from '../nodes/LemonSqueezy/helpers';
 import {
   RESOURCE_ENDPOINTS,
@@ -1347,6 +1349,83 @@ describe('Input Validation Edge Cases', () => {
       expect(() => validateDiscountAmount(10.5, 'fixed')).toThrow(
         'Fixed discount amount must be a positive integer (in cents)',
       );
+    });
+  });
+
+  describe('validateCustomDataSize', () => {
+    it('should accept small payloads', () => {
+      expect(() => validateCustomDataSize({ key: 'value' })).not.toThrow();
+      expect(() => validateCustomDataSize('{"key":"value"}')).not.toThrow();
+      expect(() => validateCustomDataSize({})).not.toThrow();
+    });
+
+    it('should accept payloads under the limit', () => {
+      const smallData = { data: 'x'.repeat(1000) }; // ~1KB
+      expect(() => validateCustomDataSize(smallData)).not.toThrow();
+    });
+
+    it('should reject payloads exceeding the default limit (10KB)', () => {
+      const largeData = { data: 'x'.repeat(15000) }; // ~15KB
+      expect(() => validateCustomDataSize(largeData)).toThrow(/exceeds maximum size/);
+    });
+
+    it('should reject payloads exceeding custom limit', () => {
+      const data = { data: 'x'.repeat(2000) }; // ~2KB
+      expect(() => validateCustomDataSize(data, 1024)).toThrow(/exceeds maximum size/); // 1KB limit
+    });
+
+    it('should handle string input', () => {
+      const largeString = JSON.stringify({ data: 'x'.repeat(15000) });
+      expect(() => validateCustomDataSize(largeString)).toThrow(/exceeds maximum size/);
+    });
+  });
+
+  describe('getRetryAfterSeconds', () => {
+    it('should extract retry-after header from error response', () => {
+      const error = {
+        response: {
+          headers: { 'retry-after': '60' },
+        },
+      };
+      expect(getRetryAfterSeconds(error)).toBe(60);
+    });
+
+    it('should return undefined when no retry-after header', () => {
+      const error = {
+        response: {
+          headers: {},
+        },
+      };
+      expect(getRetryAfterSeconds(error)).toBeUndefined();
+    });
+
+    it('should return undefined for invalid retry-after value', () => {
+      const error = {
+        response: {
+          headers: { 'retry-after': 'invalid' },
+        },
+      };
+      expect(getRetryAfterSeconds(error)).toBeUndefined();
+    });
+
+    it('should return undefined for non-positive values', () => {
+      const error = {
+        response: {
+          headers: { 'retry-after': '0' },
+        },
+      };
+      expect(getRetryAfterSeconds(error)).toBeUndefined();
+    });
+
+    it('should return undefined for non-object errors', () => {
+      expect(getRetryAfterSeconds(null)).toBeUndefined();
+      expect(getRetryAfterSeconds(undefined)).toBeUndefined();
+      expect(getRetryAfterSeconds('error')).toBeUndefined();
+    });
+
+    it('should return undefined when response is missing', () => {
+      const error = { statusCode: 429 };
+      expect(getRetryAfterSeconds(error)).toBeUndefined();
     });
   });
 });

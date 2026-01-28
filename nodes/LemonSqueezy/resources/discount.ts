@@ -1,3 +1,17 @@
+/**
+ * Discount Resource
+ *
+ * Provides operations for managing discount codes in Lemon Squeezy.
+ *
+ * Available operations:
+ * - Create: Create a new discount code
+ * - Delete: Delete an existing discount code
+ * - Get: Retrieve a single discount by ID
+ * - Get Many: Retrieve multiple discounts with filtering
+ * - Update: Update an existing discount code
+ *
+ * @see https://docs.lemonsqueezy.com/api/discounts
+ */
 import type { INodeProperties } from 'n8n-workflow';
 import { DISCOUNT_AMOUNT_TYPES, DISCOUNT_DURATION_TYPES } from '../constants';
 
@@ -98,7 +112,8 @@ export const discountFields: INodeProperties[] = [
     type: 'number',
     required: true,
     default: 0,
-    description: 'Discount amount (percentage 0-100 or fixed amount in cents)',
+    description:
+      'Discount amount. For percent type: 0-100 (e.g., 25 = 25% off). For fixed type: amount in cents (e.g., 1000 = $10.00 off).',
     displayOptions: {
       show: { resource: ['discount'], operation: ['create'] },
     },

@@ -13,6 +13,7 @@ import {
   buildJsonApiBody,
   validateField,
   validateDiscountAmount,
+  validateCustomDataSize,
 } from './helpers';
 import { resourceProperty, allOperations, allFields } from './resources';
 import type { LemonSqueezyResponse } from './types';
@@ -136,6 +137,10 @@ async function handleCreate(
     }
     if (additionalOptions.customData !== undefined && additionalOptions.customData !== null) {
       const customDataValue = additionalOptions.customData;
+
+      // Validate payload size before processing (max 10KB)
+      validateCustomDataSize(customDataValue);
+
       if (typeof customDataValue === 'string') {
         try {
           const parsed: unknown = JSON.parse(customDataValue);
@@ -459,6 +464,11 @@ export class LemonSqueezy implements INodeType {
 
         const endpoint = RESOURCE_ENDPOINTS[resource];
 
+        // Validate that the resource exists in our endpoints mapping
+        if (!endpoint && !['user'].includes(resource)) {
+          throw new Error(`Unknown resource: ${resource}`);
+        }
+
         if (operation === 'get') {
           const idParam = RESOURCE_ID_PARAMS[resource];
           const id = this.getNodeParameter(idParam, i) as string;
@@ -567,6 +577,36 @@ export class LemonSqueezy implements INodeType {
           }
         } else if (resource === 'user' && operation === 'getCurrent') {
           responseData = await lemonSqueezyApiRequest.call(this, 'GET', '/users/me');
+        } else if (resource === 'subscriptionInvoice') {
+          if (operation === 'generate') {
+            const subscriptionId = this.getNodeParameter('generateSubscriptionId', i) as string;
+            const body = buildJsonApiBody(
+              'subscription-invoices',
+              {},
+              { subscription: { type: 'subscriptions', id: subscriptionId } },
+            );
+            responseData = await lemonSqueezyApiRequest.call(
+              this,
+              'POST',
+              '/subscription-invoices',
+              body,
+            );
+          } else if (operation === 'refund') {
+            const invoiceId = this.getNodeParameter('subscriptionInvoiceId', i) as string;
+            const refundAmount = this.getNodeParameter('refundAmount', i, 0) as number;
+
+            const body: IDataObject =
+              refundAmount > 0
+                ? { data: { type: 'subscription-invoices', attributes: { amount: refundAmount } } }
+                : {};
+
+            responseData = await lemonSqueezyApiRequest.call(
+              this,
+              'POST',
+              `/subscription-invoices/${invoiceId}/refund`,
+              body,
+            );
+          }
         }
 
         const executionData = this.helpers.constructExecutionMetaData(

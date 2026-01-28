@@ -1,3 +1,16 @@
+/**
+ * Subscription Invoice Resource
+ *
+ * Provides operations for managing subscription invoices in Lemon Squeezy.
+ *
+ * Available operations:
+ * - Get: Retrieve a single subscription invoice by ID
+ * - Get Many: Retrieve multiple subscription invoices with filtering
+ * - Generate: Generate a new invoice for an outstanding balance
+ * - Refund: Issue a refund for a subscription invoice
+ *
+ * @see https://docs.lemonsqueezy.com/api/subscription-invoices
+ */
 import type { INodeProperties } from 'n8n-workflow';
 
 export const subscriptionInvoiceOperations: INodeProperties[] = [
@@ -13,6 +26,12 @@ export const subscriptionInvoiceOperations: INodeProperties[] = [
     },
     options: [
       {
+        name: 'Generate',
+        value: 'generate',
+        description: 'Generate an invoice for outstanding subscription balance',
+        action: 'Generate a subscription invoice',
+      },
+      {
         name: 'Get',
         value: 'get',
         description: 'Get a subscription invoice by ID',
@@ -24,13 +43,19 @@ export const subscriptionInvoiceOperations: INodeProperties[] = [
         description: 'Get many subscription invoices',
         action: 'Get many subscription invoices',
       },
+      {
+        name: 'Refund',
+        value: 'refund',
+        description: 'Issue a refund for a subscription invoice',
+        action: 'Refund a subscription invoice',
+      },
     ],
     default: 'getAll',
   },
 ];
 
 export const subscriptionInvoiceFields: INodeProperties[] = [
-  // Get
+  // Subscription Invoice ID for Get and Refund operations
   {
     displayName: 'Subscription Invoice ID',
     name: 'subscriptionInvoiceId',
@@ -40,10 +65,47 @@ export const subscriptionInvoiceFields: INodeProperties[] = [
     displayOptions: {
       show: {
         resource: ['subscriptionInvoice'],
-        operation: ['get'],
+        operation: ['get', 'refund'],
       },
     },
-    description: 'The ID of the subscription invoice to retrieve',
+    description: 'The ID of the subscription invoice (e.g., "123456")',
+  },
+
+  // Subscription ID for Generate operation
+  {
+    displayName: 'Subscription ID',
+    name: 'generateSubscriptionId',
+    type: 'string',
+    required: true,
+    default: '',
+    displayOptions: {
+      show: {
+        resource: ['subscriptionInvoice'],
+        operation: ['generate'],
+      },
+    },
+    description:
+      'The ID of the subscription to generate an invoice for. Only works if the subscription has an outstanding balance.',
+  },
+
+  // Refund Options
+  {
+    displayName: 'Refund Amount',
+    name: 'refundAmount',
+    type: 'number',
+    required: false,
+    default: 0,
+    displayOptions: {
+      show: {
+        resource: ['subscriptionInvoice'],
+        operation: ['refund'],
+      },
+    },
+    description:
+      'Amount to refund in cents (e.g., 1000 = $10.00). Leave at 0 for full refund. Must not exceed the original invoice amount.',
+    typeOptions: {
+      minValue: 0,
+    },
   },
 
   // Get All

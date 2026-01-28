@@ -287,6 +287,69 @@ export function validateDiscountAmount(amount: number, amountType: string): void
   }
 }
 
+/** Maximum payload size for custom data (10KB) */
+const MAX_CUSTOM_DATA_SIZE_BYTES = 10 * 1024;
+
+/**
+ * Validates that a custom data payload doesn't exceed the maximum size.
+ *
+ * This prevents memory issues and potential abuse from extremely large payloads.
+ *
+ * @param data - The custom data object or string to validate
+ * @param maxSizeBytes - Maximum allowed size in bytes (default: 10KB)
+ * @throws Error if the payload exceeds the maximum size
+ *
+ * @example
+ * validateCustomDataSize({ key: 'value' }) // passes
+ * validateCustomDataSize(veryLargeObject) // throws if > 10KB
+ */
+export function validateCustomDataSize(
+  data: unknown,
+  maxSizeBytes: number = MAX_CUSTOM_DATA_SIZE_BYTES,
+): void {
+  const jsonString = typeof data === 'string' ? data : JSON.stringify(data);
+  const sizeBytes = Buffer.byteLength(jsonString, 'utf8');
+
+  if (sizeBytes > maxSizeBytes) {
+    const sizeKb = Math.round(sizeBytes / 1024);
+    const maxKb = Math.round(maxSizeBytes / 1024);
+    throw new Error(
+      `Custom data exceeds maximum size (${sizeKb}KB > ${maxKb}KB). Reduce the payload size.`,
+    );
+  }
+}
+
+/**
+ * Extracts the Retry-After header value from an error response.
+ *
+ * The Retry-After header indicates how long to wait before retrying
+ * a rate-limited or temporarily unavailable request.
+ *
+ * @param error - The error object that may contain Retry-After header
+ * @returns Number of seconds to wait, or undefined if not present
+ *
+ * @example
+ * getRetryAfterSeconds({ response: { headers: { 'retry-after': '60' } } }) // 60
+ * getRetryAfterSeconds({ response: { headers: {} } }) // undefined
+ */
+export function getRetryAfterSeconds(error: unknown): number | undefined {
+  if (error && typeof error === 'object') {
+    const err = error as {
+      response?: {
+        headers?: { 'retry-after'?: string };
+      };
+    };
+    const retryAfter = err.response?.headers?.['retry-after'];
+    if (retryAfter) {
+      const seconds = parseInt(retryAfter, 10);
+      if (!isNaN(seconds) && seconds > 0) {
+        return seconds;
+      }
+    }
+  }
+  return undefined;
+}
+
 /**
  * Checks if an error is a rate limit error (HTTP 429).
  *

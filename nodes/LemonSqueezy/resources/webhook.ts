@@ -1,3 +1,22 @@
+/**
+ * Webhook Resource
+ *
+ * Provides operations for managing webhooks in Lemon Squeezy.
+ * Webhooks allow your application to receive real-time notifications
+ * about events in your store.
+ *
+ * Available operations:
+ * - Create: Create a new webhook endpoint
+ * - Delete: Delete an existing webhook
+ * - Get: Retrieve a single webhook by ID
+ * - Get Many: Retrieve multiple webhooks with filtering
+ * - Update: Update webhook URL, events, or secret
+ *
+ * Security: Webhook secrets must be at least 32 characters.
+ * Generate one using: openssl rand -hex 32
+ *
+ * @see https://docs.lemonsqueezy.com/api/webhooks
+ */
 import type { INodeProperties } from 'n8n-workflow';
 import { WEBHOOK_EVENTS } from '../constants';
 

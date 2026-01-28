@@ -1,3 +1,17 @@
+/**
+ * Customer Resource
+ *
+ * Provides operations for managing customers in Lemon Squeezy.
+ *
+ * Available operations:
+ * - Create: Create a new customer
+ * - Delete: Archive a customer
+ * - Get: Retrieve a single customer by ID
+ * - Get Many: Retrieve multiple customers with filtering
+ * - Update: Update customer information
+ *
+ * @see https://docs.lemonsqueezy.com/api/customers
+ */
 import type { INodeProperties } from 'n8n-workflow';
 import { CUSTOMER_STATUSES } from '../constants';
 

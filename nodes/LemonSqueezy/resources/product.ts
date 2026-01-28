@@ -1,3 +1,16 @@
+/**
+ * Product Resource
+ *
+ * Provides read-only operations for products in Lemon Squeezy.
+ * Products are managed in the Lemon Squeezy dashboard and cannot be
+ * created, updated, or deleted via the API.
+ *
+ * Available operations:
+ * - Get: Retrieve a single product by ID
+ * - Get Many: Retrieve multiple products with filtering
+ *
+ * @see https://docs.lemonsqueezy.com/api/products
+ */
 import type { INodeProperties } from 'n8n-workflow';
 import { PRODUCT_STATUSES } from '../constants';
 
@@ -56,8 +69,8 @@ export const productFields: INodeProperties[] = [
     name: 'limit',
     type: 'number',
     default: 50,
-    description: 'Max number of results to return',
-    typeOptions: { minValue: 1 },
+    description: 'Max number of results to return (API maximum is 100 per page)',
+    typeOptions: { minValue: 1, maxValue: 100 },
     displayOptions: {
       show: { resource: ['product'], operation: ['getAll'], returnAll: [false] },
     },

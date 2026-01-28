@@ -1,3 +1,16 @@
+/**
+ * Order Resource
+ *
+ * Provides operations for managing orders in Lemon Squeezy.
+ * Orders are created when customers complete purchases.
+ *
+ * Available operations:
+ * - Get: Retrieve a single order by ID
+ * - Get Many: Retrieve multiple orders with filtering
+ * - Refund: Issue a full refund for an order
+ *
+ * @see https://docs.lemonsqueezy.com/api/orders
+ */
 import type { INodeProperties } from 'n8n-workflow';
 import { ORDER_STATUSES } from '../constants';
 
@@ -62,8 +75,8 @@ export const orderFields: INodeProperties[] = [
     name: 'limit',
     type: 'number',
     default: 50,
-    description: 'Max number of results to return',
-    typeOptions: { minValue: 1 },
+    description: 'Max number of results to return (API maximum is 100 per page)',
+    typeOptions: { minValue: 1, maxValue: 100 },
     displayOptions: {
       show: { resource: ['order'], operation: ['getAll'], returnAll: [false] },
     },

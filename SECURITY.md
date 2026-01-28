@@ -4,11 +4,11 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 0.9.x   | :white_check_mark: |
 | 0.8.x   | :white_check_mark: |
 | 0.7.x   | :white_check_mark: |
 | 0.6.x   | :white_check_mark: |
-| 0.5.x   | :white_check_mark: |
-| < 0.5   | :x:                |
+| < 0.6   | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -76,6 +76,11 @@ This node implements several security measures:
    - Don't store sensitive data unnecessarily
 
 ## Security Changelog
+
+### v0.9.0
+- Added custom data payload size validation (max 10KB) to prevent memory issues
+- Added resource validation guard to catch unknown resources early
+- Improved input validation with comprehensive tests
 
 ### v0.8.0
 - Added HTTPS requirement validation for webhook URLs (Lemon Squeezy requires HTTPS)

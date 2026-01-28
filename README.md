@@ -65,7 +65,7 @@ The main node for interacting with the Lemon Squeezy API.
 | **Product** | Get, Get Many |
 | **Store** | Get, Get Many |
 | **Subscription** | Get, Get Many, Update, Cancel, Resume |
-| **Subscription Invoice** | Get, Get Many |
+| **Subscription Invoice** | Get, Get Many, Generate, Refund |
 | **Usage Record** | Create, Get, Get Many |
 | **User** | Get Current |
 | **Variant** | Get, Get Many |
@@ -303,6 +303,21 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [n8n Community Forum](https://community.n8n.io/)
 
 ## Changelog
+
+### v0.9.0
+
+**New Features:**
+- Added **Subscription Invoice Generate operation** for generating invoices on subscriptions with outstanding balances
+- Added **Subscription Invoice Refund operation** for issuing full or partial refunds
+- Added custom data payload size validation (max 10KB) for checkout creation
+- Added Retry-After header extraction for smarter rate limit handling
+- Added resource validation guard to catch unknown resources early
+
+**Improvements:**
+- Added JSDoc documentation to all resource files
+- Improved field descriptions with units (cents), ranges (0-100), and examples
+- Added maxValue (100) to all limit fields for API compliance
+- 189 tests with comprehensive coverage
 
 ### v0.8.0
 

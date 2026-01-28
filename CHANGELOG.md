@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2025-01-28
+
+### Added
+- **Subscription Invoice Generate operation** - Generate invoices for subscriptions with outstanding balances
+- **Subscription Invoice Refund operation** - Issue full or partial refunds for subscription invoices
+- **Custom data payload size validation** - Prevents memory issues with payloads >10KB in checkout creation
+- **Retry-After header extraction** - Helper function for smarter rate limit handling
+- **Resource validation guard** - Validates resource exists before making API requests
+- **JSDoc documentation** - Added comprehensive JSDoc comments to all resource files
+- **Additional tests** - 189 tests total (+11 new tests for new features)
+
+### Changed
+- Improved field descriptions with units (cents), ranges (0-100 for percent), and examples
+- Added maxValue (100) to all limit fields for API compliance
+- Better error messages for custom data validation
+
+### Fixed
+- Resource endpoint validation now catches unknown resources early
+
 ## [0.8.0] - 2025-01-23
 
 ### Added
