@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-02-01
+
+### Added
+- **Subscription Pause operation** - Dedicated operation to pause subscriptions with void or free mode options
+- **Partial order refunds** - Order Refund operation now supports partial refunds with configurable amount in cents
+- **Nested object depth validation** - Prevents stack overflow from deeply nested custom data (max 10 levels)
+- **Date range validation** - Validates expires_at dates are in the future where applicable
+- **Complete TypeScript types** - Added missing interfaces for OrderItem, DiscountRedemption, UsageRecord, User resources
+- **Extended operation types** - Added pause, refund, generate, activate, deactivate, validate to OperationType
+
+### Changed
+- Subscription resource now has 6 operations: Cancel, Get, Get Many, Pause, Resume, Update
+- Improved field descriptions for pause mode options
+- Expanded test suite from 189 to 203 tests (+14 new tests)
+
+### Security
+- Object depth validation prevents denial-of-service via deeply nested payloads
+- Date validation ensures future dates for expiration fields
+
 ## [0.9.0] - 2025-01-28
 
 ### Added

@@ -4,11 +4,11 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 0.10.x  | :white_check_mark: |
 | 0.9.x   | :white_check_mark: |
 | 0.8.x   | :white_check_mark: |
 | 0.7.x   | :white_check_mark: |
-| 0.6.x   | :white_check_mark: |
-| < 0.6   | :x:                |
+| < 0.7   | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -76,6 +76,11 @@ This node implements several security measures:
    - Don't store sensitive data unnecessarily
 
 ## Security Changelog
+
+### v0.10.0
+- Added nested object depth validation (max 10 levels) to prevent stack overflow attacks
+- Added date range validation for expires_at fields (must be in the future)
+- Enhanced input validation with 14 additional tests
 
 ### v0.9.0
 - Added custom data payload size validation (max 10KB) to prevent memory issues

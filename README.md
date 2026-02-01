@@ -65,7 +65,7 @@ The main node for interacting with the Lemon Squeezy API.
 | **Order Item** | Get, Get Many |
 | **Product** | Get, Get Many |
 | **Store** | Get, Get Many |
-| **Subscription** | Get, Get Many, Update, Cancel, Resume |
+| **Subscription** | Get, Get Many, Update, Cancel, Pause, Resume |
 | **Subscription Invoice** | Get, Get Many, Generate, Refund |
 | **Usage Record** | Create, Get, Get Many |
 | **User** | Get Current |
@@ -316,6 +316,22 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [n8n Community Forum](https://community.n8n.io/)
 
 ## Changelog
+
+### v0.10.0
+
+**New Features:**
+- Added **Subscription Pause operation** - Pause subscriptions with void or free mode
+- Added **Partial order refunds** - Refund operation now supports custom amounts in cents
+- Added nested object depth validation (max 10 levels) for custom data
+- Added date range validation for expires_at fields
+- Complete TypeScript types for all resources (OrderItem, DiscountRedemption, UsageRecord, User)
+
+**Security:**
+- Object depth validation prevents denial-of-service attacks via deeply nested payloads
+- Date validation ensures future dates for expiration fields
+
+**Improvements:**
+- 203 tests with comprehensive coverage (+14 new tests)
 
 ### v0.9.0
 

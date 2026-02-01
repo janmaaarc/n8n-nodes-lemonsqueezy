@@ -319,6 +319,106 @@ export function validateCustomDataSize(
   }
 }
 
+/** Maximum nesting depth for custom data objects */
+const MAX_OBJECT_DEPTH = 10;
+
+/**
+ * Validates that an object doesn't exceed maximum nesting depth.
+ *
+ * This prevents stack overflow attacks from deeply nested objects.
+ *
+ * @param obj - The object to validate
+ * @param maxDepth - Maximum allowed nesting depth (default: 10)
+ * @param currentDepth - Current depth (used internally for recursion)
+ * @throws Error if the object exceeds maximum depth
+ *
+ * @example
+ * validateObjectDepth({ a: { b: { c: 1 } } }) // passes (depth 3)
+ * validateObjectDepth(deeplyNestedObject) // throws if > 10 levels
+ */
+export function validateObjectDepth(
+  obj: unknown,
+  maxDepth: number = MAX_OBJECT_DEPTH,
+  currentDepth: number = 0,
+): void {
+  if (currentDepth > maxDepth) {
+    throw new Error(
+      `Object nesting exceeds maximum depth (${maxDepth} levels). Flatten the object structure.`,
+    );
+  }
+
+  if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
+    for (const value of Object.values(obj)) {
+      validateObjectDepth(value, maxDepth, currentDepth + 1);
+    }
+  } else if (Array.isArray(obj)) {
+    for (const item of obj) {
+      validateObjectDepth(item, maxDepth, currentDepth + 1);
+    }
+  }
+}
+
+/**
+ * Validates that a date is in the future.
+ *
+ * Useful for validating expiration dates, trial end dates, etc.
+ *
+ * @param dateString - The ISO 8601 date string to validate
+ * @param fieldName - The name of the field (used in error messages)
+ * @throws Error if the date is not in the future
+ *
+ * @example
+ * validateFutureDate('2030-01-01T00:00:00Z', 'expiresAt') // passes
+ * validateFutureDate('2020-01-01T00:00:00Z', 'expiresAt') // throws
+ */
+export function validateFutureDate(dateString: string, fieldName: string): void {
+  const date = new Date(dateString);
+  const now = new Date();
+
+  if (isNaN(date.getTime())) {
+    throw new Error(`${fieldName} must be a valid ISO 8601 date`);
+  }
+
+  if (date <= now) {
+    throw new Error(`${fieldName} must be a future date`);
+  }
+}
+
+/**
+ * Validates that a start date is before an end date.
+ *
+ * @param startDate - The start date (ISO 8601 string)
+ * @param endDate - The end date (ISO 8601 string)
+ * @param startFieldName - Name of start field (for error messages)
+ * @param endFieldName - Name of end field (for error messages)
+ * @throws Error if start date is not before end date
+ *
+ * @example
+ * validateDateRange('2024-01-01', '2024-12-31', 'startsAt', 'expiresAt') // passes
+ * validateDateRange('2024-12-31', '2024-01-01', 'startsAt', 'expiresAt') // throws
+ */
+export function validateDateRange(
+  startDate: string,
+  endDate: string,
+  startFieldName: string,
+  endFieldName: string,
+): void {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  if (isNaN(start.getTime())) {
+    throw new Error(`${startFieldName} must be a valid ISO 8601 date`);
+  }
+
+  if (isNaN(end.getTime())) {
+    throw new Error(`${endFieldName} must be a valid ISO 8601 date`);
+  }
+
+  if (start >= end) {
+    throw new Error(`${startFieldName} must be before ${endFieldName}`);
+  }
+}
+
 /**
  * Extracts the Retry-After header value from an error response.
  *

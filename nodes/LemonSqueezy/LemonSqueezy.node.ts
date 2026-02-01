@@ -14,6 +14,7 @@ import {
   validateField,
   validateDiscountAmount,
   validateCustomDataSize,
+  validateObjectDepth,
 } from './helpers';
 import { resourceProperty, allOperations, allFields } from './resources';
 import type { LemonSqueezyResponse } from './types';
@@ -140,6 +141,9 @@ async function handleCreate(
 
       // Validate payload size before processing (max 10KB)
       validateCustomDataSize(customDataValue);
+
+      // Validate nesting depth to prevent stack overflow (max 10 levels)
+      validateObjectDepth(customDataValue);
 
       if (typeof customDataValue === 'string') {
         try {
@@ -547,12 +551,33 @@ export class LemonSqueezy implements INodeType {
             `/subscriptions/${subscriptionId}`,
             body,
           );
+        } else if (operation === 'pause' && resource === 'subscription') {
+          const subscriptionId = this.getNodeParameter('subscriptionId', i) as string;
+          const pauseMode = this.getNodeParameter('pauseMode', i) as string;
+          const body = buildJsonApiBody(
+            'subscriptions',
+            { pause: { mode: pauseMode } },
+            undefined,
+            subscriptionId,
+          );
+          responseData = await lemonSqueezyApiRequest.call(
+            this,
+            'PATCH',
+            `/subscriptions/${subscriptionId}`,
+            body,
+          );
         } else if (operation === 'refund' && resource === 'order') {
           const orderId = this.getNodeParameter('orderId', i) as string;
+          const refundAmount = this.getNodeParameter('orderRefundAmount', i, 0) as number;
+
+          const body: IDataObject =
+            refundAmount > 0 ? { data: { type: 'orders', attributes: { amount: refundAmount } } } : {};
+
           responseData = await lemonSqueezyApiRequest.call(
             this,
             'POST',
             `/orders/${orderId}/refund`,
+            body,
           );
         } else if (resource === 'licenseKey') {
           if (operation === 'validate') {

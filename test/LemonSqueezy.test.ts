@@ -20,6 +20,9 @@ import {
   validateDiscountAmount,
   validateCustomDataSize,
   getRetryAfterSeconds,
+  validateObjectDepth,
+  validateFutureDate,
+  validateDateRange,
 } from '../nodes/LemonSqueezy/helpers';
 import {
   RESOURCE_ENDPOINTS,
@@ -1426,6 +1429,95 @@ describe('Input Validation Edge Cases', () => {
     it('should return undefined when response is missing', () => {
       const error = { statusCode: 429 };
       expect(getRetryAfterSeconds(error)).toBeUndefined();
+    });
+  });
+
+  describe('validateObjectDepth', () => {
+    it('should accept shallow objects', () => {
+      expect(() => validateObjectDepth({ a: 1, b: 2 })).not.toThrow();
+      expect(() => validateObjectDepth({ a: { b: 1 } })).not.toThrow();
+      expect(() => validateObjectDepth({ a: { b: { c: 1 } } })).not.toThrow();
+    });
+
+    it('should accept arrays', () => {
+      expect(() => validateObjectDepth([1, 2, 3])).not.toThrow();
+      expect(() => validateObjectDepth([{ a: 1 }, { b: 2 }])).not.toThrow();
+    });
+
+    it('should accept primitives', () => {
+      expect(() => validateObjectDepth('string')).not.toThrow();
+      expect(() => validateObjectDepth(123)).not.toThrow();
+      expect(() => validateObjectDepth(null)).not.toThrow();
+    });
+
+    it('should reject deeply nested objects', () => {
+      // Create object with depth > 10
+      let deep: Record<string, unknown> = { value: 1 };
+      for (let i = 0; i < 15; i++) {
+        deep = { nested: deep };
+      }
+      expect(() => validateObjectDepth(deep)).toThrow(/exceeds maximum depth/);
+    });
+
+    it('should respect custom max depth', () => {
+      const obj = { a: { b: { c: 1 } } }; // depth 3
+      expect(() => validateObjectDepth(obj, 2)).toThrow(/exceeds maximum depth/);
+      expect(() => validateObjectDepth(obj, 5)).not.toThrow();
+    });
+  });
+
+  describe('validateFutureDate', () => {
+    it('should accept future dates', () => {
+      const futureDate = new Date();
+      futureDate.setFullYear(futureDate.getFullYear() + 1);
+      expect(() => validateFutureDate(futureDate.toISOString(), 'expiresAt')).not.toThrow();
+    });
+
+    it('should reject past dates', () => {
+      const pastDate = new Date('2020-01-01T00:00:00Z');
+      expect(() => validateFutureDate(pastDate.toISOString(), 'expiresAt')).toThrow(
+        /must be a future date/,
+      );
+    });
+
+    it('should reject invalid dates', () => {
+      expect(() => validateFutureDate('invalid', 'expiresAt')).toThrow(/must be a valid ISO 8601/);
+    });
+
+    it('should use field name in error messages', () => {
+      expect(() => validateFutureDate('2020-01-01', 'myField')).toThrow(/myField/);
+    });
+  });
+
+  describe('validateDateRange', () => {
+    it('should accept valid date ranges', () => {
+      expect(() =>
+        validateDateRange('2024-01-01T00:00:00Z', '2024-12-31T00:00:00Z', 'startsAt', 'expiresAt'),
+      ).not.toThrow();
+    });
+
+    it('should reject when start is after end', () => {
+      expect(() =>
+        validateDateRange('2024-12-31T00:00:00Z', '2024-01-01T00:00:00Z', 'startsAt', 'expiresAt'),
+      ).toThrow(/startsAt must be before expiresAt/);
+    });
+
+    it('should reject when dates are equal', () => {
+      expect(() =>
+        validateDateRange('2024-06-15T00:00:00Z', '2024-06-15T00:00:00Z', 'startsAt', 'expiresAt'),
+      ).toThrow(/startsAt must be before expiresAt/);
+    });
+
+    it('should reject invalid start date', () => {
+      expect(() => validateDateRange('invalid', '2024-12-31', 'startsAt', 'expiresAt')).toThrow(
+        /startsAt must be a valid ISO 8601/,
+      );
+    });
+
+    it('should reject invalid end date', () => {
+      expect(() => validateDateRange('2024-01-01', 'invalid', 'startsAt', 'expiresAt')).toThrow(
+        /expiresAt must be a valid ISO 8601/,
+      );
     });
   });
 });

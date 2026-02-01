@@ -7,7 +7,7 @@
  * Available operations:
  * - Get: Retrieve a single order by ID
  * - Get Many: Retrieve multiple orders with filtering
- * - Refund: Issue a full refund for an order
+ * - Refund: Issue a full or partial refund for an order
  *
  * @see https://docs.lemonsqueezy.com/api/orders
  */
@@ -53,9 +53,25 @@ export const orderFields: INodeProperties[] = [
     type: 'string',
     required: true,
     default: '',
-    description: 'The ID of the order',
+    description: 'The ID of the order (e.g., "123456")',
     displayOptions: {
       show: { resource: ['order'], operation: ['get', 'refund'] },
+    },
+  },
+  // Refund Amount for partial refunds
+  {
+    displayName: 'Refund Amount',
+    name: 'orderRefundAmount',
+    type: 'number',
+    required: false,
+    default: 0,
+    description:
+      'Amount to refund in cents (e.g., 1000 = $10.00). Leave at 0 for full refund. Must not exceed the original order amount.',
+    typeOptions: {
+      minValue: 0,
+    },
+    displayOptions: {
+      show: { resource: ['order'], operation: ['refund'] },
     },
   },
   // Return All

@@ -384,6 +384,103 @@ export type LicenseKeyInstance = JsonApiResource<
 export type File = JsonApiResource<'files', FileAttributes>;
 
 /**
+ * Order Item attributes
+ */
+export interface OrderItemAttributes extends BaseAttributes {
+  order_id: number;
+  product_id: number;
+  variant_id: number;
+  product_name: string;
+  variant_name: string;
+  price: number;
+  quantity: number;
+  test_mode: boolean;
+}
+
+/**
+ * Subscription Invoice attributes
+ */
+export interface SubscriptionInvoiceAttributes extends BaseAttributes {
+  store_id: number;
+  subscription_id: number;
+  customer_id: number;
+  user_name: string;
+  user_email: string;
+  billing_reason: string;
+  card_brand: string | null;
+  card_last_four: string | null;
+  currency: string;
+  currency_rate: string;
+  status: 'pending' | 'paid' | 'void' | 'refunded';
+  status_formatted: string;
+  refunded: boolean;
+  refunded_at: string | null;
+  subtotal: number;
+  discount_total: number;
+  tax: number;
+  total: number;
+  subtotal_usd: number;
+  discount_total_usd: number;
+  tax_usd: number;
+  total_usd: number;
+  subtotal_formatted: string;
+  discount_total_formatted: string;
+  tax_formatted: string;
+  total_formatted: string;
+  urls: {
+    invoice_url: string;
+  };
+  test_mode: boolean;
+}
+
+/**
+ * Discount Redemption attributes
+ */
+export interface DiscountRedemptionAttributes extends BaseAttributes {
+  discount_id: number;
+  order_id: number;
+  discount_name: string;
+  discount_code: string;
+  discount_amount: number;
+  discount_amount_type: 'percent' | 'fixed';
+  amount: number;
+}
+
+/**
+ * Usage Record attributes
+ */
+export interface UsageRecordAttributes extends BaseAttributes {
+  subscription_item_id: number;
+  quantity: number;
+  action: 'increment' | 'set';
+}
+
+/**
+ * User attributes
+ */
+export interface UserAttributes {
+  name: string;
+  email: string;
+  color: string;
+  avatar_url: string;
+  has_custom_avatar: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type OrderItem = JsonApiResource<'order-items', OrderItemAttributes>;
+export type SubscriptionInvoice = JsonApiResource<
+  'subscription-invoices',
+  SubscriptionInvoiceAttributes
+>;
+export type DiscountRedemption = JsonApiResource<
+  'discount-redemptions',
+  DiscountRedemptionAttributes
+>;
+export type UsageRecord = JsonApiResource<'usage-records', UsageRecordAttributes>;
+export type User = JsonApiResource<'users', UserAttributes>;
+
+/**
  * Webhook event types
  */
 export type WebhookEventType =
@@ -483,16 +580,21 @@ export interface PaginationOptions {
 export type ResourceName =
   | 'product'
   | 'order'
+  | 'orderItem'
   | 'subscription'
+  | 'subscriptionInvoice'
   | 'customer'
   | 'licenseKey'
+  | 'licenseKeyInstance'
   | 'discount'
+  | 'discountRedemption'
   | 'store'
   | 'variant'
   | 'checkout'
   | 'webhook'
-  | 'licenseKeyInstance'
-  | 'file';
+  | 'file'
+  | 'usageRecord'
+  | 'user';
 
 /**
  * Operation types
@@ -500,10 +602,15 @@ export type ResourceName =
 export type OperationType =
   | 'get'
   | 'getAll'
+  | 'getCurrent'
   | 'create'
   | 'update'
   | 'delete'
   | 'cancel'
+  | 'pause'
+  | 'resume'
+  | 'refund'
+  | 'generate'
   | 'activate'
   | 'deactivate'
   | 'validate';

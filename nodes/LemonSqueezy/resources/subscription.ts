@@ -1,3 +1,18 @@
+/**
+ * Subscription Resource
+ *
+ * Provides operations for managing subscriptions in Lemon Squeezy.
+ *
+ * Available operations:
+ * - Cancel: Cancel a subscription at end of billing period
+ * - Get: Retrieve a single subscription by ID
+ * - Get Many: Retrieve multiple subscriptions with filtering
+ * - Pause: Pause a subscription (void or free mode)
+ * - Resume: Resume a paused subscription
+ * - Update: Update subscription details (variant, billing anchor, etc.)
+ *
+ * @see https://docs.lemonsqueezy.com/api/subscriptions
+ */
 import type { INodeProperties } from 'n8n-workflow';
 import { SUBSCRIPTION_STATUSES, PAUSE_MODES } from '../constants';
 
@@ -14,7 +29,7 @@ export const subscriptionOperations: INodeProperties = {
       name: 'Cancel',
       value: 'cancel',
       action: 'Cancel a subscription',
-      description: 'Cancel a subscription',
+      description: 'Cancel a subscription at end of billing period',
     },
     {
       name: 'Get',
@@ -29,6 +44,12 @@ export const subscriptionOperations: INodeProperties = {
       description: 'Retrieve multiple subscriptions',
     },
     {
+      name: 'Pause',
+      value: 'pause',
+      action: 'Pause a subscription',
+      description: 'Pause a subscription (void or free mode)',
+    },
+    {
       name: 'Resume',
       value: 'resume',
       action: 'Resume a subscription',
@@ -38,7 +59,7 @@ export const subscriptionOperations: INodeProperties = {
       name: 'Update',
       value: 'update',
       action: 'Update a subscription',
-      description: 'Update a subscription',
+      description: 'Update subscription details',
     },
   ],
   default: 'getAll',
@@ -52,9 +73,26 @@ export const subscriptionFields: INodeProperties[] = [
     type: 'string',
     required: true,
     default: '',
-    description: 'The ID of the subscription',
+    description: 'The ID of the subscription (e.g., "123456")',
     displayOptions: {
-      show: { resource: ['subscription'], operation: ['get', 'update', 'cancel', 'resume'] },
+      show: {
+        resource: ['subscription'],
+        operation: ['get', 'update', 'cancel', 'resume', 'pause'],
+      },
+    },
+  },
+  // Pause Mode for Pause operation
+  {
+    displayName: 'Pause Mode',
+    name: 'pauseMode',
+    type: 'options',
+    required: true,
+    options: PAUSE_MODES,
+    default: 'void',
+    description:
+      'How to pause the subscription. "Void" stops billing entirely. "Free" continues access but stops billing.',
+    displayOptions: {
+      show: { resource: ['subscription'], operation: ['pause'] },
     },
   },
   // Return All
