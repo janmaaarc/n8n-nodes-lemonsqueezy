@@ -571,7 +571,9 @@ export class LemonSqueezy implements INodeType {
           const refundAmount = this.getNodeParameter('orderRefundAmount', i, 0) as number;
 
           const body: IDataObject =
-            refundAmount > 0 ? { data: { type: 'orders', attributes: { amount: refundAmount } } } : {};
+            refundAmount > 0
+              ? { data: { type: 'orders', attributes: { amount: refundAmount } } }
+              : {};
 
           responseData = await lemonSqueezyApiRequest.call(
             this,
