@@ -1,6 +1,7 @@
 # n8n-nodes-lemonsqueezy
 
 [![npm version](https://img.shields.io/npm/v/n8n-nodes-lemonsqueezy.svg)](https://www.npmjs.com/package/n8n-nodes-lemonsqueezy)
+[![n8n-community](https://img.shields.io/badge/n8n-community%20node-orange)](https://docs.n8n.io/integrations/community-nodes/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/janmaaarc/n8n-nodes-lemonsqueezy/actions/workflows/ci.yml/badge.svg)](https://github.com/janmaaarc/n8n-nodes-lemonsqueezy/actions/workflows/ci.yml)
 
