@@ -54,19 +54,22 @@ The main node for interacting with the Lemon Squeezy API.
 
 | Resource | Operations |
 |----------|------------|
+| **Affiliate** | Get, Get Many |
 | **Checkout** | Create, Get, Get Many |
 | **Customer** | Create, Update, Delete, Get, Get Many |
-| **Discount** | Create, Update, Delete, Get, Get Many |
+| **Discount** | Create, Delete, Get, Get Many |
 | **Discount Redemption** | Get, Get Many |
 | **File** | Get, Get Many |
 | **License Key** | Get, Get Many, Update, Validate, Activate, Deactivate |
 | **License Key Instance** | Get, Get Many |
-| **Order** | Get, Get Many, Refund |
+| **Order** | Get, Get Many, Refund, Generate Invoice |
 | **Order Item** | Get, Get Many |
+| **Price** | Get, Get Many |
 | **Product** | Get, Get Many |
 | **Store** | Get, Get Many |
 | **Subscription** | Get, Get Many, Update, Cancel, Pause, Resume |
 | **Subscription Invoice** | Get, Get Many, Generate, Refund |
+| **Subscription Item** | Get, Get Many, Update, Get Current Usage |
 | **Usage Record** | Create, Get, Get Many |
 | **User** | Get Current |
 | **Variant** | Get, Get Many |
@@ -92,6 +95,7 @@ Webhook trigger node for receiving real-time events.
 - `subscription_payment_refunded` - Subscription payment refunded
 - `license_key_created` - License key generated
 - `license_key_updated` - License key modified
+- `affiliate_activated` - Affiliate activated
 
 ## Example Workflows
 
@@ -316,6 +320,25 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [n8n Community Forum](https://community.n8n.io/)
 
 ## Changelog
+
+### v0.11.0
+
+**New Features:**
+- Added **Price resource** - Get and list prices with variant filtering
+- Added **Subscription Item resource** - Get, list, update subscription items and get current usage for metered billing
+- Added **Affiliate resource** - Get and list affiliates with store and email filtering
+- Added **Order Generate Invoice operation** - Generate downloadable invoices for orders
+- Added **Affiliate Activated webhook event** - New trigger event for affiliate activation
+- Added **Fraudulent order status** to order status filters
+- Added **10 checkout color customization fields** - background, headings, primary text, secondary text, links, borders, checkbox, active state, button, and button text colors
+- Added **Skip Trial checkout option** - Skip free trial periods in checkout creation
+
+**Changes:**
+- Checkout "Dark Mode" option removed (deprecated by Lemon Squeezy API September 2024)
+- Checkout "Button Color" replaced with 10 granular color customization fields
+
+**Fixes:**
+- Removed Discount Update operation (Lemon Squeezy API does not support PATCH on discounts)
 
 ### v0.10.0
 

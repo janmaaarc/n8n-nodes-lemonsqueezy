@@ -4,11 +4,11 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
+| 0.11.x  | :white_check_mark: |
 | 0.10.x  | :white_check_mark: |
 | 0.9.x   | :white_check_mark: |
 | 0.8.x   | :white_check_mark: |
-| 0.7.x   | :white_check_mark: |
-| < 0.7   | :x:                |
+| < 0.8   | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -76,6 +76,11 @@ This node implements several security measures:
    - Don't store sensitive data unnecessarily
 
 ## Security Changelog
+
+### v0.11.0
+- Removed Discount Update operation that would cause API errors (PATCH not supported by Lemon Squeezy API)
+- Added input validation for 10 checkout color customization fields (hex color format)
+- Checkout dark mode option removed (deprecated by Lemon Squeezy API September 2024)
 
 ### v0.10.0
 - Added nested object depth validation (max 10 levels) to prevent stack overflow attacks

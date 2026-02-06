@@ -8,6 +8,7 @@
  * - Get: Retrieve a single order by ID
  * - Get Many: Retrieve multiple orders with filtering
  * - Refund: Issue a full or partial refund for an order
+ * - Generate Invoice: Generate a downloadable invoice for an order
  *
  * @see https://docs.lemonsqueezy.com/api/orders
  */
@@ -28,6 +29,12 @@ export const orderOperations: INodeProperties = {
       value: 'get',
       action: 'Get an order',
       description: 'Retrieve a single order by ID',
+    },
+    {
+      name: 'Generate Invoice',
+      value: 'generateInvoice',
+      action: 'Generate an order invoice',
+      description: 'Generate a downloadable invoice for an order',
     },
     {
       name: 'Get Many',
@@ -55,7 +62,7 @@ export const orderFields: INodeProperties[] = [
     default: '',
     description: 'The ID of the order (e.g., "123456")',
     displayOptions: {
-      show: { resource: ['order'], operation: ['get', 'refund'] },
+      show: { resource: ['order'], operation: ['get', 'refund', 'generateInvoice'] },
     },
   },
   // Refund Amount for partial refunds

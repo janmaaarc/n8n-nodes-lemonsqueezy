@@ -39,6 +39,9 @@ import {
   DISCOUNT_DURATION_TYPES,
   PRODUCT_STATUSES,
   INTERVAL_TYPES,
+  PRICE_CATEGORIES,
+  PRICE_SCHEMES,
+  AFFILIATE_STATUSES,
 } from '../nodes/LemonSqueezy/constants';
 import { LemonSqueezyApi } from '../credentials/LemonSqueezyApi.credentials';
 import { LemonSqueezy } from '../nodes/LemonSqueezy/LemonSqueezy.node';
@@ -162,6 +165,9 @@ describe('Node Descriptions', () => {
       expect(resourceValues).toContain('checkout');
       expect(resourceValues).toContain('webhook');
       expect(resourceValues).toContain('user');
+      expect(resourceValues).toContain('price');
+      expect(resourceValues).toContain('subscriptionItem');
+      expect(resourceValues).toContain('affiliate');
     });
 
     it('should have execute method', () => {
@@ -265,10 +271,13 @@ describe('Constants', () => {
       expect(RESOURCE_ENDPOINTS.usageRecord).toBe('usage-records');
       expect(RESOURCE_ENDPOINTS.user).toBe('users');
       expect(RESOURCE_ENDPOINTS.file).toBe('files');
+      expect(RESOURCE_ENDPOINTS.price).toBe('prices');
+      expect(RESOURCE_ENDPOINTS.subscriptionItem).toBe('subscription-items');
+      expect(RESOURCE_ENDPOINTS.affiliate).toBe('affiliates');
     });
 
-    it('should have 17 resource endpoints', () => {
-      expect(Object.keys(RESOURCE_ENDPOINTS).length).toBe(17);
+    it('should have 20 resource endpoints', () => {
+      expect(Object.keys(RESOURCE_ENDPOINTS).length).toBe(20);
     });
   });
 
@@ -290,6 +299,13 @@ describe('Constants', () => {
       expect(RESOURCE_ID_PARAMS.webhook).toBe('webhookId');
       expect(RESOURCE_ID_PARAMS.usageRecord).toBe('usageRecordId');
       expect(RESOURCE_ID_PARAMS.file).toBe('fileId');
+      expect(RESOURCE_ID_PARAMS.price).toBe('priceId');
+      expect(RESOURCE_ID_PARAMS.subscriptionItem).toBe('subscriptionItemId');
+      expect(RESOURCE_ID_PARAMS.affiliate).toBe('affiliateId');
+    });
+
+    it('should have 19 resource ID params', () => {
+      expect(Object.keys(RESOURCE_ID_PARAMS).length).toBe(19);
     });
   });
 
@@ -311,10 +327,11 @@ describe('Constants', () => {
       expect(eventValues).toContain('subscription_payment_refunded');
       expect(eventValues).toContain('license_key_created');
       expect(eventValues).toContain('license_key_updated');
+      expect(eventValues).toContain('affiliate_activated');
     });
 
-    it('should have 15 webhook events', () => {
-      expect(WEBHOOK_EVENTS.length).toBe(15);
+    it('should have 16 webhook events', () => {
+      expect(WEBHOOK_EVENTS.length).toBe(16);
     });
 
     it('should have name and description for each event', () => {
@@ -350,10 +367,11 @@ describe('Constants', () => {
       expect(statusValues).toContain('failed');
       expect(statusValues).toContain('paid');
       expect(statusValues).toContain('refunded');
+      expect(statusValues).toContain('fraudulent');
     });
 
-    it('should have 4 order statuses', () => {
-      expect(ORDER_STATUSES.length).toBe(4);
+    it('should have 5 order statuses', () => {
+      expect(ORDER_STATUSES.length).toBe(5);
     });
   });
 
@@ -448,6 +466,47 @@ describe('Constants', () => {
 
     it('should have 4 interval types', () => {
       expect(INTERVAL_TYPES.length).toBe(4);
+    });
+  });
+
+  describe('PRICE_CATEGORIES', () => {
+    it('should contain all price categories', () => {
+      const categoryValues = PRICE_CATEGORIES.map((c) => c.value);
+      expect(categoryValues).toContain('one_time');
+      expect(categoryValues).toContain('subscription');
+      expect(categoryValues).toContain('lead_magnet');
+      expect(categoryValues).toContain('pwyw');
+    });
+
+    it('should have 4 price categories', () => {
+      expect(PRICE_CATEGORIES.length).toBe(4);
+    });
+  });
+
+  describe('PRICE_SCHEMES', () => {
+    it('should contain all price schemes', () => {
+      const schemeValues = PRICE_SCHEMES.map((s) => s.value);
+      expect(schemeValues).toContain('standard');
+      expect(schemeValues).toContain('package');
+      expect(schemeValues).toContain('graduated');
+      expect(schemeValues).toContain('volume');
+    });
+
+    it('should have 4 price schemes', () => {
+      expect(PRICE_SCHEMES.length).toBe(4);
+    });
+  });
+
+  describe('AFFILIATE_STATUSES', () => {
+    it('should contain all affiliate statuses', () => {
+      const statusValues = AFFILIATE_STATUSES.map((s) => s.value);
+      expect(statusValues).toContain('active');
+      expect(statusValues).toContain('pending');
+      expect(statusValues).toContain('disabled');
+    });
+
+    it('should have 3 affiliate statuses', () => {
+      expect(AFFILIATE_STATUSES.length).toBe(3);
     });
   });
 });
@@ -1048,6 +1107,12 @@ describe('Resource Exports', () => {
     expect(resources.subscriptionOperations).toBeDefined();
     expect(resources.customerOperations).toBeDefined();
     expect(resources.userOperations).toBeDefined();
+    expect(resources.affiliateOperations).toBeDefined();
+    expect(resources.affiliateFields).toBeDefined();
+    expect(resources.priceOperations).toBeDefined();
+    expect(resources.priceFields).toBeDefined();
+    expect(resources.subscriptionItemOperations).toBeDefined();
+    expect(resources.subscriptionItemFields).toBeDefined();
   });
 
   it('should have resource property with all resources', async () => {
@@ -1059,6 +1124,10 @@ describe('Resource Exports', () => {
     expect(values).toContain('subscription');
     expect(values).toContain('customer');
     expect(values).toContain('user');
+    expect(values).toContain('price');
+    expect(values).toContain('subscriptionItem');
+    expect(values).toContain('affiliate');
+    expect(values.length).toBe(20);
   });
 });
 
@@ -1213,6 +1282,8 @@ describe('Shared Resource Options', () => {
     expect(shared.variantAdvancedOptions).toBeDefined();
     expect(shared.checkoutAdvancedOptions).toBeDefined();
     expect(shared.discountAdvancedOptions).toBeDefined();
+    expect(shared.priceAdvancedOptions).toBeDefined();
+    expect(shared.subscriptionItemAdvancedOptions).toBeDefined();
   });
 
   it('should have sort fields in advanced options', async () => {
@@ -1554,6 +1625,17 @@ describe('Node Description Details', () => {
       const props = node.description.properties;
       const advancedProps = props.filter((p) => p.name === 'advancedOptions');
       expect(advancedProps.length).toBeGreaterThan(0);
+    });
+
+    it('should not have update operation for discount resource', async () => {
+      const { discountOperations } = await import('../nodes/LemonSqueezy/resources/discount');
+      const operations = discountOperations.options as Array<{ value: string }>;
+      const operationValues = operations.map((o) => o.value);
+      expect(operationValues).not.toContain('update');
+      expect(operationValues).toContain('create');
+      expect(operationValues).toContain('get');
+      expect(operationValues).toContain('getAll');
+      expect(operationValues).toContain('delete');
     });
   });
 

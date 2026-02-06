@@ -151,6 +151,12 @@ export const RESOURCE_INCLUDES: Record<string, Array<{ name: string; value: stri
     { name: 'Store', value: 'store' },
     { name: 'Discount Redemptions', value: 'discount-redemptions' },
   ],
+  price: [{ name: 'Variant', value: 'variant' }],
+  subscriptionItem: [
+    { name: 'Subscription', value: 'subscription' },
+    { name: 'Price', value: 'price' },
+    { name: 'Usage Records', value: 'usage-records' },
+  ],
 };
 
 /**
@@ -321,3 +327,5 @@ export const productAdvancedOptions = createAdvancedOptionsField('product');
 export const variantAdvancedOptions = createAdvancedOptionsField('variant');
 export const checkoutAdvancedOptions = createAdvancedOptionsField('checkout');
 export const discountAdvancedOptions = createAdvancedOptionsField('discount');
+export const priceAdvancedOptions = createAdvancedOptionsField('price');
+export const subscriptionItemAdvancedOptions = createAdvancedOptionsField('subscriptionItem');

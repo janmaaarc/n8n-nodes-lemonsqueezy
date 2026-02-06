@@ -36,6 +36,9 @@ export const RESOURCE_ENDPOINTS: Record<string, string> = {
   usageRecord: 'usage-records',
   user: 'users',
   file: 'files',
+  price: 'prices',
+  subscriptionItem: 'subscription-items',
+  affiliate: 'affiliates',
 };
 
 /**
@@ -58,6 +61,9 @@ export const RESOURCE_ID_PARAMS: Record<string, string> = {
   webhook: 'webhookId',
   usageRecord: 'usageRecordId',
   file: 'fileId',
+  price: 'priceId',
+  subscriptionItem: 'subscriptionItemId',
+  affiliate: 'affiliateId',
 };
 
 /**
@@ -130,6 +136,11 @@ export const WEBHOOK_EVENTS = [
     description: 'Triggered when a subscription payment is refunded',
   },
   {
+    name: 'Affiliate Activated',
+    value: 'affiliate_activated',
+    description: 'Triggered when an affiliate is activated',
+  },
+  {
     name: 'License Key Created',
     value: 'license_key_created',
     description: 'Triggered when a license key is created',
@@ -162,6 +173,7 @@ export const ORDER_STATUSES = [
   { name: 'Failed', value: 'failed' },
   { name: 'Paid', value: 'paid' },
   { name: 'Refunded', value: 'refunded' },
+  { name: 'Fraudulent', value: 'fraudulent' },
 ];
 
 /**
@@ -232,4 +244,33 @@ export const INTERVAL_TYPES = [
   { name: 'Week', value: 'week' },
   { name: 'Month', value: 'month' },
   { name: 'Year', value: 'year' },
+];
+
+/**
+ * Price categories
+ */
+export const PRICE_CATEGORIES = [
+  { name: 'One Time', value: 'one_time' },
+  { name: 'Subscription', value: 'subscription' },
+  { name: 'Lead Magnet', value: 'lead_magnet' },
+  { name: 'Pay What You Want', value: 'pwyw' },
+];
+
+/**
+ * Price schemes
+ */
+export const PRICE_SCHEMES = [
+  { name: 'Standard', value: 'standard' },
+  { name: 'Package', value: 'package' },
+  { name: 'Graduated', value: 'graduated' },
+  { name: 'Volume', value: 'volume' },
+];
+
+/**
+ * Affiliate statuses
+ */
+export const AFFILIATE_STATUSES = [
+  { name: 'Active', value: 'active' },
+  { name: 'Pending', value: 'pending' },
+  { name: 'Disabled', value: 'disabled' },
 ];

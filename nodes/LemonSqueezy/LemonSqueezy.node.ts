@@ -167,13 +167,13 @@ async function handleCreate(
     if (additionalOptions.expiresAt) {
       attributes.expires_at = additionalOptions.expiresAt;
     }
+    if (additionalOptions.skipTrial !== undefined) {
+      checkoutOptionsObj.skip_trial = additionalOptions.skipTrial;
+    }
     if (additionalOptions.testMode !== undefined) {
       attributes.test_mode = additionalOptions.testMode;
     }
 
-    if (checkoutOptions.dark !== undefined) {
-      checkoutOptionsObj.dark = checkoutOptions.dark;
-    }
     if (checkoutOptions.embed !== undefined) {
       checkoutOptionsObj.embed = checkoutOptions.embed;
     }
@@ -189,8 +189,23 @@ async function handleCreate(
     if (checkoutOptions.discount !== undefined) {
       checkoutOptionsObj.discount = checkoutOptions.discount;
     }
-    if (checkoutOptions.buttonColor) {
-      checkoutOptionsObj.button_color = checkoutOptions.buttonColor;
+
+    const colorFields = [
+      { param: 'backgroundColor', api: 'background_color' },
+      { param: 'headingsColor', api: 'headings_color' },
+      { param: 'primaryTextColor', api: 'primary_text_color' },
+      { param: 'secondaryTextColor', api: 'secondary_text_color' },
+      { param: 'linksColor', api: 'links_color' },
+      { param: 'bordersColor', api: 'borders_color' },
+      { param: 'checkboxColor', api: 'checkbox_color' },
+      { param: 'activeStateColor', api: 'active_state_color' },
+      { param: 'buttonColor', api: 'button_color' },
+      { param: 'buttonTextColor', api: 'button_text_color' },
+    ];
+    for (const { param, api } of colorFields) {
+      if (checkoutOptions[param]) {
+        checkoutOptionsObj[api] = checkoutOptions[param];
+      }
     }
 
     if (Object.keys(checkoutData).length > 0) {
@@ -386,47 +401,30 @@ async function handleUpdate(
     return await lemonSqueezyApiRequest.call(ctx, 'PATCH', `/webhooks/${webhookId}`, body);
   }
 
-  if (resource === 'discount') {
-    const discountId = ctx.getNodeParameter('discountId', itemIndex) as string;
+  if (resource === 'subscriptionItem') {
+    const subscriptionItemId = ctx.getNodeParameter('subscriptionItemId', itemIndex) as string;
     const updateFields = ctx.getNodeParameter('updateFields', itemIndex);
 
     const attributes: IDataObject = {};
 
-    if (updateFields.name) {
-      attributes.name = updateFields.name;
+    if (updateFields.quantity !== undefined) {
+      attributes.quantity = updateFields.quantity;
     }
-    if (updateFields.code) {
-      attributes.code = updateFields.code;
+    if (updateFields.invoiceImmediately !== undefined) {
+      attributes.invoice_immediately = updateFields.invoiceImmediately;
     }
-    if (updateFields.amount !== undefined) {
-      // Validate discount amount if both amount and type are being updated
-      const amountType = (updateFields.amountType as string) || 'percent';
-      validateDiscountAmount(updateFields.amount as number, amountType);
-      attributes.amount = updateFields.amount;
-    }
-    if (updateFields.amountType) {
-      attributes.amount_type = updateFields.amountType;
-    }
-    if (updateFields.duration) {
-      attributes.duration = updateFields.duration;
-    }
-    if (updateFields.durationInMonths !== undefined) {
-      attributes.duration_in_months = updateFields.durationInMonths;
-    }
-    if (updateFields.maxRedemptions !== undefined) {
-      attributes.max_redemptions = updateFields.maxRedemptions;
-      attributes.is_limited_redemptions = (updateFields.maxRedemptions as number) > 0;
-    }
-    if (updateFields.startsAt) {
-      attributes.starts_at = updateFields.startsAt;
-    }
-    if (updateFields.expiresAt) {
-      attributes.expires_at = updateFields.expiresAt;
+    if (updateFields.disableProrations !== undefined) {
+      attributes.disable_prorations = updateFields.disableProrations;
     }
 
-    const body = buildJsonApiBody('discounts', attributes, undefined, discountId);
+    const body = buildJsonApiBody('subscription-items', attributes, undefined, subscriptionItemId);
 
-    return await lemonSqueezyApiRequest.call(ctx, 'PATCH', `/discounts/${discountId}`, body);
+    return await lemonSqueezyApiRequest.call(
+      ctx,
+      'PATCH',
+      `/subscription-items/${subscriptionItemId}`,
+      body,
+    );
   }
 
   throw new Error(`Update operation not supported for resource: ${resource}`);
@@ -565,6 +563,21 @@ export class LemonSqueezy implements INodeType {
             'PATCH',
             `/subscriptions/${subscriptionId}`,
             body,
+          );
+        } else if (operation === 'generateInvoice' && resource === 'order') {
+          const orderId = this.getNodeParameter('orderId', i) as string;
+          responseData = await lemonSqueezyApiRequest.call(
+            this,
+            'POST',
+            `/orders/${orderId}/invoice`,
+            {},
+          );
+        } else if (operation === 'getCurrentUsage' && resource === 'subscriptionItem') {
+          const subscriptionItemId = this.getNodeParameter('subscriptionItemId', i) as string;
+          responseData = await lemonSqueezyApiRequest.call(
+            this,
+            'GET',
+            `/subscription-items/${subscriptionItemId}/current-usage`,
           );
         } else if (operation === 'refund' && resource === 'order') {
           const orderId = this.getNodeParameter('orderId', i) as string;

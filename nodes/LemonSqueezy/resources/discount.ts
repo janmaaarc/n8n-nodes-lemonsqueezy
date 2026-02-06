@@ -8,8 +8,6 @@
  * - Delete: Delete an existing discount code
  * - Get: Retrieve a single discount by ID
  * - Get Many: Retrieve multiple discounts with filtering
- * - Update: Update an existing discount code
- *
  * @see https://docs.lemonsqueezy.com/api/discounts
  */
 import type { INodeProperties } from 'n8n-workflow';
@@ -48,12 +46,6 @@ export const discountOperations: INodeProperties = {
       action: 'Get many discounts',
       description: 'Retrieve multiple discounts',
     },
-    {
-      name: 'Update',
-      value: 'update',
-      action: 'Update a discount',
-      description: 'Update an existing discount code',
-    },
   ],
   default: 'getAll',
 };
@@ -69,7 +61,7 @@ export const discountFields: INodeProperties[] = [
     placeholder: 'e.g., 12345',
     description: 'The ID of the discount (numeric string)',
     displayOptions: {
-      show: { resource: ['discount'], operation: ['get', 'update', 'delete'] },
+      show: { resource: ['discount'], operation: ['get', 'delete'] },
     },
   },
   // Create Fields
@@ -183,88 +175,6 @@ export const discountFields: INodeProperties[] = [
         type: 'boolean',
         default: false,
         description: 'Whether this is a test discount',
-      },
-    ],
-  },
-  // Update Fields
-  {
-    displayName: 'Update Fields',
-    name: 'updateFields',
-    type: 'collection',
-    placeholder: 'Add Field',
-    default: {},
-    displayOptions: {
-      show: { resource: ['discount'], operation: ['update'] },
-    },
-    options: [
-      {
-        displayName: 'Name',
-        name: 'name',
-        type: 'string',
-        default: '',
-        description: 'Internal name for the discount (not visible to customers)',
-      },
-      {
-        displayName: 'Code',
-        name: 'code',
-        type: 'string',
-        default: '',
-        description: 'The discount code customers will use at checkout',
-      },
-      {
-        displayName: 'Amount',
-        name: 'amount',
-        type: 'number',
-        default: 0,
-        description:
-          'Discount amount (percentage 0-100 for percent type, or fixed amount in cents for fixed type)',
-      },
-      {
-        displayName: 'Amount Type',
-        name: 'amountType',
-        type: 'options',
-        options: DISCOUNT_AMOUNT_TYPES,
-        default: 'percent',
-        description: 'Whether the discount is a percentage or fixed amount',
-      },
-      {
-        displayName: 'Duration',
-        name: 'duration',
-        type: 'options',
-        options: DISCOUNT_DURATION_TYPES,
-        default: 'once',
-        description: 'How long the discount should apply for subscriptions',
-      },
-      {
-        displayName: 'Duration In Months',
-        name: 'durationInMonths',
-        type: 'number',
-        default: 1,
-        description: 'Number of months the discount applies (only for "repeating" duration)',
-        typeOptions: { minValue: 1 },
-      },
-      {
-        displayName: 'Max Redemptions',
-        name: 'maxRedemptions',
-        type: 'number',
-        default: 0,
-        description: 'Maximum number of times this discount can be used (0 for unlimited)',
-        typeOptions: { minValue: 0 },
-      },
-      {
-        displayName: 'Starts At',
-        name: 'startsAt',
-        type: 'dateTime',
-        default: '',
-        description:
-          'When the discount becomes active (ISO 8601 format, e.g., 2024-01-15T10:30:00Z)',
-      },
-      {
-        displayName: 'Expires At',
-        name: 'expiresAt',
-        type: 'dateTime',
-        default: '',
-        description: 'When the discount expires (ISO 8601 format, e.g., 2024-12-31T23:59:59Z)',
       },
     ],
   },

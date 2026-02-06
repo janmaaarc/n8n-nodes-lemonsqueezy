@@ -177,7 +177,7 @@ export interface OrderAttributes extends BaseAttributes {
   total_usd: number;
   tax_name: string | null;
   tax_rate: string;
-  status: 'pending' | 'failed' | 'paid' | 'refunded';
+  status: 'pending' | 'failed' | 'paid' | 'refunded' | 'fraudulent';
   status_formatted: string;
   refunded: boolean;
   refunded_at: string | null;
@@ -293,9 +293,18 @@ export interface CheckoutAttributes extends BaseAttributes {
     logo: boolean;
     desc: boolean;
     discount: boolean;
-    dark: boolean;
+    skip_trial: boolean;
     subscription_preview: boolean;
+    background_color: string;
+    headings_color: string;
+    primary_text_color: string;
+    secondary_text_color: string;
+    links_color: string;
+    borders_color: string;
+    checkbox_color: string;
+    active_state_color: string;
     button_color: string;
+    button_text_color: string;
   };
   checkout_data: {
     email: string;
@@ -365,6 +374,47 @@ export interface FileAttributes extends BaseAttributes {
 }
 
 /**
+ * Price attributes
+ */
+export interface PriceAttributes extends BaseAttributes {
+  variant_id: number;
+  category: 'one_time' | 'subscription' | 'lead_magnet' | 'pwyw';
+  scheme: 'standard' | 'package' | 'graduated' | 'volume';
+  unit_price: number;
+  unit_price_decimal: string | null;
+  tiers: IDataObject[] | null;
+  renewal_interval_quantity: number | null;
+  renewal_interval_unit: 'day' | 'week' | 'month' | 'year' | null;
+  trial_interval_quantity: number | null;
+  trial_interval_unit: 'day' | 'week' | 'month' | 'year' | null;
+  setup_fee_enabled: boolean;
+  setup_fee: number | null;
+  tax_code: string;
+}
+
+/**
+ * Subscription Item attributes
+ */
+export interface SubscriptionItemAttributes extends BaseAttributes {
+  subscription_id: number;
+  price_id: number;
+  quantity: number;
+  is_usage_based: boolean;
+}
+
+/**
+ * Affiliate attributes
+ */
+export interface AffiliateAttributes extends BaseAttributes {
+  user_name: string;
+  user_email: string;
+  share_domain: string;
+  status: 'active' | 'pending' | 'disabled';
+  total_earnings: number;
+  unpaid_earnings: number;
+}
+
+/**
  * Resource types
  */
 export type Store = JsonApiResource<'stores', StoreAttributes>;
@@ -382,6 +432,12 @@ export type LicenseKeyInstance = JsonApiResource<
   LicenseKeyInstanceAttributes
 >;
 export type File = JsonApiResource<'files', FileAttributes>;
+export type Price = JsonApiResource<'prices', PriceAttributes>;
+export type SubscriptionItem = JsonApiResource<
+  'subscription-items',
+  SubscriptionItemAttributes
+>;
+export type Affiliate = JsonApiResource<'affiliates', AffiliateAttributes>;
 
 /**
  * Order Item attributes
@@ -498,7 +554,8 @@ export type WebhookEventType =
   | 'subscription_payment_recovered'
   | 'subscription_payment_refunded'
   | 'license_key_created'
-  | 'license_key_updated';
+  | 'license_key_updated'
+  | 'affiliate_activated';
 
 /**
  * Webhook payload received from Lemon Squeezy
@@ -594,7 +651,10 @@ export type ResourceName =
   | 'webhook'
   | 'file'
   | 'usageRecord'
-  | 'user';
+  | 'user'
+  | 'price'
+  | 'subscriptionItem'
+  | 'affiliate';
 
 /**
  * Operation types
@@ -613,4 +673,6 @@ export type OperationType =
   | 'generate'
   | 'activate'
   | 'deactivate'
-  | 'validate';
+  | 'validate'
+  | 'getCurrentUsage'
+  | 'generateInvoice';
