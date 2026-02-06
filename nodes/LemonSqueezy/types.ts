@@ -433,10 +433,7 @@ export type LicenseKeyInstance = JsonApiResource<
 >;
 export type File = JsonApiResource<'files', FileAttributes>;
 export type Price = JsonApiResource<'prices', PriceAttributes>;
-export type SubscriptionItem = JsonApiResource<
-  'subscription-items',
-  SubscriptionItemAttributes
->;
+export type SubscriptionItem = JsonApiResource<'subscription-items', SubscriptionItemAttributes>;
 export type Affiliate = JsonApiResource<'affiliates', AffiliateAttributes>;
 
 /**
