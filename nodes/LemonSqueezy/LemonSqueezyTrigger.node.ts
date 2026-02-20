@@ -373,12 +373,12 @@ export class LemonSqueezyTrigger implements INodeType {
   methods = {
     loadOptions: {
       async getStores(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-        const response = (await lemonSqueezyApiRequestAllItems.call(
+        const response = await lemonSqueezyApiRequestAllItems.call(
           this as unknown as IExecuteFunctions,
           'GET',
           '/stores',
           {},
-        )) as IDataObject[];
+        );
         return response.map((store) => ({
           name: (store.attributes as IDataObject).name as string,
           value: store.id as string,

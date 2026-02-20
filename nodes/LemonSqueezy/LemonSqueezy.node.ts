@@ -786,12 +786,12 @@ export class LemonSqueezy implements INodeType {
           });
         } else if (resource === 'file' && operation === 'download') {
           const fileId = this.getNodeParameter('fileId', i) as string;
-          const binaryPropertyName = this.getNodeParameter('binaryPropertyName', i, 'data') as string;
+          const binaryPropertyName = this.getNodeParameter('binaryPropertyName', i, 'data');
 
           // Fetch file metadata to get the download URL
           const fileResponse = await lemonSqueezyApiRequest.call(this, 'GET', `/files/${fileId}`);
-          const fileData = (fileResponse as IDataObject).data as IDataObject;
-          const fileAttrs = fileData?.attributes as IDataObject;
+          const fileData = fileResponse.data as IDataObject;
+          const fileAttrs = (fileData?.attributes ?? {}) as IDataObject;
           const downloadUrl = fileAttrs?.download_url as string;
           const fileName = (fileAttrs?.name as string) || `file-${fileId}`;
           const mimeType = (fileAttrs?.mime_type as string) || 'application/octet-stream';
@@ -848,12 +848,12 @@ export class LemonSqueezy implements INodeType {
   methods = {
     loadOptions: {
       async getStores(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-        const response = (await lemonSqueezyApiRequestAllItems.call(
+        const response = await lemonSqueezyApiRequestAllItems.call(
           this as unknown as IExecuteFunctions,
           'GET',
           '/stores',
           {},
-        )) as IDataObject[];
+        );
         return response.map((store) => ({
           name: (store.attributes as IDataObject).name as string,
           value: store.id as string,
@@ -861,12 +861,12 @@ export class LemonSqueezy implements INodeType {
       },
 
       async getProducts(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-        const response = (await lemonSqueezyApiRequestAllItems.call(
+        const response = await lemonSqueezyApiRequestAllItems.call(
           this as unknown as IExecuteFunctions,
           'GET',
           '/products',
           {},
-        )) as IDataObject[];
+        );
         return response.map((product) => {
           const attrs = product.attributes as IDataObject;
           return {
@@ -878,12 +878,12 @@ export class LemonSqueezy implements INodeType {
       },
 
       async getVariants(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-        const response = (await lemonSqueezyApiRequestAllItems.call(
+        const response = await lemonSqueezyApiRequestAllItems.call(
           this as unknown as IExecuteFunctions,
           'GET',
           '/variants',
           {},
-        )) as IDataObject[];
+        );
         return response.map((variant) => {
           const attrs = variant.attributes as IDataObject;
           return {
@@ -895,12 +895,12 @@ export class LemonSqueezy implements INodeType {
       },
 
       async getDiscounts(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-        const response = (await lemonSqueezyApiRequestAllItems.call(
+        const response = await lemonSqueezyApiRequestAllItems.call(
           this as unknown as IExecuteFunctions,
           'GET',
           '/discounts',
           {},
-        )) as IDataObject[];
+        );
         return response.map((discount) => {
           const attrs = discount.attributes as IDataObject;
           return {
