@@ -149,7 +149,11 @@ export interface CustomerAttributes extends BaseAttributes {
   region: string | null;
   country: string | null;
   total_revenue_currency: number;
+  total_revenue_currency_formatted: string;
   mrr: number;
+  mrr_formatted: string;
+  country_formatted: string | null;
+  test_mode: boolean;
   urls: {
     customer_portal: string;
   };
@@ -177,7 +181,7 @@ export interface OrderAttributes extends BaseAttributes {
   total_usd: number;
   tax_name: string | null;
   tax_rate: string;
-  status: 'pending' | 'failed' | 'paid' | 'refunded' | 'fraudulent';
+  status: 'pending' | 'failed' | 'paid' | 'refunded' | 'fraudulent' | 'partial_refund';
   status_formatted: string;
   refunded: boolean;
   refunded_at: string | null;
@@ -185,6 +189,13 @@ export interface OrderAttributes extends BaseAttributes {
   discount_total_formatted: string;
   tax_formatted: string;
   total_formatted: string;
+  setup_fee: number;
+  setup_fee_usd: number;
+  setup_fee_formatted: string;
+  tax_inclusive: boolean;
+  refunded_amount: number;
+  refunded_amount_usd: number;
+  refunded_amount_formatted: string;
   first_order_item: IDataObject;
   urls: {
     receipt: string;
@@ -218,9 +229,11 @@ export interface SubscriptionAttributes extends BaseAttributes {
   trial_ends_at: string | null;
   billing_anchor: number;
   first_subscription_item: IDataObject;
+  payment_processor: 'stripe' | 'paypal';
   urls: {
     update_payment_method: string;
     customer_portal: string;
+    customer_portal_update_subscription: string | null;
   };
   renews_at: string;
   ends_at: string | null;
@@ -406,12 +419,16 @@ export interface SubscriptionItemAttributes extends BaseAttributes {
  * Affiliate attributes
  */
 export interface AffiliateAttributes extends BaseAttributes {
+  store_id: number;
+  user_id: number;
   user_name: string;
   user_email: string;
   share_domain: string;
   status: 'active' | 'pending' | 'disabled';
   total_earnings: number;
   unpaid_earnings: number;
+  application_note: string | null;
+  products: number[];
 }
 
 /**
@@ -464,7 +481,7 @@ export interface SubscriptionInvoiceAttributes extends BaseAttributes {
   card_last_four: string | null;
   currency: string;
   currency_rate: string;
-  status: 'pending' | 'paid' | 'void' | 'refunded';
+  status: 'pending' | 'paid' | 'void' | 'refunded' | 'partial_refund';
   status_formatted: string;
   refunded: boolean;
   refunded_at: string | null;
@@ -480,6 +497,13 @@ export interface SubscriptionInvoiceAttributes extends BaseAttributes {
   discount_total_formatted: string;
   tax_formatted: string;
   total_formatted: string;
+  setup_fee: number;
+  setup_fee_usd: number;
+  setup_fee_formatted: string;
+  tax_inclusive: boolean;
+  refunded_amount: number;
+  refunded_amount_usd: number;
+  refunded_amount_formatted: string;
   urls: {
     invoice_url: string;
   };

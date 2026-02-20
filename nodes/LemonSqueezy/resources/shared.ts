@@ -120,6 +120,8 @@ export const RESOURCE_INCLUDES: Record<string, Array<{ name: string; value: stri
     { name: 'Order Item', value: 'order-item' },
     { name: 'Product', value: 'product' },
     { name: 'Variant', value: 'variant' },
+    { name: 'Subscription Invoices', value: 'subscription-invoices' },
+    { name: 'Subscription Items', value: 'subscription-items' },
   ],
   customer: [
     { name: 'Store', value: 'store' },

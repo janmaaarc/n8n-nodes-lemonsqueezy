@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2026-02-18
+
+### Added
+- **Dynamic dropdowns** - Store, Variant, Product, and Discount ID fields now load options dynamically from your Lemon Squeezy account instead of requiring manual ID entry. Applies to Checkout Create (Store, Variant), Customer Create (Store), Discount Create (Store), Webhook Create (Store), and the Trigger node (Store).
+- **File Download operation** - New `download` operation on the File resource fetches the file binary and returns it as n8n binary data (configurable property name). Enables direct file handling in workflows (email attachments, S3 uploads, etc.).
+- **License Key Instance Deactivate** - New `deactivate` operation on the License Key Instance resource deactivates a specific instance using its instance ID and the associated license key string.
+- **Webhook Trigger: Include Event Headers** - New option to expose raw request headers (`X-Event-Name`, `X-Signature`, `X-Request-Id`, `Content-Type`) in the trigger output for debugging and downstream routing.
+- **Discount Redemption date range filters** - `Get Many` operation on Discount Redemption now supports `createdAfter` and `createdBefore` date filters for reporting workflows.
+
+### Changed
+- Store ID, Variant ID, Product ID, and Discount ID fields converted from free-text to dynamic option dropdowns powered by `loadOptionsMethod`
+- Trigger node Store field is now a dynamic dropdown
+
+## [0.12.0] - 2026-02-10
+
+### Critical Fixes
+- **Order Generate Invoice** - Corrected endpoint path (`/generate-invoice`), added required invoice fields (name, address, city, zip code, country), uses query parameters instead of empty body
+- **Subscription Invoice Generate** - Now uses correct endpoint (`/subscription-invoices/{id}/generate-invoice`), added required invoice fields, uses query parameters
+- **Customer Archive** - Replaced invalid DELETE request with PATCH to set status to `archived` (API has no DELETE endpoint)
+- **Order Refund** - Added missing `id` field in JSON:API request body for partial refunds
+- **Subscription Invoice Refund** - Added missing `id` field in JSON:API request body for partial refunds
+
+### Added
+- **Subscription Update** - Added `trial_ends_at` field to extend/shorten trial periods
+- **Order Get Many** - Added `order_number` filter
+- **Subscription Get Many** - Added `order_item_id` filter
+- **License Key Get Many** - Added `order_item_id` filter
+- **Subscription Invoice Get Many** - Added `partial_refund` status filter
+- **Order Get Many** - Added `partial_refund` status to order status filters
+- **Checkout Create** - Added billing address (country, zip), tax number, variant quantities fields
+- **Checkout Create** - Added product name/description/media overrides and enabled variants
+- **Checkout Create** - Added `terms_privacy_color` and `subscription_preview` display options
+- **Discount Create** - Added `is_limited_to_products` and variant IDs for product-scoped discounts
+- **Subscription includes** - Added `subscription-invoices` and `subscription-items` relationships
+
+### Changed
+- Added `maxValue: 100` to all resource limit fields for consistency
+- Extended `buildJsonApiBody` to support array relationships
+- Updated TypeScript types: OrderAttributes, SubscriptionInvoiceAttributes, SubscriptionAttributes, AffiliateAttributes, CustomerAttributes
+
+### Fixed
+- Removed invalid `status` filter from Product resource (API only supports `store_id`)
+
 ## [0.11.0] - 2026-02-06
 
 ### Added

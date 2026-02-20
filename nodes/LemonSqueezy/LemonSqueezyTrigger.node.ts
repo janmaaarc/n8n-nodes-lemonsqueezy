@@ -1,13 +1,16 @@
 import type {
+  IExecuteFunctions,
   IWebhookFunctions,
   IHookFunctions,
+  ILoadOptionsFunctions,
+  INodePropertyOptions,
   INodeType,
   INodeTypeDescription,
   IWebhookResponseData,
   IDataObject,
 } from 'n8n-workflow';
 import { WEBHOOK_EVENTS } from './constants';
-import { lemonSqueezyApiRequest, verifyWebhookSignature } from './helpers';
+import { lemonSqueezyApiRequest, lemonSqueezyApiRequestAllItems, verifyWebhookSignature } from './helpers';
 
 export class LemonSqueezyTrigger implements INodeType {
   description: INodeTypeDescription = {
@@ -39,12 +42,16 @@ export class LemonSqueezyTrigger implements INodeType {
     ],
     properties: [
       {
-        displayName: 'Store ID',
+        displayName: 'Store',
         name: 'storeId',
-        type: 'string',
+        type: 'options',
+        typeOptions: {
+          loadOptionsMethod: 'getStores',
+        },
         required: true,
         default: '',
-        description: 'The ID of the store to receive events from',
+        description:
+          'The store to receive events from. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
       },
       {
         displayName: 'Events',
@@ -85,6 +92,14 @@ export class LemonSqueezyTrigger implements INodeType {
             default: 5,
             description:
               'Maximum age of webhook events in minutes. Events older than this will be rejected to prevent replay attacks. Set to 0 to disable.',
+          },
+          {
+            displayName: 'Include Event Headers',
+            name: 'includeHeaders',
+            type: 'boolean',
+            default: false,
+            description:
+              'Whether to include raw webhook request headers (X-Event-Name, X-Signature, etc.) in the output data',
           },
         ],
       },
@@ -333,15 +348,42 @@ export class LemonSqueezyTrigger implements INodeType {
     }
 
     // Return the webhook data
+    const outputData: IDataObject = {
+      event: eventName,
+      meta: body.meta,
+      data: body.data,
+      timestamp: new Date().toISOString(),
+    };
+
+    if (options.includeHeaders) {
+      const allHeaders = this.getHeaderData();
+      outputData.headers = {
+        'x-event-name': allHeaders['x-event-name'] ?? eventName,
+        'x-signature': allHeaders['x-signature'],
+        'x-request-id': allHeaders['x-request-id'],
+        'content-type': allHeaders['content-type'],
+      };
+    }
+
     return {
-      workflowData: [
-        this.helpers.returnJsonArray({
-          event: eventName,
-          meta: body.meta,
-          data: body.data,
-          timestamp: new Date().toISOString(),
-        }),
-      ],
+      workflowData: [this.helpers.returnJsonArray(outputData)],
     };
   }
+
+  methods = {
+    loadOptions: {
+      async getStores(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+        const response = (await lemonSqueezyApiRequestAllItems.call(
+          this as unknown as IExecuteFunctions,
+          'GET',
+          '/stores',
+          {},
+        )) as IDataObject[];
+        return response.map((store) => ({
+          name: (store.attributes as IDataObject).name as string,
+          value: store.id as string,
+        }));
+      },
+    },
+  };
 }

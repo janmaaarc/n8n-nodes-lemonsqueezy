@@ -12,7 +12,6 @@
  * @see https://docs.lemonsqueezy.com/api/products
  */
 import type { INodeProperties } from 'n8n-workflow';
-import { PRODUCT_STATUSES } from '../constants';
 
 export const productOperations: INodeProperties = {
   displayName: 'Operation',
@@ -92,14 +91,6 @@ export const productFields: INodeProperties[] = [
         type: 'string',
         default: '',
         description: 'Filter by store ID',
-      },
-      {
-        displayName: 'Status',
-        name: 'status',
-        type: 'options',
-        options: PRODUCT_STATUSES,
-        default: '',
-        description: 'Filter by product status',
       },
     ],
   },

@@ -56,7 +56,7 @@ export const variantFields: INodeProperties[] = [
     type: 'number',
     default: 50,
     description: 'Max number of results to return',
-    typeOptions: { minValue: 1 },
+    typeOptions: { minValue: 1, maxValue: 100 },
     displayOptions: {
       show: { resource: ['variant'], operation: ['getAll'], returnAll: [false] },
     },

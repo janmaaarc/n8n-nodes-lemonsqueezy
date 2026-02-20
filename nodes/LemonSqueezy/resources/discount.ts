@@ -66,12 +66,16 @@ export const discountFields: INodeProperties[] = [
   },
   // Create Fields
   {
-    displayName: 'Store ID',
+    displayName: 'Store',
     name: 'discountStoreId',
-    type: 'string',
+    type: 'options',
+    typeOptions: {
+      loadOptionsMethod: 'getStores',
+    },
     required: true,
     default: '',
-    description: 'The ID of the store this discount belongs to',
+    description:
+      'The store this discount belongs to. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
     displayOptions: {
       show: { resource: ['discount'], operation: ['create'] },
     },
@@ -175,6 +179,21 @@ export const discountFields: INodeProperties[] = [
         type: 'boolean',
         default: false,
         description: 'Whether this is a test discount',
+      },
+      {
+        displayName: 'Limit to Products',
+        name: 'isLimitedToProducts',
+        type: 'boolean',
+        default: false,
+        description: 'Whether this discount is limited to specific products/variants',
+      },
+      {
+        displayName: 'Variant IDs',
+        name: 'variantIds',
+        type: 'string',
+        default: '',
+        description:
+          'Comma-separated list of variant IDs this discount applies to (requires "Limit to Products" enabled)',
       },
     ],
   },

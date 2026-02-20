@@ -1,6 +1,8 @@
 import type {
   IExecuteFunctions,
+  ILoadOptionsFunctions,
   INodeExecutionData,
+  INodePropertyOptions,
   INodeType,
   INodeTypeDescription,
   IDataObject,
@@ -83,10 +85,31 @@ async function handleCreate(
     if (additionalOptions.testMode !== undefined) {
       attributes.test_mode = additionalOptions.testMode;
     }
+    if (additionalOptions.isLimitedToProducts !== undefined) {
+      attributes.is_limited_to_products = additionalOptions.isLimitedToProducts;
+    }
 
-    const body = buildJsonApiBody('discounts', attributes, {
+    const relationships: Record<
+      string,
+      { type: string; id: string } | Array<{ type: string; id: string }>
+    > = {
       store: { type: 'stores', id: storeId },
-    });
+    };
+
+    if (additionalOptions.variantIds) {
+      const variantIdList = (additionalOptions.variantIds as string)
+        .split(',')
+        .map((id: string) => id.trim())
+        .filter((id: string) => id.length > 0);
+      if (variantIdList.length > 0) {
+        relationships.variants = variantIdList.map((vid: string) => ({
+          type: 'variants',
+          id: vid,
+        }));
+      }
+    }
+
+    const body = buildJsonApiBody('discounts', attributes, relationships);
 
     return await lemonSqueezyApiRequest.call(ctx, 'POST', '/discounts', body);
   }
@@ -173,6 +196,44 @@ async function handleCreate(
     if (additionalOptions.testMode !== undefined) {
       attributes.test_mode = additionalOptions.testMode;
     }
+    if (additionalOptions.billingAddressCountry || additionalOptions.billingAddressZip) {
+      const billingAddress: IDataObject = {};
+      if (additionalOptions.billingAddressCountry) {
+        billingAddress.country = additionalOptions.billingAddressCountry;
+      }
+      if (additionalOptions.billingAddressZip) {
+        billingAddress.zip = additionalOptions.billingAddressZip;
+      }
+      checkoutData.billing_address = billingAddress;
+    }
+    if (additionalOptions.taxNumber) {
+      checkoutData.tax_number = additionalOptions.taxNumber;
+    }
+    if (additionalOptions.variantQuantities) {
+      const variantQuantities =
+        typeof additionalOptions.variantQuantities === 'string'
+          ? JSON.parse(additionalOptions.variantQuantities)
+          : additionalOptions.variantQuantities;
+      checkoutData.variant_quantities = variantQuantities;
+    }
+    if (additionalOptions.productName) {
+      productOptions.name = additionalOptions.productName;
+    }
+    if (additionalOptions.productDescription) {
+      productOptions.description = additionalOptions.productDescription;
+    }
+    if (additionalOptions.productMedia) {
+      productOptions.media = (additionalOptions.productMedia as string)
+        .split(',')
+        .map((url: string) => url.trim())
+        .filter((url: string) => url.length > 0);
+    }
+    if (additionalOptions.enabledVariants) {
+      productOptions.enabled_variants = (additionalOptions.enabledVariants as string)
+        .split(',')
+        .map((id: string) => Number(id.trim()))
+        .filter((id: number) => !isNaN(id));
+    }
 
     if (checkoutOptions.embed !== undefined) {
       checkoutOptionsObj.embed = checkoutOptions.embed;
@@ -189,6 +250,9 @@ async function handleCreate(
     if (checkoutOptions.discount !== undefined) {
       checkoutOptionsObj.discount = checkoutOptions.discount;
     }
+    if (checkoutOptions.subscriptionPreview !== undefined) {
+      checkoutOptionsObj.subscription_preview = checkoutOptions.subscriptionPreview;
+    }
 
     const colorFields = [
       { param: 'backgroundColor', api: 'background_color' },
@@ -201,6 +265,7 @@ async function handleCreate(
       { param: 'activeStateColor', api: 'active_state_color' },
       { param: 'buttonColor', api: 'button_color' },
       { param: 'buttonTextColor', api: 'button_text_color' },
+      { param: 'termsPrivacyColor', api: 'terms_privacy_color' },
     ];
     for (const { param, api } of colorFields) {
       if (checkoutOptions[param]) {
@@ -307,6 +372,9 @@ async function handleUpdate(
     }
     if (updateFields.disableProrations !== undefined) {
       attributes.disable_prorations = updateFields.disableProrations;
+    }
+    if (updateFields.trialEndsAt) {
+      attributes.trial_ends_at = updateFields.trialEndsAt;
     }
 
     const body = buildJsonApiBody('subscriptions', attributes, undefined, subscriptionId);
@@ -524,6 +592,15 @@ export class LemonSqueezy implements INodeType {
           responseData = await handleCreate(this, resource, i);
         } else if (operation === 'update') {
           responseData = await handleUpdate(this, resource, i);
+        } else if (operation === 'delete' && resource === 'customer') {
+          const customerId = this.getNodeParameter('customerId', i) as string;
+          const body = buildJsonApiBody('customers', { status: 'archived' }, undefined, customerId);
+          responseData = await lemonSqueezyApiRequest.call(
+            this,
+            'PATCH',
+            `/customers/${customerId}`,
+            body,
+          );
         } else if (operation === 'delete') {
           const idParam = RESOURCE_ID_PARAMS[resource];
           const id = this.getNodeParameter(idParam, i) as string;
@@ -566,11 +643,37 @@ export class LemonSqueezy implements INodeType {
           );
         } else if (operation === 'generateInvoice' && resource === 'order') {
           const orderId = this.getNodeParameter('orderId', i) as string;
+          const invoiceName = this.getNodeParameter('invoiceName', i) as string;
+          const invoiceAddress = this.getNodeParameter('invoiceAddress', i) as string;
+          const invoiceCity = this.getNodeParameter('invoiceCity', i) as string;
+          const invoiceZipCode = this.getNodeParameter('invoiceZipCode', i) as string;
+          const invoiceCountry = this.getNodeParameter('invoiceCountry', i) as string;
+          const invoiceOptions = this.getNodeParameter('invoiceOptions', i, {}) as IDataObject;
+
+          const qs: Record<string, string> = {
+            name: invoiceName,
+            address: invoiceAddress,
+            city: invoiceCity,
+            zip_code: invoiceZipCode,
+            country: invoiceCountry,
+          };
+
+          if (invoiceOptions.state) {
+            qs.state = invoiceOptions.state as string;
+          }
+          if (invoiceOptions.notes) {
+            qs.notes = invoiceOptions.notes as string;
+          }
+          if (invoiceOptions.locale) {
+            qs.locale = invoiceOptions.locale as string;
+          }
+
           responseData = await lemonSqueezyApiRequest.call(
             this,
             'POST',
-            `/orders/${orderId}/invoice`,
+            `/orders/${orderId}/generate-invoice`,
             {},
+            qs,
           );
         } else if (operation === 'getCurrentUsage' && resource === 'subscriptionItem') {
           const subscriptionItemId = this.getNodeParameter('subscriptionItemId', i) as string;
@@ -585,7 +688,7 @@ export class LemonSqueezy implements INodeType {
 
           const body: IDataObject =
             refundAmount > 0
-              ? { data: { type: 'orders', attributes: { amount: refundAmount } } }
+              ? { data: { type: 'orders', id: orderId, attributes: { amount: refundAmount } } }
               : {};
 
           responseData = await lemonSqueezyApiRequest.call(
@@ -619,17 +722,38 @@ export class LemonSqueezy implements INodeType {
           responseData = await lemonSqueezyApiRequest.call(this, 'GET', '/users/me');
         } else if (resource === 'subscriptionInvoice') {
           if (operation === 'generate') {
-            const subscriptionId = this.getNodeParameter('generateSubscriptionId', i) as string;
-            const body = buildJsonApiBody(
-              'subscription-invoices',
-              {},
-              { subscription: { type: 'subscriptions', id: subscriptionId } },
-            );
+            const invoiceId = this.getNodeParameter('generateInvoiceId', i) as string;
+            const generateName = this.getNodeParameter('generateName', i) as string;
+            const generateAddress = this.getNodeParameter('generateAddress', i) as string;
+            const generateCity = this.getNodeParameter('generateCity', i) as string;
+            const generateZipCode = this.getNodeParameter('generateZipCode', i) as string;
+            const generateCountry = this.getNodeParameter('generateCountry', i) as string;
+            const generateOptions = this.getNodeParameter('generateOptions', i, {}) as IDataObject;
+
+            const qs: Record<string, string> = {
+              name: generateName,
+              address: generateAddress,
+              city: generateCity,
+              zip_code: generateZipCode,
+              country: generateCountry,
+            };
+
+            if (generateOptions.state) {
+              qs.state = generateOptions.state as string;
+            }
+            if (generateOptions.notes) {
+              qs.notes = generateOptions.notes as string;
+            }
+            if (generateOptions.locale) {
+              qs.locale = generateOptions.locale as string;
+            }
+
             responseData = await lemonSqueezyApiRequest.call(
               this,
               'POST',
-              '/subscription-invoices',
-              body,
+              `/subscription-invoices/${invoiceId}/generate-invoice`,
+              {},
+              qs,
             );
           } else if (operation === 'refund') {
             const invoiceId = this.getNodeParameter('subscriptionInvoiceId', i) as string;
@@ -637,7 +761,13 @@ export class LemonSqueezy implements INodeType {
 
             const body: IDataObject =
               refundAmount > 0
-                ? { data: { type: 'subscription-invoices', attributes: { amount: refundAmount } } }
+                ? {
+                    data: {
+                      type: 'subscription-invoices',
+                      id: invoiceId,
+                      attributes: { amount: refundAmount },
+                    },
+                  }
                 : {};
 
             responseData = await lemonSqueezyApiRequest.call(
@@ -647,6 +777,52 @@ export class LemonSqueezy implements INodeType {
               body,
             );
           }
+        } else if (resource === 'licenseKeyInstance' && operation === 'deactivate') {
+          const licenseKeyStr = this.getNodeParameter('licenseKeyString', i) as string;
+          const instanceId = this.getNodeParameter('deactivateInstanceId', i) as string;
+          responseData = await lemonSqueezyApiRequest.call(this, 'POST', '/licenses/deactivate', {
+            license_key: licenseKeyStr,
+            instance_id: instanceId,
+          });
+        } else if (resource === 'file' && operation === 'download') {
+          const fileId = this.getNodeParameter('fileId', i) as string;
+          const binaryPropertyName = this.getNodeParameter('binaryPropertyName', i, 'data') as string;
+
+          // Fetch file metadata to get the download URL
+          const fileResponse = await lemonSqueezyApiRequest.call(this, 'GET', `/files/${fileId}`);
+          const fileData = (fileResponse as IDataObject).data as IDataObject;
+          const fileAttrs = fileData?.attributes as IDataObject;
+          const downloadUrl = fileAttrs?.download_url as string;
+          const fileName = (fileAttrs?.name as string) || `file-${fileId}`;
+          const mimeType = (fileAttrs?.mime_type as string) || 'application/octet-stream';
+
+          if (!downloadUrl) {
+            throw new Error(`No download URL available for file ${fileId}`);
+          }
+
+          // Download the binary content
+          const binaryResponse = await this.helpers.httpRequest({
+            method: 'GET',
+            url: downloadUrl,
+            encoding: 'arraybuffer',
+            returnFullResponse: true,
+          });
+
+          const binaryData = await this.helpers.prepareBinaryData(
+            Buffer.from(binaryResponse.body as ArrayBuffer),
+            fileName,
+            mimeType,
+          );
+
+          const executionItem = this.helpers.constructExecutionMetaData(
+            [{
+              json: { id: fileId, ...fileAttrs },
+              binary: { [binaryPropertyName]: binaryData },
+            }],
+            { itemData: { item: i } },
+          );
+          returnData.push(...executionItem);
+          continue;
         }
 
         const executionData = this.helpers.constructExecutionMetaData(
@@ -668,4 +844,71 @@ export class LemonSqueezy implements INodeType {
 
     return [returnData];
   }
+
+  methods = {
+    loadOptions: {
+      async getStores(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+        const response = (await lemonSqueezyApiRequestAllItems.call(
+          this as unknown as IExecuteFunctions,
+          'GET',
+          '/stores',
+          {},
+        )) as IDataObject[];
+        return response.map((store) => ({
+          name: (store.attributes as IDataObject).name as string,
+          value: store.id as string,
+        }));
+      },
+
+      async getProducts(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+        const response = (await lemonSqueezyApiRequestAllItems.call(
+          this as unknown as IExecuteFunctions,
+          'GET',
+          '/products',
+          {},
+        )) as IDataObject[];
+        return response.map((product) => {
+          const attrs = product.attributes as IDataObject;
+          return {
+            name: attrs.name as string,
+            value: product.id as string,
+            description: `Store: ${(attrs.store_id as string) ?? ''}`,
+          };
+        });
+      },
+
+      async getVariants(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+        const response = (await lemonSqueezyApiRequestAllItems.call(
+          this as unknown as IExecuteFunctions,
+          'GET',
+          '/variants',
+          {},
+        )) as IDataObject[];
+        return response.map((variant) => {
+          const attrs = variant.attributes as IDataObject;
+          return {
+            name: `${attrs.name as string} (${variant.id})`,
+            value: variant.id as string,
+            description: `Product ID: ${(attrs.product_id as string) ?? ''}`,
+          };
+        });
+      },
+
+      async getDiscounts(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+        const response = (await lemonSqueezyApiRequestAllItems.call(
+          this as unknown as IExecuteFunctions,
+          'GET',
+          '/discounts',
+          {},
+        )) as IDataObject[];
+        return response.map((discount) => {
+          const attrs = discount.attributes as IDataObject;
+          return {
+            name: `${attrs.name as string} (${attrs.code as string})`,
+            value: discount.id as string,
+          };
+        });
+      },
+    },
+  };
 }

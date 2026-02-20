@@ -174,6 +174,7 @@ export const ORDER_STATUSES = [
   { name: 'Paid', value: 'paid' },
   { name: 'Refunded', value: 'refunded' },
   { name: 'Fraudulent', value: 'fraudulent' },
+  { name: 'Partial Refund', value: 'partial_refund' },
 ];
 
 /**

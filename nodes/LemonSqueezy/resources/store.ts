@@ -56,7 +56,7 @@ export const storeFields: INodeProperties[] = [
     type: 'number',
     default: 50,
     description: 'Max number of results to return',
-    typeOptions: { minValue: 1 },
+    typeOptions: { minValue: 1, maxValue: 100 },
     displayOptions: {
       show: { resource: ['store'], operation: ['getAll'], returnAll: [false] },
     },

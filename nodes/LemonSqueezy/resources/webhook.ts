@@ -78,14 +78,16 @@ export const webhookFields: INodeProperties[] = [
   },
   // Create Fields
   {
-    displayName: 'Store ID',
+    displayName: 'Store',
     name: 'webhookStoreId',
-    type: 'string',
+    type: 'options',
+    typeOptions: {
+      loadOptionsMethod: 'getStores',
+    },
     required: true,
     default: '',
-    placeholder: 'e.g., 12345',
     description:
-      'The ID of the store this webhook belongs to. Find this in your <a href="https://app.lemonsqueezy.com/settings/stores" target="_blank">Lemon Squeezy Dashboard</a>.',
+      'The store this webhook belongs to. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
     displayOptions: {
       show: { resource: ['webhook'], operation: ['create'] },
     },
@@ -207,7 +209,7 @@ export const webhookFields: INodeProperties[] = [
     type: 'number',
     default: 50,
     description: 'Max number of results to return',
-    typeOptions: { minValue: 1 },
+    typeOptions: { minValue: 1, maxValue: 100 },
     displayOptions: {
       show: { resource: ['webhook'], operation: ['getAll'], returnAll: [false] },
     },

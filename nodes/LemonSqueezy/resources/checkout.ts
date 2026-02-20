@@ -46,23 +46,31 @@ export const checkoutFields: INodeProperties[] = [
   },
   // Create Fields
   {
-    displayName: 'Store ID',
+    displayName: 'Store',
     name: 'checkoutStoreId',
-    type: 'string',
+    type: 'options',
+    typeOptions: {
+      loadOptionsMethod: 'getStores',
+    },
     required: true,
     default: '',
-    description: 'The ID of the store',
+    description:
+      'The store to create the checkout for. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
     displayOptions: {
       show: { resource: ['checkout'], operation: ['create'] },
     },
   },
   {
-    displayName: 'Variant ID',
+    displayName: 'Variant',
     name: 'checkoutVariantId',
-    type: 'string',
+    type: 'options',
+    typeOptions: {
+      loadOptionsMethod: 'getVariants',
+    },
     required: true,
     default: '',
-    description: 'The ID of the variant to checkout',
+    description:
+      'The variant to checkout. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
     displayOptions: {
       show: { resource: ['checkout'], operation: ['create'] },
     },
@@ -160,6 +168,63 @@ export const checkoutFields: INodeProperties[] = [
         type: 'boolean',
         default: false,
         description: 'Whether this is a test checkout',
+      },
+      {
+        displayName: 'Billing Address Country',
+        name: 'billingAddressCountry',
+        type: 'string',
+        default: '',
+        description: 'Pre-fill billing country (ISO 3166-1 alpha-2 code, e.g., "US")',
+      },
+      {
+        displayName: 'Billing Address Zip',
+        name: 'billingAddressZip',
+        type: 'string',
+        default: '',
+        description: 'Pre-fill billing zip/postal code',
+      },
+      {
+        displayName: 'Tax Number',
+        name: 'taxNumber',
+        type: 'string',
+        default: '',
+        description: 'Pre-fill tax/VAT number',
+      },
+      {
+        displayName: 'Variant Quantities',
+        name: 'variantQuantities',
+        type: 'json',
+        default: '[]',
+        description:
+          'Array of variant quantity overrides as JSON (e.g., [{"variant_id": 1, "quantity": 2}])',
+      },
+      {
+        displayName: 'Product Name Override',
+        name: 'productName',
+        type: 'string',
+        default: '',
+        description: 'Override the product name displayed at checkout',
+      },
+      {
+        displayName: 'Product Description Override',
+        name: 'productDescription',
+        type: 'string',
+        default: '',
+        description: 'Override the product description displayed at checkout',
+      },
+      {
+        displayName: 'Product Media URLs',
+        name: 'productMedia',
+        type: 'string',
+        default: '',
+        description: 'Comma-separated list of image URLs to display at checkout',
+      },
+      {
+        displayName: 'Enabled Variants',
+        name: 'enabledVariants',
+        type: 'string',
+        default: '',
+        description: 'Comma-separated list of variant IDs to enable for product selection',
       },
     ],
   },
@@ -289,6 +354,21 @@ export const checkoutFields: INodeProperties[] = [
         default: true,
         description: 'Whether to show product media',
       },
+      {
+        displayName: 'Show Subscription Preview',
+        name: 'subscriptionPreview',
+        type: 'boolean',
+        default: true,
+        description: 'Whether to show subscription pricing preview text',
+      },
+      {
+        displayName: 'Terms/Privacy Color',
+        name: 'termsPrivacyColor',
+        type: 'string',
+        default: '',
+        description: 'Terms and privacy link color hex code',
+        placeholder: '#64748b',
+      },
     ],
   },
   // Return All
@@ -309,7 +389,7 @@ export const checkoutFields: INodeProperties[] = [
     type: 'number',
     default: 50,
     description: 'Max number of results to return',
-    typeOptions: { minValue: 1 },
+    typeOptions: { minValue: 1, maxValue: 100 },
     displayOptions: {
       show: { resource: ['checkout'], operation: ['getAll'], returnAll: [false] },
     },

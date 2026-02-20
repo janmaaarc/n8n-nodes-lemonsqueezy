@@ -10,10 +10,11 @@ An [n8n](https://n8n.io/) community node for [Lemon Squeezy](https://lemonsqueez
 ## Features
 
 - **Full CRUD Operations** - Create, read, update, and delete operations for all major resources
+- **Dynamic Dropdowns** - Store, Product, Variant, and Discount fields load options automatically from your account
 - **Webhook Trigger** - Real-time event notifications for orders, subscriptions, and license keys
 - **License Key Management** - Validate, activate, and deactivate license keys
+- **File Download** - Download product files as binary data for use in subsequent workflow nodes
 - **Checkout Links** - Create dynamic checkout URLs with custom options
-- **Rate Limiting** - Built-in retry logic with exponential backoff
 - **Input Validation** - RFC 5322 compliant email validation, secure URL validation (blocks internal networks)
 - **Detailed Error Messages** - Descriptive error messages with field-level details
 - **Type Safety** - Full TypeScript support with comprehensive type definitions
@@ -56,12 +57,12 @@ The main node for interacting with the Lemon Squeezy API.
 |----------|------------|
 | **Affiliate** | Get, Get Many |
 | **Checkout** | Create, Get, Get Many |
-| **Customer** | Create, Update, Delete, Get, Get Many |
-| **Discount** | Create, Delete, Get, Get Many |
+| **Customer** | Create, Update, Archive, Get, Get Many |
+| **Discount** | Create (with product/variant limiting), Delete, Get, Get Many |
 | **Discount Redemption** | Get, Get Many |
-| **File** | Get, Get Many |
+| **File** | Download, Get, Get Many |
 | **License Key** | Get, Get Many, Update, Validate, Activate, Deactivate |
-| **License Key Instance** | Get, Get Many |
+| **License Key Instance** | Deactivate, Get, Get Many |
 | **Order** | Get, Get Many, Refund, Generate Invoice |
 | **Order Item** | Get, Get Many |
 | **Price** | Get, Get Many |
@@ -146,8 +147,10 @@ Most "Get Many" operations support filtering:
 | Filter | Description | Available On |
 |--------|-------------|--------------|
 | `storeId` | Filter by store | All resources |
-| `status` | Filter by status | Orders, Subscriptions, Customers, License Keys, Subscription Invoices |
+| `status` | Filter by status (includes `partial_refund` for Orders and Subscription Invoices) | Orders, Subscriptions, Customers, License Keys, Subscription Invoices |
 | `email` | Filter by email | Orders, Customers |
+| `order_number` | Filter by order number | Orders |
+| `order_item_id` | Filter by order item | Subscriptions, License Keys |
 | `productId` | Filter by product | Subscriptions, License Keys, Variants, Order Items |
 | `variantId` | Filter by variant | Subscriptions, Checkouts, Order Items |
 | `orderId` | Filter by order | Subscriptions, License Keys, Order Items, Discount Redemptions |
@@ -177,7 +180,7 @@ Include related resources in a single request to reduce API calls:
 | Resource | Available Relationships |
 |----------|------------------------|
 | **Order** | store, customer, order-items, subscriptions, license-keys, discount-redemptions |
-| **Subscription** | store, customer, order, order-item, product, variant |
+| **Subscription** | store, customer, order, order-item, product, variant, subscription-invoices, subscription-items |
 | **Customer** | store, orders, subscriptions, license-keys |
 | **License Key** | store, customer, order, order-item, product, license-key-instances |
 | **Product** | store, variants |
@@ -320,6 +323,43 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [n8n Community Forum](https://community.n8n.io/)
 
 ## Changelog
+
+### v0.13.0
+
+**New Features:**
+- **Dynamic dropdowns** - Store, Product, Variant, and Discount ID fields now load options dynamically from your Lemon Squeezy account. No more copy-pasting IDs — just select from the list.
+- **File Download operation** - New `download` operation on the File resource returns file binary data, ready for email attachments, S3 uploads, or any binary-aware downstream node.
+- **License Key Instance Deactivate** - Deactivate a specific license key instance directly from the License Key Instance resource.
+- **Webhook Trigger: Include Event Headers** - Optional setting to expose raw request headers in the trigger output for routing and debugging.
+- **Discount Redemption date range filters** - `Get Many` now supports `createdAfter` / `createdBefore` date filters for period-specific reporting.
+
+### v0.12.0
+
+**Critical Fixes:**
+- Fixed **Order Generate Invoice** - corrected endpoint path, added required invoice fields, uses query parameters
+- Fixed **Subscription Invoice Generate** - uses correct endpoint, added required invoice fields
+- Fixed **Customer Archive** - replaced invalid DELETE with PATCH to set status to `archived`
+- Fixed **Order Refund** - added missing `id` field in JSON:API body for partial refunds
+- Fixed **Subscription Invoice Refund** - added missing `id` field in JSON:API body for partial refunds
+
+**New Features:**
+- Added `trial_ends_at` field to **Subscription Update** for extending/shortening trial periods
+- Added `order_number` filter to **Order Get Many**
+- Added `order_item_id` filter to **Subscription Get Many** and **License Key Get Many**
+- Added `partial_refund` status filter to **Subscription Invoice** and **Order** status filters
+- Added billing address, tax number, variant quantities to **Checkout Create**
+- Added product name/description/media overrides and enabled variants to **Checkout Create**
+- Added `terms_privacy_color` and `subscription_preview` display options to **Checkout Create**
+- Added `is_limited_to_products` and variant IDs to **Discount Create** for product-scoped discounts
+- Added `subscription-invoices` and `subscription-items` relationships to **Subscription** includes
+
+**Improvements:**
+- Added `maxValue: 100` to all resource limit fields for consistency
+- Extended `buildJsonApiBody` to support array relationships
+- Updated TypeScript types: OrderAttributes, SubscriptionInvoiceAttributes, SubscriptionAttributes, AffiliateAttributes, CustomerAttributes
+
+**Fixes:**
+- Removed invalid `status` filter from Product resource (API only supports `store_id`)
 
 ### v0.11.0
 

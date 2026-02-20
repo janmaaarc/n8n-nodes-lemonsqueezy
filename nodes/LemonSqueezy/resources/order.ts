@@ -65,6 +65,95 @@ export const orderFields: INodeProperties[] = [
       show: { resource: ['order'], operation: ['get', 'refund', 'generateInvoice'] },
     },
   },
+  // Invoice Generation Fields (required for generateInvoice)
+  {
+    displayName: 'Invoice Name',
+    name: 'invoiceName',
+    type: 'string',
+    required: true,
+    default: '',
+    description: 'Full name for the invoice (e.g., "John Doe")',
+    displayOptions: {
+      show: { resource: ['order'], operation: ['generateInvoice'] },
+    },
+  },
+  {
+    displayName: 'Invoice Address',
+    name: 'invoiceAddress',
+    type: 'string',
+    required: true,
+    default: '',
+    description: 'Street address for the invoice (e.g., "123 Main St")',
+    displayOptions: {
+      show: { resource: ['order'], operation: ['generateInvoice'] },
+    },
+  },
+  {
+    displayName: 'Invoice City',
+    name: 'invoiceCity',
+    type: 'string',
+    required: true,
+    default: '',
+    description: 'City for the invoice',
+    displayOptions: {
+      show: { resource: ['order'], operation: ['generateInvoice'] },
+    },
+  },
+  {
+    displayName: 'Invoice Zip Code',
+    name: 'invoiceZipCode',
+    type: 'string',
+    required: true,
+    default: '',
+    description: 'Zip/postal code for the invoice',
+    displayOptions: {
+      show: { resource: ['order'], operation: ['generateInvoice'] },
+    },
+  },
+  {
+    displayName: 'Invoice Country',
+    name: 'invoiceCountry',
+    type: 'string',
+    required: true,
+    default: '',
+    description: 'Country for the invoice (ISO 3166-1 alpha-2 code, e.g., "US", "GB")',
+    displayOptions: {
+      show: { resource: ['order'], operation: ['generateInvoice'] },
+    },
+  },
+  {
+    displayName: 'Invoice Options',
+    name: 'invoiceOptions',
+    type: 'collection',
+    placeholder: 'Add Option',
+    default: {},
+    displayOptions: {
+      show: { resource: ['order'], operation: ['generateInvoice'] },
+    },
+    options: [
+      {
+        displayName: 'State',
+        name: 'state',
+        type: 'string',
+        default: '',
+        description: 'State/province (required for US and CA)',
+      },
+      {
+        displayName: 'Notes',
+        name: 'notes',
+        type: 'string',
+        default: '',
+        description: 'Additional notes to include on the invoice',
+      },
+      {
+        displayName: 'Locale',
+        name: 'locale',
+        type: 'string',
+        default: '',
+        description: 'ISO 639 language code for the invoice (e.g., "en", "fr")',
+      },
+    ],
+  },
   // Refund Amount for partial refunds
   {
     displayName: 'Refund Amount',
@@ -143,6 +232,13 @@ export const orderFields: INodeProperties[] = [
         type: 'boolean',
         default: false,
         description: 'Filter by refunded status',
+      },
+      {
+        displayName: 'Order Number',
+        name: 'orderNumber',
+        type: 'number',
+        default: '',
+        description: 'Filter by order number',
       },
     ],
   },

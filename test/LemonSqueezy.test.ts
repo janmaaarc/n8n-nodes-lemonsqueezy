@@ -43,6 +43,14 @@ import {
   PRICE_SCHEMES,
   AFFILIATE_STATUSES,
 } from '../nodes/LemonSqueezy/constants';
+import { orderFields } from '../nodes/LemonSqueezy/resources/order';
+import { subscriptionFields } from '../nodes/LemonSqueezy/resources/subscription';
+import { subscriptionInvoiceFields } from '../nodes/LemonSqueezy/resources/subscriptionInvoice';
+import { customerOperations } from '../nodes/LemonSqueezy/resources/customer';
+import { licenseKeyFields } from '../nodes/LemonSqueezy/resources/licenseKey';
+import { checkoutFields } from '../nodes/LemonSqueezy/resources/checkout';
+import { discountFields } from '../nodes/LemonSqueezy/resources/discount';
+import { productFields } from '../nodes/LemonSqueezy/resources/product';
 import { LemonSqueezyApi } from '../credentials/LemonSqueezyApi.credentials';
 import { LemonSqueezy } from '../nodes/LemonSqueezy/LemonSqueezy.node';
 import { LemonSqueezyTrigger } from '../nodes/LemonSqueezy/LemonSqueezyTrigger.node';
@@ -370,8 +378,13 @@ describe('Constants', () => {
       expect(statusValues).toContain('fraudulent');
     });
 
-    it('should have 5 order statuses', () => {
-      expect(ORDER_STATUSES.length).toBe(5);
+    it('should contain partial_refund status', () => {
+      const statusValues = ORDER_STATUSES.map((s) => s.value);
+      expect(statusValues).toContain('partial_refund');
+    });
+
+    it('should have 6 order statuses', () => {
+      expect(ORDER_STATUSES.length).toBe(6);
     });
   });
 
@@ -1662,6 +1675,269 @@ describe('Node Description Details', () => {
 
     it('should have correct webhook response mode', () => {
       expect(triggerNode.description.webhooks?.[0].responseMode).toBe('onReceived');
+    });
+  });
+});
+
+// ============================================================================
+// v0.12.0 Resource Field Tests
+// ============================================================================
+
+describe('v0.12.0 Resource Field Changes', () => {
+  describe('Order Invoice Generation Fields', () => {
+    it('should have invoiceName field with required: true', () => {
+      const invoiceNameField = orderFields.find((f) => f.name === 'invoiceName');
+      expect(invoiceNameField).toBeDefined();
+      expect(invoiceNameField?.required).toBe(true);
+      expect(invoiceNameField?.type).toBe('string');
+    });
+
+    it('should have all invoice generation fields', () => {
+      const fieldNames = orderFields.map((f) => f.name);
+      expect(fieldNames).toContain('invoiceName');
+      expect(fieldNames).toContain('invoiceAddress');
+      expect(fieldNames).toContain('invoiceCity');
+      expect(fieldNames).toContain('invoiceZipCode');
+      expect(fieldNames).toContain('invoiceCountry');
+      expect(fieldNames).toContain('invoiceOptions');
+    });
+
+    it('should show invoice fields only for generateInvoice operation', () => {
+      const invoiceNameField = orderFields.find((f) => f.name === 'invoiceName');
+      expect(invoiceNameField?.displayOptions?.show?.operation).toContain('generateInvoice');
+    });
+  });
+
+  describe('Subscription Invoice Generate Fields', () => {
+    it('should have generateInvoiceId field', () => {
+      const generateInvoiceIdField = subscriptionInvoiceFields.find(
+        (f) => f.name === 'generateInvoiceId',
+      );
+      expect(generateInvoiceIdField).toBeDefined();
+      expect(generateInvoiceIdField?.required).toBe(true);
+    });
+
+    it('should NOT have generateSubscriptionId field', () => {
+      const generateSubscriptionIdField = subscriptionInvoiceFields.find(
+        (f) => f.name === 'generateSubscriptionId',
+      );
+      expect(generateSubscriptionIdField).toBeUndefined();
+    });
+  });
+
+  describe('Customer Archive Operation', () => {
+    it('should have Archive as the name for the delete operation', () => {
+      const operations = customerOperations.options as Array<{
+        name: string;
+        value: string;
+      }>;
+      const deleteOp = operations.find((o) => o.value === 'delete');
+      expect(deleteOp).toBeDefined();
+      expect(deleteOp?.name).toBe('Archive');
+    });
+  });
+
+  describe('Subscription trialEndsAt Update Field', () => {
+    it('should have trialEndsAt in update fields', () => {
+      const updateFieldsProp = subscriptionFields.find((f) => f.name === 'updateFields');
+      const updateOptions = updateFieldsProp?.options as Array<{ name: string }> | undefined;
+      const trialEndsAtField = updateOptions?.find(
+        (o) => (o as { name: string }).name === 'trialEndsAt',
+      );
+      expect(trialEndsAtField).toBeDefined();
+    });
+
+    it('should have trialEndsAt with dateTime type', () => {
+      const updateFieldsProp = subscriptionFields.find((f) => f.name === 'updateFields');
+      const updateOptions = updateFieldsProp?.options as
+        | Array<{ name: string; type: string }>
+        | undefined;
+      const trialEndsAtField = updateOptions?.find(
+        (o) => (o as { name: string }).name === 'trialEndsAt',
+      );
+      expect((trialEndsAtField as { type: string })?.type).toBe('dateTime');
+    });
+  });
+
+  describe('New Filter Fields', () => {
+    it('should have orderNumber filter on order', () => {
+      const filtersProp = orderFields.find((f) => f.name === 'filters');
+      const filterOptions = filtersProp?.options as Array<{ name: string }> | undefined;
+      const orderNumberFilter = filterOptions?.find(
+        (o) => (o as { name: string }).name === 'orderNumber',
+      );
+      expect(orderNumberFilter).toBeDefined();
+    });
+
+    it('should have orderItemId filter on subscription', () => {
+      const filtersProp = subscriptionFields.find((f) => f.name === 'filters');
+      const filterOptions = filtersProp?.options as Array<{ name: string }> | undefined;
+      const orderItemIdFilter = filterOptions?.find(
+        (o) => (o as { name: string }).name === 'orderItemId',
+      );
+      expect(orderItemIdFilter).toBeDefined();
+    });
+
+    it('should have orderItemId filter on license key', () => {
+      const filtersProp = licenseKeyFields.find((f) => f.name === 'filters');
+      const filterOptions = filtersProp?.options as Array<{ name: string }> | undefined;
+      const orderItemIdFilter = filterOptions?.find(
+        (o) => (o as { name: string }).name === 'orderItemId',
+      );
+      expect(orderItemIdFilter).toBeDefined();
+    });
+  });
+
+  describe('Subscription Invoice partial_refund Status', () => {
+    it('should have partial_refund in subscription invoice status filter options', () => {
+      const filtersProp = subscriptionInvoiceFields.find((f) => f.name === 'filters');
+      const filterOptions = filtersProp?.options as
+        | Array<{ name: string; options?: Array<{ value: string }> }>
+        | undefined;
+      const statusFilter = filterOptions?.find((o) => (o as { name: string }).name === 'status');
+      const statusOptions = (statusFilter as { options?: Array<{ value: string }> })?.options;
+      const statusValues = statusOptions?.map((s) => s.value) || [];
+      expect(statusValues).toContain('partial_refund');
+    });
+  });
+
+  describe('Checkout New Fields', () => {
+    it('should have billingAddressCountry in additional options', () => {
+      const additionalOptionsProp = checkoutFields.find((f) => f.name === 'additionalOptions');
+      const options = additionalOptionsProp?.options as Array<{ name: string }> | undefined;
+      const field = options?.find((o) => (o as { name: string }).name === 'billingAddressCountry');
+      expect(field).toBeDefined();
+    });
+
+    it('should have taxNumber in additional options', () => {
+      const additionalOptionsProp = checkoutFields.find((f) => f.name === 'additionalOptions');
+      const options = additionalOptionsProp?.options as Array<{ name: string }> | undefined;
+      const field = options?.find((o) => (o as { name: string }).name === 'taxNumber');
+      expect(field).toBeDefined();
+    });
+
+    it('should have variantQuantities in additional options', () => {
+      const additionalOptionsProp = checkoutFields.find((f) => f.name === 'additionalOptions');
+      const options = additionalOptionsProp?.options as Array<{ name: string }> | undefined;
+      const field = options?.find((o) => (o as { name: string }).name === 'variantQuantities');
+      expect(field).toBeDefined();
+    });
+
+    it('should have termsPrivacyColor in checkout display options', () => {
+      const checkoutOptionsProp = checkoutFields.find((f) => f.name === 'checkoutOptions');
+      const options = checkoutOptionsProp?.options as Array<{ name: string }> | undefined;
+      const field = options?.find((o) => (o as { name: string }).name === 'termsPrivacyColor');
+      expect(field).toBeDefined();
+    });
+
+    it('should have subscriptionPreview in checkout display options', () => {
+      const checkoutOptionsProp = checkoutFields.find((f) => f.name === 'checkoutOptions');
+      const options = checkoutOptionsProp?.options as Array<{ name: string }> | undefined;
+      const field = options?.find((o) => (o as { name: string }).name === 'subscriptionPreview');
+      expect(field).toBeDefined();
+    });
+  });
+
+  describe('Discount isLimitedToProducts Option', () => {
+    it('should have isLimitedToProducts in discount additional options', () => {
+      const additionalOptionsProp = discountFields.find((f) => f.name === 'additionalOptions');
+      const options = additionalOptionsProp?.options as Array<{ name: string }> | undefined;
+      const field = options?.find((o) => (o as { name: string }).name === 'isLimitedToProducts');
+      expect(field).toBeDefined();
+    });
+
+    it('should have isLimitedToProducts as boolean type', () => {
+      const additionalOptionsProp = discountFields.find((f) => f.name === 'additionalOptions');
+      const options = additionalOptionsProp?.options as
+        | Array<{ name: string; type: string }>
+        | undefined;
+      const field = options?.find((o) => (o as { name: string }).name === 'isLimitedToProducts');
+      expect((field as { type: string })?.type).toBe('boolean');
+    });
+  });
+
+  describe('buildJsonApiBody Array Relationships', () => {
+    it('should produce array format for array relationships', () => {
+      const result = buildJsonApiBody(
+        'discounts',
+        { name: 'Test Discount' },
+        {
+          variants: [
+            { type: 'variants', id: '1' },
+            { type: 'variants', id: '2' },
+            { type: 'variants', id: '3' },
+          ],
+        },
+      );
+      const relationships = (result.data as Record<string, unknown>).relationships as Record<
+        string,
+        unknown
+      >;
+      expect(relationships.variants).toEqual({
+        data: [
+          { type: 'variants', id: '1' },
+          { type: 'variants', id: '2' },
+          { type: 'variants', id: '3' },
+        ],
+      });
+    });
+
+    it('should produce single object format for non-array relationships', () => {
+      const result = buildJsonApiBody(
+        'checkouts',
+        { custom_price: 1000 },
+        { store: { type: 'stores', id: '123' } },
+      );
+      const relationships = (result.data as Record<string, unknown>).relationships as Record<
+        string,
+        unknown
+      >;
+      expect(relationships.store).toEqual({
+        data: { type: 'stores', id: '123' },
+      });
+    });
+
+    it('should handle mixed array and single relationships', () => {
+      const result = buildJsonApiBody(
+        'discounts',
+        { name: 'Mixed Test' },
+        {
+          store: { type: 'stores', id: '123' },
+          variants: [
+            { type: 'variants', id: '1' },
+            { type: 'variants', id: '2' },
+          ],
+        },
+      );
+      const relationships = (result.data as Record<string, unknown>).relationships as Record<
+        string,
+        unknown
+      >;
+      expect(relationships.store).toEqual({
+        data: { type: 'stores', id: '123' },
+      });
+      expect(relationships.variants).toEqual({
+        data: [
+          { type: 'variants', id: '1' },
+          { type: 'variants', id: '2' },
+        ],
+      });
+    });
+  });
+
+  describe('Product Filters', () => {
+    it('should only have storeId filter (no status filter)', () => {
+      const filtersProp = productFields.find((f) => f.name === 'filters');
+      const filterOptions = filtersProp?.options as Array<{ name: string }> | undefined;
+      expect(filterOptions).toHaveLength(1);
+      expect((filterOptions?.[0] as { name: string })?.name).toBe('storeId');
+    });
+
+    it('should not have status filter on product', () => {
+      const filtersProp = productFields.find((f) => f.name === 'filters');
+      const filterOptions = filtersProp?.options as Array<{ name: string }> | undefined;
+      const statusFilter = filterOptions?.find((o) => (o as { name: string }).name === 'status');
+      expect(statusFilter).toBeUndefined();
     });
   });
 });

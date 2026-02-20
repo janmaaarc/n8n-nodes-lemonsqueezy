@@ -153,7 +153,7 @@ export const licenseKeyFields: INodeProperties[] = [
     type: 'number',
     default: 50,
     description: 'Max number of results to return',
-    typeOptions: { minValue: 1 },
+    typeOptions: { minValue: 1, maxValue: 100 },
     displayOptions: {
       show: { resource: ['licenseKey'], operation: ['getAll'], returnAll: [false] },
     },
@@ -204,6 +204,13 @@ export const licenseKeyFields: INodeProperties[] = [
         type: 'boolean',
         default: false,
         description: 'Filter by disabled status',
+      },
+      {
+        displayName: 'Order Item ID',
+        name: 'orderItemId',
+        type: 'string',
+        default: '',
+        description: 'Filter by order item ID',
       },
     ],
   },

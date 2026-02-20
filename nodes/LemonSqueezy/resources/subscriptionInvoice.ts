@@ -6,7 +6,7 @@
  * Available operations:
  * - Get: Retrieve a single subscription invoice by ID
  * - Get Many: Retrieve multiple subscription invoices with filtering
- * - Generate: Generate a new invoice for an outstanding balance
+ * - Generate: Generate a downloadable invoice PDF for a subscription invoice
  * - Refund: Issue a refund for a subscription invoice
  *
  * @see https://docs.lemonsqueezy.com/api/subscription-invoices
@@ -28,7 +28,7 @@ export const subscriptionInvoiceOperations: INodeProperties[] = [
       {
         name: 'Generate',
         value: 'generate',
-        description: 'Generate an invoice for outstanding subscription balance',
+        description: 'Generate a downloadable invoice PDF for a subscription invoice',
         action: 'Generate a subscription invoice',
       },
       {
@@ -71,10 +71,10 @@ export const subscriptionInvoiceFields: INodeProperties[] = [
     description: 'The ID of the subscription invoice (e.g., "123456")',
   },
 
-  // Subscription ID for Generate operation
+  // Subscription Invoice ID for Generate operation
   {
-    displayName: 'Subscription ID',
-    name: 'generateSubscriptionId',
+    displayName: 'Subscription Invoice ID',
+    name: 'generateInvoiceId',
     type: 'string',
     required: true,
     default: '',
@@ -84,8 +84,96 @@ export const subscriptionInvoiceFields: INodeProperties[] = [
         operation: ['generate'],
       },
     },
-    description:
-      'The ID of the subscription to generate an invoice for. Only works if the subscription has an outstanding balance.',
+    description: 'The ID of the subscription invoice to generate a PDF for',
+  },
+  // Invoice Generation Fields (required for generate)
+  {
+    displayName: 'Invoice Name',
+    name: 'generateName',
+    type: 'string',
+    required: true,
+    default: '',
+    description: 'Full name for the invoice (e.g., "John Doe")',
+    displayOptions: {
+      show: { resource: ['subscriptionInvoice'], operation: ['generate'] },
+    },
+  },
+  {
+    displayName: 'Invoice Address',
+    name: 'generateAddress',
+    type: 'string',
+    required: true,
+    default: '',
+    description: 'Street address for the invoice',
+    displayOptions: {
+      show: { resource: ['subscriptionInvoice'], operation: ['generate'] },
+    },
+  },
+  {
+    displayName: 'Invoice City',
+    name: 'generateCity',
+    type: 'string',
+    required: true,
+    default: '',
+    description: 'City for the invoice',
+    displayOptions: {
+      show: { resource: ['subscriptionInvoice'], operation: ['generate'] },
+    },
+  },
+  {
+    displayName: 'Invoice Zip Code',
+    name: 'generateZipCode',
+    type: 'string',
+    required: true,
+    default: '',
+    description: 'Zip/postal code for the invoice',
+    displayOptions: {
+      show: { resource: ['subscriptionInvoice'], operation: ['generate'] },
+    },
+  },
+  {
+    displayName: 'Invoice Country',
+    name: 'generateCountry',
+    type: 'string',
+    required: true,
+    default: '',
+    description: 'Country for the invoice (ISO 3166-1 alpha-2 code, e.g., "US", "GB")',
+    displayOptions: {
+      show: { resource: ['subscriptionInvoice'], operation: ['generate'] },
+    },
+  },
+  {
+    displayName: 'Invoice Options',
+    name: 'generateOptions',
+    type: 'collection',
+    placeholder: 'Add Option',
+    default: {},
+    displayOptions: {
+      show: { resource: ['subscriptionInvoice'], operation: ['generate'] },
+    },
+    options: [
+      {
+        displayName: 'State',
+        name: 'state',
+        type: 'string',
+        default: '',
+        description: 'State/province (required for US and CA)',
+      },
+      {
+        displayName: 'Notes',
+        name: 'notes',
+        type: 'string',
+        default: '',
+        description: 'Additional notes to include on the invoice',
+      },
+      {
+        displayName: 'Locale',
+        name: 'locale',
+        type: 'string',
+        default: '',
+        description: 'ISO 639 language code for the invoice (e.g., "en", "fr")',
+      },
+    ],
   },
 
   // Refund Options
@@ -177,6 +265,7 @@ export const subscriptionInvoiceFields: INodeProperties[] = [
           { name: 'Paid', value: 'paid' },
           { name: 'Void', value: 'void' },
           { name: 'Refunded', value: 'refunded' },
+          { name: 'Partial Refund', value: 'partial_refund' },
         ],
         description: 'Filter by invoice status',
       },

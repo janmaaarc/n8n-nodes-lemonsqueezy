@@ -812,7 +812,10 @@ export function buildFilterParams(filters: IDataObject): Record<string, string |
 export function buildJsonApiBody(
   type: string,
   attributes: IDataObject,
-  relationships?: Record<string, { type: string; id: string }>,
+  relationships?: Record<
+    string,
+    { type: string; id: string } | Array<{ type: string; id: string }>
+  >,
   id?: string,
 ): IDataObject {
   const body: IDataObject = {
@@ -829,12 +832,18 @@ export function buildJsonApiBody(
   if (relationships) {
     const relationshipsObj: IDataObject = {};
     for (const [key, value] of Object.entries(relationships)) {
-      relationshipsObj[key] = {
-        data: {
-          type: value.type,
-          id: value.id,
-        },
-      };
+      if (Array.isArray(value)) {
+        relationshipsObj[key] = {
+          data: value.map((item) => ({ type: item.type, id: item.id })),
+        };
+      } else {
+        relationshipsObj[key] = {
+          data: {
+            type: value.type,
+            id: value.id,
+          },
+        };
+      }
     }
     (body.data as IDataObject).relationships = relationshipsObj;
   }

@@ -31,10 +31,10 @@ export const customerOperations: INodeProperties = {
       description: 'Create a new customer',
     },
     {
-      name: 'Delete',
+      name: 'Archive',
       value: 'delete',
-      action: 'Delete a customer',
-      description: 'Archive a customer',
+      action: 'Archive a customer',
+      description: 'Archive a customer (Lemon Squeezy API does not support permanent deletion)',
     },
     {
       name: 'Get',
@@ -74,14 +74,16 @@ export const customerFields: INodeProperties[] = [
   },
   // Create Fields
   {
-    displayName: 'Store ID',
+    displayName: 'Store',
     name: 'customerStoreId',
-    type: 'string',
+    type: 'options',
+    typeOptions: {
+      loadOptionsMethod: 'getStores',
+    },
     required: true,
     default: '',
-    placeholder: 'e.g., 12345',
     description:
-      'The ID of the store this customer belongs to. Find this in your <a href="https://app.lemonsqueezy.com/settings/stores" target="_blank">Lemon Squeezy Dashboard</a>.',
+      'The store this customer belongs to. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
     displayOptions: {
       show: { resource: ['customer'], operation: ['create'] },
     },

@@ -113,7 +113,7 @@ export const subscriptionFields: INodeProperties[] = [
     type: 'number',
     default: 50,
     description: 'Max number of results to return',
-    typeOptions: { minValue: 1 },
+    typeOptions: { minValue: 1, maxValue: 100 },
     displayOptions: {
       show: { resource: ['subscription'], operation: ['getAll'], returnAll: [false] },
     },
@@ -172,6 +172,13 @@ export const subscriptionFields: INodeProperties[] = [
         default: '',
         description: 'Filter by subscription status',
       },
+      {
+        displayName: 'Order Item ID',
+        name: 'orderItemId',
+        type: 'string',
+        default: '',
+        description: 'Filter by order item ID',
+      },
     ],
   },
   // Update Fields
@@ -229,6 +236,14 @@ export const subscriptionFields: INodeProperties[] = [
         type: 'boolean',
         default: false,
         description: 'Whether to disable prorations when changing variants',
+      },
+      {
+        displayName: 'Trial Ends At',
+        name: 'trialEndsAt',
+        type: 'dateTime',
+        default: '',
+        description:
+          'Date the trial ends (ISO 8601 format). Set to change or extend the trial period.',
       },
     ],
   },
