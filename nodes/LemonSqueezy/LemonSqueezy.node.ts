@@ -815,10 +815,12 @@ export class LemonSqueezy implements INodeType {
           );
 
           const executionItem = this.helpers.constructExecutionMetaData(
-            [{
-              json: { id: fileId, ...fileAttrs },
-              binary: { [binaryPropertyName]: binaryData },
-            }],
+            [
+              {
+                json: { id: fileId, ...fileAttrs },
+                binary: { [binaryPropertyName]: binaryData },
+              },
+            ],
             { itemData: { item: i } },
           );
           returnData.push(...executionItem);

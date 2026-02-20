@@ -10,7 +10,11 @@ import type {
   IDataObject,
 } from 'n8n-workflow';
 import { WEBHOOK_EVENTS } from './constants';
-import { lemonSqueezyApiRequest, lemonSqueezyApiRequestAllItems, verifyWebhookSignature } from './helpers';
+import {
+  lemonSqueezyApiRequest,
+  lemonSqueezyApiRequestAllItems,
+  verifyWebhookSignature,
+} from './helpers';
 
 export class LemonSqueezyTrigger implements INodeType {
   description: INodeTypeDescription = {
