@@ -129,7 +129,7 @@ npm run test:cov   # Tests with coverage
 ## Git Workflow
 
 - Conventional commits: `feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`
-- **ALWAYS run `npm run lint && npm run build && npm test` before committing and pushing** to catch CI/CD errors locally
+- **ALWAYS run `npm run format && npm run lint && npm run build && npm test` before committing and pushing** to catch CI/CD errors locally
 - Update CHANGELOG.md for user-facing changes
 - Update SECURITY.md for security-related changes
 
