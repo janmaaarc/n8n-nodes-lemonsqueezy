@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2026-02-24
+
+### Added
+- **Output Simplification** - New "Simplify" toggle (default: on) flattens JSON:API responses from nested `{ type, id, attributes: {...} }` into flat `{ id, type, field1, field2 }` objects for easier use in n8n expressions
+- **Invoice PDF Binary Download** - Order Generate Invoice and Subscription Invoice Generate operations now have a "Download PDF" option that fetches the invoice PDF and returns it as n8n binary data
+- **Customer Lookup by Email** - New `Lookup by Email` operation on the Customer resource finds a customer by email address
+- **Subscription Renewal Filter** - `Get Many` subscriptions now supports a `Renews Within Days` filter to find subscriptions renewing within a specified number of days
+- **Dependent Variant Dropdown** - Checkout Create's Variant dropdown now filters by the selected Store, showing only relevant variants
+- **Store Revenue Summary** - New `Get Revenue Summary` operation returns formatted revenue metrics (total revenue, MRR, 30-day stats) for a store
+
+### Changed
+- Error messages improved with user-friendly descriptions and actionable advice for all common HTTP status codes (401, 403, 404, 422, 429, 5xx)
+- Rate limit errors now include the Retry-After duration from the API response
+- Variant dropdown in Checkout Create depends on Store selection via `loadOptionsDependsOn`
+
 ## [0.13.0] - 2026-02-18
 
 ### Added

@@ -66,11 +66,12 @@ export const checkoutFields: INodeProperties[] = [
     type: 'options',
     typeOptions: {
       loadOptionsMethod: 'getVariants',
+      loadOptionsDependsOn: ['checkoutStoreId'],
     },
     required: true,
     default: '',
     description:
-      'The variant to checkout. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+      'The variant to checkout. Filtered by the selected store. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
     displayOptions: {
       show: { resource: ['checkout'], operation: ['create'] },
     },

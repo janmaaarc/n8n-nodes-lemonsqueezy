@@ -122,6 +122,27 @@ export const orderFields: INodeProperties[] = [
     },
   },
   {
+    displayName: 'Download PDF',
+    name: 'downloadPdf',
+    type: 'boolean',
+    default: false,
+    description: 'Whether to download the generated invoice as a PDF binary file',
+    displayOptions: {
+      show: { resource: ['order'], operation: ['generateInvoice'] },
+    },
+  },
+  {
+    displayName: 'Binary Property',
+    name: 'invoiceBinaryProperty',
+    type: 'string',
+    default: 'data',
+    required: true,
+    description: 'Name of the binary property to write the PDF to',
+    displayOptions: {
+      show: { resource: ['order'], operation: ['generateInvoice'], downloadPdf: [true] },
+    },
+  },
+  {
     displayName: 'Invoice Options',
     name: 'invoiceOptions',
     type: 'collection',

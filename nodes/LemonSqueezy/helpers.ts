@@ -668,16 +668,16 @@ export async function lemonSqueezyApiRequestAllItems(
  * Lemon Squeezy API error codes and their meanings
  */
 const ERROR_MESSAGES: Record<number, string> = {
-  400: 'Bad Request: The request was invalid or malformed',
-  401: 'Unauthorized: Invalid or missing API key',
-  403: 'Forbidden: You do not have permission to access this resource',
-  404: 'Not Found: The requested resource does not exist',
-  409: 'Conflict: The resource already exists or there is a conflict',
-  422: 'Unprocessable Entity: The request data is invalid',
-  429: 'Rate Limited: Too many requests. Please wait before retrying',
-  500: 'Internal Server Error: Something went wrong on the server',
-  502: 'Bad Gateway: The server is temporarily unavailable',
-  503: 'Service Unavailable: The API is temporarily unavailable',
+  400: 'Bad Request: The request was invalid or malformed. Check your input parameters.',
+  401: 'Invalid API key. Check your Lemon Squeezy credentials in n8n.',
+  403: 'Access denied. Your API key may not have permission for this resource.',
+  404: 'Resource not found. Verify the ID is correct and the resource exists.',
+  409: 'Conflict: The resource already exists or there is a conflict.',
+  422: 'Validation failed. Check the error details for which fields need to be corrected.',
+  429: 'Rate limit exceeded. The Lemon Squeezy API allows 300 requests per minute. Try again shortly.',
+  500: 'Lemon Squeezy API encountered an internal error. Try again later.',
+  502: 'Lemon Squeezy API is temporarily unavailable (bad gateway). Try again later.',
+  503: 'Lemon Squeezy API is temporarily unavailable. Try again later.',
 };
 
 /**
@@ -719,6 +719,13 @@ function getErrorMessage(error: unknown): string {
 
     if (err.response?.body?.message) {
       return err.response.body.message;
+    }
+
+    // Include rate limit retry-after info for 429 errors
+    if (statusCode === 429) {
+      const retryAfter = getRetryAfterSeconds(error as IDataObject) ?? 0;
+      const retryMsg = retryAfter > 0 ? ` Retry after ${retryAfter} seconds.` : '';
+      return `${ERROR_MESSAGES[429]}${retryMsg}`;
     }
 
     // Use status code mapping
@@ -1022,4 +1029,61 @@ export function extractIncludedResources(response: IDataObject): IDataObject[] {
     return [];
   }
   return (response.included as IDataObject[]) || [];
+}
+
+/**
+ * Flattens a JSON:API resource object into a simple key-value object.
+ *
+ * Transforms deeply nested JSON:API format into a flat structure that is
+ * easier to use in n8n expressions and downstream nodes.
+ *
+ * @param data - A JSON:API resource object with type, id, attributes, etc.
+ * @returns A flat object with id, type, and all attribute fields at the top level
+ *
+ * @example
+ * // Input:  { type: 'orders', id: '1', attributes: { total: 999, status: 'paid' }, relationships: {...} }
+ * // Output: { id: '1', type: 'orders', total: 999, status: 'paid' }
+ */
+export function simplifyJsonApiResponse(data: IDataObject): IDataObject {
+  if (!data || typeof data !== 'object') {
+    return data;
+  }
+
+  const { id, type, attributes, ...rest } = data;
+  const simplified: IDataObject = { id, type };
+
+  if (attributes && typeof attributes === 'object' && !Array.isArray(attributes)) {
+    Object.assign(simplified, attributes as IDataObject);
+  }
+
+  // Preserve meta if present (e.g., invoice download URLs)
+  if (rest.meta) {
+    simplified.meta = rest.meta;
+  }
+
+  return simplified;
+}
+
+/**
+ * Applies simplification to a single item or array of items.
+ *
+ * @param responseData - A single JSON:API resource or array of resources
+ * @returns Simplified resource(s)
+ */
+export function simplifyResponse(
+  responseData: IDataObject | IDataObject[],
+): IDataObject | IDataObject[] {
+  if (Array.isArray(responseData)) {
+    return responseData.map((item) => simplifyJsonApiResponse(item));
+  }
+
+  // Handle wrapped response with .data property
+  if (responseData.data && !responseData.attributes) {
+    if (Array.isArray(responseData.data)) {
+      return (responseData.data as IDataObject[]).map((item) => simplifyJsonApiResponse(item));
+    }
+    return simplifyJsonApiResponse(responseData.data as IDataObject);
+  }
+
+  return simplifyJsonApiResponse(responseData);
 }

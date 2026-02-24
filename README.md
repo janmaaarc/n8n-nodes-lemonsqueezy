@@ -11,6 +11,7 @@ An [n8n](https://n8n.io/) community node for [Lemon Squeezy](https://lemonsqueez
 
 - **Full CRUD Operations** - Create, read, update, and delete operations for all major resources
 - **Dynamic Dropdowns** - Store, Product, Variant, and Discount fields load options automatically from your account
+- **Output Simplification** - Flatten nested JSON:API responses into simple objects with one toggle
 - **Webhook Trigger** - Real-time event notifications for orders, subscriptions, and license keys
 - **License Key Management** - Validate, activate, and deactivate license keys
 - **File Download** - Download product files as binary data for use in subsequent workflow nodes
@@ -57,7 +58,7 @@ The main node for interacting with the Lemon Squeezy API.
 |----------|------------|
 | **Affiliate** | Get, Get Many |
 | **Checkout** | Create, Get, Get Many |
-| **Customer** | Create, Update, Archive, Get, Get Many |
+| **Customer** | Create, Update, Archive, Get, Get Many, Lookup by Email |
 | **Discount** | Create (with product/variant limiting), Delete, Get, Get Many |
 | **Discount Redemption** | Get, Get Many |
 | **File** | Download, Get, Get Many |
@@ -67,7 +68,7 @@ The main node for interacting with the Lemon Squeezy API.
 | **Order Item** | Get, Get Many |
 | **Price** | Get, Get Many |
 | **Product** | Get, Get Many |
-| **Store** | Get, Get Many |
+| **Store** | Get, Get Many, Get Revenue Summary |
 | **Subscription** | Get, Get Many, Update, Cancel, Pause, Resume |
 | **Subscription Invoice** | Get, Get Many, Generate, Refund |
 | **Subscription Item** | Get, Get Many, Update, Get Current Usage |
@@ -323,6 +324,20 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [n8n Community Forum](https://community.n8n.io/)
 
 ## Changelog
+
+### v0.14.0
+
+**New Features:**
+- **Output Simplification** - Flatten nested JSON:API responses into simple key-value objects with one toggle (on by default)
+- **Invoice PDF Binary Download** - Download generated invoices as PDF binary data from Order and Subscription Invoice Generate operations
+- **Customer Lookup by Email** - Find a customer by email in a single operation
+- **Subscription Renewal Filter** - Filter subscriptions by upcoming renewal date (within N days)
+- **Dependent Variant Dropdown** - Variant dropdown in Checkout Create filters by selected Store
+- **Store Revenue Summary** - Get formatted revenue metrics (total revenue, MRR, 30-day stats) for any store
+
+**Improvements:**
+- User-friendly error messages with actionable advice for all HTTP status codes
+- Rate limit errors include Retry-After duration
 
 ### v0.13.0
 

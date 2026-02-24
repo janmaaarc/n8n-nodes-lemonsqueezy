@@ -179,6 +179,15 @@ export const subscriptionFields: INodeProperties[] = [
         default: '',
         description: 'Filter by order item ID',
       },
+      {
+        displayName: 'Renews Within Days',
+        name: 'renewsWithinDays',
+        type: 'number',
+        default: 0,
+        description:
+          'Only return active/on_trial subscriptions that renew within this many days. Set to 0 to disable.',
+        typeOptions: { minValue: 0, maxValue: 365 },
+      },
     ],
   },
   // Update Fields

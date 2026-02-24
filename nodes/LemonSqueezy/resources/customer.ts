@@ -72,6 +72,20 @@ export const customerFields: INodeProperties[] = [
       show: { resource: ['customer'], operation: ['get', 'update', 'delete'] },
     },
   },
+  // Lookup by Email
+  {
+    displayName: 'Email',
+    name: 'lookupEmail',
+    type: 'string',
+    placeholder: 'name@email.com',
+    required: true,
+    default: '',
+    description: 'The email address to search for',
+    displayOptions: {
+      show: { resource: ['customer'], operation: ['lookupByEmail'] },
+    },
+  },
+
   // Create Fields
   {
     displayName: 'Store',

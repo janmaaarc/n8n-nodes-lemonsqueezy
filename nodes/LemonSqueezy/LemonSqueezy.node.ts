@@ -17,6 +17,7 @@ import {
   validateDiscountAmount,
   validateCustomDataSize,
   validateObjectDepth,
+  simplifyResponse,
 } from './helpers';
 import { resourceProperty, allOperations, allFields } from './resources';
 import type { LemonSqueezyResponse } from './types';
@@ -518,7 +519,19 @@ export class LemonSqueezy implements INodeType {
         required: true,
       },
     ],
-    properties: [resourceProperty, ...allOperations, ...allFields],
+    properties: [
+      resourceProperty,
+      ...allOperations,
+      ...allFields,
+      {
+        displayName: 'Simplify',
+        name: 'simplifyOutput',
+        type: 'boolean',
+        default: true,
+        description:
+          'Whether to simplify the response by flattening JSON:API attributes to the top level',
+      },
+    ],
   };
 
   async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
@@ -527,6 +540,7 @@ export class LemonSqueezy implements INodeType {
 
     const resource = this.getNodeParameter('resource', 0);
     const operation = this.getNodeParameter('operation', 0);
+    const simplifyOutput = this.getNodeParameter('simplifyOutput', 0, true) as boolean;
 
     for (let i = 0; i < items.length; i++) {
       try {
@@ -587,6 +601,27 @@ export class LemonSqueezy implements INodeType {
               qs,
             );
             responseData = (response as unknown as LemonSqueezyResponse).data;
+          }
+
+          // Post-filter: subscription renewals within N days
+          if (resource === 'subscription' && Array.isArray(responseData)) {
+            const renewsWithinDays = filters.renewsWithinDays;
+            if (renewsWithinDays && Number(renewsWithinDays) > 0) {
+              const now = new Date();
+              const cutoff = new Date(
+                now.getTime() + Number(renewsWithinDays) * 24 * 60 * 60 * 1000,
+              );
+              responseData = responseData.filter((sub: IDataObject) => {
+                const attrs = (sub.attributes ?? sub) as IDataObject;
+                const renewsAt = attrs.renews_at as string;
+                const status = attrs.status as string;
+                if (!renewsAt || !['active', 'on_trial'].includes(status)) {
+                  return false;
+                }
+                const renewDate = new Date(renewsAt);
+                return renewDate >= now && renewDate <= cutoff;
+              });
+            }
           }
         } else if (operation === 'create') {
           responseData = await handleCreate(this, resource, i);
@@ -675,6 +710,40 @@ export class LemonSqueezy implements INodeType {
             {},
             qs,
           );
+
+          // Download invoice PDF if requested
+          const orderDownloadPdf = this.getNodeParameter('downloadPdf', i, false) as boolean;
+          if (orderDownloadPdf && responseData) {
+            const invoiceResponse = responseData as unknown as Record<
+              string,
+              Record<string, Record<string, string>>
+            >;
+            const pdfUrl = invoiceResponse?.meta?.urls?.download_invoice;
+            if (pdfUrl) {
+              const binaryProp = this.getNodeParameter(
+                'invoiceBinaryProperty',
+                i,
+                'data',
+              ) as string;
+              const pdfResponse = await this.helpers.httpRequest({
+                method: 'GET',
+                url: pdfUrl,
+                encoding: 'arraybuffer',
+                returnFullResponse: true,
+              });
+              const binaryData = await this.helpers.prepareBinaryData(
+                Buffer.from(pdfResponse.body as ArrayBuffer),
+                `order-${orderId}-invoice.pdf`,
+                'application/pdf',
+              );
+              const execItem = this.helpers.constructExecutionMetaData(
+                [{ json: responseData ?? {}, binary: { [binaryProp]: binaryData } }],
+                { itemData: { item: i } },
+              );
+              returnData.push(...execItem);
+              continue;
+            }
+          }
         } else if (operation === 'getCurrentUsage' && resource === 'subscriptionItem') {
           const subscriptionItemId = this.getNodeParameter('subscriptionItemId', i) as string;
           responseData = await lemonSqueezyApiRequest.call(
@@ -720,6 +789,42 @@ export class LemonSqueezy implements INodeType {
           }
         } else if (resource === 'user' && operation === 'getCurrent') {
           responseData = await lemonSqueezyApiRequest.call(this, 'GET', '/users/me');
+        } else if (resource === 'customer' && operation === 'lookupByEmail') {
+          const lookupEmail = this.getNodeParameter('lookupEmail', i) as string;
+          validateField('email', lookupEmail, 'email');
+          const lookupResponse = await lemonSqueezyApiRequest.call(
+            this,
+            'GET',
+            '/customers',
+            undefined,
+            { 'filter[email]': lookupEmail },
+          );
+          const customers = (lookupResponse as unknown as LemonSqueezyResponse)
+            .data as IDataObject[];
+          if (!customers || customers.length === 0) {
+            throw new Error(`No customer found with email: ${lookupEmail}`);
+          }
+          responseData = customers[0];
+        } else if (resource === 'store' && operation === 'getRevenueSummary') {
+          const revStoreId = this.getNodeParameter('revenueSummaryStoreId', i) as string;
+          const storeResponse = await lemonSqueezyApiRequest.call(
+            this,
+            'GET',
+            `/stores/${revStoreId}`,
+          );
+          const storeData = (storeResponse as unknown as LemonSqueezyResponse).data as IDataObject;
+          const attrs = (storeData?.attributes ?? {}) as IDataObject;
+          responseData = {
+            id: storeData?.id,
+            name: attrs.name,
+            currency: attrs.currency,
+            currency_rate: attrs.currency_rate,
+            total_revenue: attrs.total_revenue,
+            total_sales: attrs.total_sales,
+            thirty_day_revenue: attrs.thirty_day_revenue,
+            thirty_day_sales: attrs.thirty_day_sales,
+            mrr: attrs.mrr,
+          } as IDataObject;
         } else if (resource === 'subscriptionInvoice') {
           if (operation === 'generate') {
             const invoiceId = this.getNodeParameter('generateInvoiceId', i) as string;
@@ -755,6 +860,40 @@ export class LemonSqueezy implements INodeType {
               {},
               qs,
             );
+
+            // Download invoice PDF if requested
+            const subDownloadPdf = this.getNodeParameter('downloadPdf', i, false) as boolean;
+            if (subDownloadPdf && responseData) {
+              const subInvoiceResponse = responseData as unknown as Record<
+                string,
+                Record<string, Record<string, string>>
+              >;
+              const subPdfUrl = subInvoiceResponse?.meta?.urls?.download_invoice;
+              if (subPdfUrl) {
+                const subBinaryProp = this.getNodeParameter(
+                  'generateBinaryProperty',
+                  i,
+                  'data',
+                ) as string;
+                const subPdfResponse = await this.helpers.httpRequest({
+                  method: 'GET',
+                  url: subPdfUrl,
+                  encoding: 'arraybuffer',
+                  returnFullResponse: true,
+                });
+                const subBinaryData = await this.helpers.prepareBinaryData(
+                  Buffer.from(subPdfResponse.body as ArrayBuffer),
+                  `subscription-invoice-${invoiceId}.pdf`,
+                  'application/pdf',
+                );
+                const subExecItem = this.helpers.constructExecutionMetaData(
+                  [{ json: responseData ?? {}, binary: { [subBinaryProp]: subBinaryData } }],
+                  { itemData: { item: i } },
+                );
+                returnData.push(...subExecItem);
+                continue;
+              }
+            }
           } else if (operation === 'refund') {
             const invoiceId = this.getNodeParameter('subscriptionInvoiceId', i) as string;
             const refundAmount = this.getNodeParameter('refundAmount', i, 0) as number;
@@ -827,8 +966,14 @@ export class LemonSqueezy implements INodeType {
           continue;
         }
 
+        // Apply output simplification if enabled
+        const outputData =
+          simplifyOutput && responseData
+            ? simplifyResponse(responseData as IDataObject)
+            : responseData;
+
         const executionData = this.helpers.constructExecutionMetaData(
-          this.helpers.returnJsonArray(responseData as IDataObject[]),
+          this.helpers.returnJsonArray(outputData as IDataObject[]),
           { itemData: { item: i } },
         );
         returnData.push(...executionData);
@@ -880,13 +1025,35 @@ export class LemonSqueezy implements INodeType {
       },
 
       async getVariants(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
-        const response = await lemonSqueezyApiRequestAllItems.call(
+        // If a store is selected, filter variants to that store's products
+        const selectedStoreId = this.getCurrentNodeParameter('checkoutStoreId') as
+          | string
+          | undefined;
+
+        const variants = await lemonSqueezyApiRequestAllItems.call(
           this as unknown as IExecuteFunctions,
           'GET',
           '/variants',
           {},
         );
-        return response.map((variant) => {
+
+        let filteredVariants = variants;
+        if (selectedStoreId) {
+          // Fetch products for the selected store to get valid product IDs
+          const products = await lemonSqueezyApiRequestAllItems.call(
+            this as unknown as IExecuteFunctions,
+            'GET',
+            '/products',
+            { 'filter[store_id]': selectedStoreId },
+          );
+          const productIds = new Set(products.map((p) => String(p.id)));
+          filteredVariants = variants.filter((v) => {
+            const attrs = v.attributes as IDataObject;
+            return productIds.has(String(attrs.product_id));
+          });
+        }
+
+        return filteredVariants.map((variant) => {
           const attrs = variant.attributes as IDataObject;
           return {
             name: `${attrs.name as string} (${variant.id})`,
