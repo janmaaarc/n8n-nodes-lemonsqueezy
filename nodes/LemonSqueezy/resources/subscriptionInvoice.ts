@@ -176,6 +176,28 @@ export const subscriptionInvoiceFields: INodeProperties[] = [
     ],
   },
 
+  // Download PDF option for generate
+  {
+    displayName: 'Download PDF',
+    name: 'downloadPdf',
+    type: 'boolean',
+    default: false,
+    description: 'Whether to download the generated invoice as a PDF binary file',
+    displayOptions: {
+      show: { resource: ['subscriptionInvoice'], operation: ['generate'] },
+    },
+  },
+  {
+    displayName: 'Binary Property',
+    name: 'generateBinaryProperty',
+    type: 'string',
+    default: 'data',
+    description: 'Name of the binary property to write the PDF file to',
+    displayOptions: {
+      show: { resource: ['subscriptionInvoice'], operation: ['generate'], downloadPdf: [true] },
+    },
+  },
+
   // Refund Options
   {
     displayName: 'Refund Amount',

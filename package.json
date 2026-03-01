@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-lemonsqueezy",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "n8n community node for Lemon Squeezy - digital products and subscriptions platform",
   "keywords": [
     "n8n-community-node-package",

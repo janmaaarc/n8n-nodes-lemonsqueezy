@@ -1032,6 +1032,69 @@ export function extractIncludedResources(response: IDataObject): IDataObject[] {
 }
 
 /**
+ * Flattens included JSON:API resources into relationship keys.
+ *
+ * When the API returns an `included` array (from ?include= query param),
+ * this function matches each relationship reference to its included data
+ * and returns an object with relationship names as keys and simplified
+ * included resources as values.
+ *
+ * @param data - The JSON:API resource with relationships
+ * @param included - The array of included resources from the response
+ * @returns An object mapping relationship names to their simplified included data
+ *
+ * @example
+ * // Input relationships: { store: { data: { type: 'stores', id: '1' } } }
+ * // Included: [{ type: 'stores', id: '1', attributes: { name: 'My Store' } }]
+ * // Output: { store: { id: '1', type: 'stores', name: 'My Store' } }
+ */
+export function flattenIncludedResources(data: IDataObject, included: IDataObject[]): IDataObject {
+  const relationships = data.relationships as IDataObject | undefined;
+  if (!relationships || typeof relationships !== 'object') {
+    return {};
+  }
+
+  const result: IDataObject = {};
+
+  for (const [relName, relValue] of Object.entries(relationships)) {
+    if (!relValue || typeof relValue !== 'object') {
+      continue;
+    }
+
+    const relData = (relValue as IDataObject).data;
+    if (!relData) {
+      continue;
+    }
+
+    if (Array.isArray(relData)) {
+      // Array relationship (e.g., order-items, subscriptions)
+      const matched = (relData as IDataObject[])
+        .map((ref) => {
+          const found = included.find(
+            (inc) => inc.type === ref.type && String(inc.id) === String(ref.id),
+          );
+          return found ? simplifyJsonApiResponse(found) : undefined;
+        })
+        .filter((item): item is IDataObject => item !== undefined);
+      if (matched.length > 0) {
+        result[relName] = matched;
+      }
+    } else {
+      // Single relationship (e.g., store, customer)
+      const ref = relData as IDataObject;
+      const found = included.find(
+        (inc) => inc.type === ref.type && String(inc.id) === String(ref.id),
+      );
+      if (found) {
+        result[relName] = simplifyJsonApiResponse(found);
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
  * Flattens a JSON:API resource object into a simple key-value object.
  *
  * Transforms deeply nested JSON:API format into a flat structure that is
@@ -1044,7 +1107,7 @@ export function extractIncludedResources(response: IDataObject): IDataObject[] {
  * // Input:  { type: 'orders', id: '1', attributes: { total: 999, status: 'paid' }, relationships: {...} }
  * // Output: { id: '1', type: 'orders', total: 999, status: 'paid' }
  */
-export function simplifyJsonApiResponse(data: IDataObject): IDataObject {
+export function simplifyJsonApiResponse(data: IDataObject, included?: IDataObject[]): IDataObject {
   if (!data || typeof data !== 'object') {
     return data;
   }
@@ -1059,6 +1122,12 @@ export function simplifyJsonApiResponse(data: IDataObject): IDataObject {
   // Preserve meta if present (e.g., invoice download URLs)
   if (rest.meta) {
     simplified.meta = rest.meta;
+  }
+
+  // Flatten included relationships if available
+  if (included && included.length > 0 && data.relationships) {
+    const flattened = flattenIncludedResources(data, included);
+    Object.assign(simplified, flattened);
   }
 
   return simplified;
@@ -1077,13 +1146,20 @@ export function simplifyResponse(
     return responseData.map((item) => simplifyJsonApiResponse(item));
   }
 
+  // Extract included resources from JSON:API response envelope
+  const included = Array.isArray(responseData.included)
+    ? (responseData.included as IDataObject[])
+    : undefined;
+
   // Handle wrapped response with .data property
   if (responseData.data && !responseData.attributes) {
     if (Array.isArray(responseData.data)) {
-      return (responseData.data as IDataObject[]).map((item) => simplifyJsonApiResponse(item));
+      return (responseData.data as IDataObject[]).map((item) =>
+        simplifyJsonApiResponse(item, included),
+      );
     }
-    return simplifyJsonApiResponse(responseData.data as IDataObject);
+    return simplifyJsonApiResponse(responseData.data as IDataObject, included);
   }
 
-  return simplifyJsonApiResponse(responseData);
+  return simplifyJsonApiResponse(responseData, included);
 }

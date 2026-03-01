@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.0] - 2026-03-01
+
+### Added
+- **Include Relationship Flattening** - When using "Include Related" in advanced options (e.g., include Store, Customer for an Order), included resources are now automatically flattened into the simplified output. Instead of a separate `included` array, each item gets its related resources directly (e.g., `store: { id, name, ... }`, `customer: { id, email, ... }`).
+- **Test Backfill** - Added 51 new tests covering all v0.13.0, v0.14.0, and v0.15.0 features (output simplification, include flattening, error mapping, customer lookupByEmail, store revenue summary, subscription renewsWithinDays, invoice PDF download, dynamic dropdowns, file download, license key deactivate, discount redemption date filters, trigger headers). Total: 287 tests.
+
+### Fixed
+- **Customer Lookup by Email** - Added missing `lookupByEmail` operation entry to the Customer resource dropdown. The handler and fields existed but the operation was not selectable in the UI.
+- **File Download** - Added missing `download` operation entry and `binaryPropertyName` field to the File resource. The handler existed but the operation was not selectable in the UI.
+- **Subscription Invoice PDF Download** - Added missing `downloadPdf` and `generateBinaryProperty` fields to the Subscription Invoice Generate operation. The handler existed but the UI fields were missing.
+- **Discount Redemption Date Filters** - Added missing `createdAfter` and `createdBefore` dateTime filters to the Discount Redemption `Get Many` operation.
+
 ## [0.14.0] - 2026-02-24
 
 ### Added

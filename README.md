@@ -191,6 +191,8 @@ Include related resources in a single request to reduce API calls:
 
 **Example:** When fetching orders, include `customer` and `order-items` to get all related data in one request.
 
+**Automatic Flattening:** When Simplify Output is enabled (default), included resources are automatically flattened into each item. Instead of a separate `included` array, you get `store: { id, name, ... }` directly on the order object.
+
 ## Security
 
 ### Webhook Security
@@ -324,6 +326,18 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [n8n Community Forum](https://community.n8n.io/)
 
 ## Changelog
+
+### v0.15.0
+
+**New Features:**
+- **Include Relationship Flattening** - Included resources are automatically flattened into simplified output (e.g., `store: { id, name }` directly on order)
+- **Test Backfill** - 51 new tests covering all v0.13.0/v0.14.0/v0.15.0 features (287 total)
+
+**Bug Fixes:**
+- Fixed Customer `Lookup by Email` operation not appearing in dropdown
+- Fixed File `Download` operation not appearing in dropdown
+- Fixed Subscription Invoice Generate missing PDF download fields
+- Fixed Discount Redemption `Get Many` missing date range filters
 
 ### v0.14.0
 

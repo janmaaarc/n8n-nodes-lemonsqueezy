@@ -16,6 +16,12 @@ export const fileOperations: INodeProperties = {
       description: 'Retrieve a single file by ID',
     },
     {
+      name: 'Download',
+      value: 'download',
+      action: 'Download a file',
+      description: 'Download a file as binary data',
+    },
+    {
       name: 'Get Many',
       value: 'getAll',
       action: 'Get many files',
@@ -36,7 +42,18 @@ export const fileFields: INodeProperties[] = [
     placeholder: 'e.g., 12345',
     description: 'The ID of the file (numeric string)',
     displayOptions: {
-      show: { resource: ['file'], operation: ['get'] },
+      show: { resource: ['file'], operation: ['get', 'download'] },
+    },
+  },
+  // Binary Property Name for Download
+  {
+    displayName: 'Binary Property',
+    name: 'binaryPropertyName',
+    type: 'string',
+    default: 'data',
+    description: 'Name of the binary property to write the downloaded file to',
+    displayOptions: {
+      show: { resource: ['file'], operation: ['download'] },
     },
   },
   // Return All

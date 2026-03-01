@@ -49,6 +49,12 @@ export const customerOperations: INodeProperties = {
       description: 'Retrieve multiple customers',
     },
     {
+      name: 'Lookup by Email',
+      value: 'lookupByEmail',
+      action: 'Lookup a customer by email',
+      description: 'Find a customer by their email address',
+    },
+    {
       name: 'Update',
       value: 'update',
       action: 'Update a customer',
