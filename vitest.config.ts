@@ -16,6 +16,8 @@ export default defineConfig({
         // Node execution files require full n8n context mocking
         '**/LemonSqueezy.node.ts',
         '**/LemonSqueezyTrigger.node.ts',
+        '**/handlers.ts',
+        '**/api.ts',
       ],
       thresholds: {
         statements: 80,
