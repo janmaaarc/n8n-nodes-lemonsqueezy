@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Store Analytics** - New "Get Analytics" operation on Store resource. Returns revenue by product, churn rate, LTV, active/cancelled subscription counts, and unique customer count.
 - **Checkout URL Shortener** - New "Shorten URL" option when creating checkouts. Generates a shortened URL in the response.
 - **License Key Bulk Operations** - New "Bulk Activate" and "Bulk Deactivate" operations. Pass a JSON array of license keys to activate/deactivate multiple at once.
-- **60 New Tests** - Comprehensive test coverage for all v1.0.0 features. Total: 347 tests (up from 287).
+- **60 New Tests** - Comprehensive test coverage for all v1.0.0 features. Total: 344 tests (up from 287).
 
 ### Changed
 - **Raw JSON:API Output** - The existing "Simplify" toggle now includes a clearer description explaining that disabling it returns raw JSON:API format with type, attributes, and relationships intact.
@@ -27,6 +27,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Bulk Operation Input Validation** - All bulk JSON inputs (discount codes, license keys) are now wrapped in try/catch with descriptive error messages for malformed JSON.
 - **Bulk Discount Validation** - Each discount in a bulk create now validates amount/type before API call (matching single-create behavior).
 - **Analytics Safety Limits** - Store Analytics queries are capped at 10,000 items with a 2-minute timeout to prevent unbounded API fetches.
+
+### Refactored
+- **Module Split** - Split `helpers.ts` (1,166 lines) and `LemonSqueezy.node.ts` (1,435 lines) into focused modules: `validation.ts` (453 lines), `api.ts` (344 lines), `handlers.ts` (508 lines). All files now comply with the 800-line guideline. Backwards-compatible re-exports preserve existing import paths.
+- **Removed Broken Filters** - Removed `createdAfter`/`createdBefore` date filters from Discount Redemption resource (unsupported by Lemon Squeezy API, filters were silently ignored).
 
 ## [0.15.0] - 2026-03-01
 

@@ -42,16 +42,19 @@ n8n-nodes-lemonsqueezy/
 ├── credentials/             # Credential definitions
 │   └── LemonSqueezyApi.credentials.ts
 ├── nodes/LemonSqueezy/      # Node implementations
-│   ├── LemonSqueezy.node.ts        # Main node (20 resources)
+│   ├── LemonSqueezy.node.ts        # Main node class + execute (20 resources)
 │   ├── LemonSqueezyTrigger.node.ts  # Webhook trigger (19 events)
-│   ├── helpers.ts           # API helpers, validation, simplification
+│   ├── handlers.ts          # Create/update operation handlers
+│   ├── validation.ts        # Input validation (email, URL, date, size)
+│   ├── api.ts               # API request functions, pagination, errors
+│   ├── helpers.ts           # Query building, JSON:API, simplification
 │   ├── constants.ts         # Endpoints, statuses, webhook events
 │   ├── types.ts             # TypeScript interfaces
 │   └── resources/           # UI field definitions per resource
 │       ├── index.ts         # Barrel export
 │       ├── shared.ts        # Shared fields (sorting, includes)
 │       └── *.ts             # One file per resource
-├── test/                    # Vitest test files (347 tests)
+├── test/                    # Vitest test files (344 tests)
 └── dist/                    # Compiled output (generated)
 ```
 
@@ -106,7 +109,7 @@ n8n-nodes-lemonsqueezy/
 ### Testing
 
 - Write tests for new functionality using Vitest
-- Maintain >80% code coverage (currently 347 tests)
+- Maintain >80% code coverage (currently 344 tests)
 - Test edge cases and error conditions
 - Test bulk operation JSON parsing and validation
 - Run `npm run test:coverage` to check coverage
@@ -131,7 +134,7 @@ n8n-nodes-lemonsqueezy/
 
 3. Add endpoint mapping to `constants.ts`
 
-4. Add handler in `LemonSqueezy.node.ts` if needed
+4. Add create/update handler in `handlers.ts` (or execution logic in `LemonSqueezy.node.ts`)
 
 5. Add types to `types.ts`
 

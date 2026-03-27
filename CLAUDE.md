@@ -46,7 +46,7 @@ credentials/
 └── LemonSqueezyApi.credentials.ts  # API credential definition
 
 test/
-└── LemonSqueezy.test.ts       # Vitest test file (347 tests)
+└── LemonSqueezy.test.ts       # Vitest test file (344 tests)
 ```
 
 ## Critical Rules
@@ -69,7 +69,7 @@ test/
 
 ### 3. Testing
 
-- Vitest with 80%+ coverage target (347 tests)
+- Vitest with 80%+ coverage target (344 tests)
 - Mock n8n execution context
 - Test both success and error paths
 - Test input validation edge cases

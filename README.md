@@ -350,12 +350,16 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - **Store Analytics** - Revenue by product, churn rate, LTV, subscription health metrics
 - **Checkout URL Shortener** - Generate shortened checkout URLs
 - **License Key Bulk Activate/Deactivate** - Process multiple license keys at once
-- **60 New Tests** - 347 total tests
+- **57 New Tests** - 344 total tests
 
 **Security:**
 - Explicit buffer length check in webhook signature verification
 - Input validation for all bulk JSON operations
 - Analytics queries capped at 10,000 items with 2-minute timeout
+
+**Refactored:**
+- Split `helpers.ts` and `LemonSqueezy.node.ts` into focused modules (`validation.ts`, `api.ts`, `handlers.ts`)
+- Removed broken Discount Redemption date filters (unsupported by API)
 
 ### v0.15.0
 
