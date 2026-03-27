@@ -13,7 +13,10 @@ nodes/LemonSqueezy/
 ├── LemonSqueezy.node.ts        # Main node (API operations)
 ├── LemonSqueezyTrigger.node.ts # Webhook trigger node
 ├── constants.ts                # API URLs, status arrays, webhook events
-├── helpers.ts                  # API request helpers, validation
+├── validation.ts               # Input validation (email, URL, date, size)
+├── api.ts                      # API request functions, pagination, error handling
+├── helpers.ts                  # Query building, JSON:API, signature, simplification
+├── handlers.ts                 # Create/update operation handlers
 ├── types.ts                    # TypeScript interfaces
 └── resources/                  # UI field definitions by resource
     ├── index.ts                # Barrel export
