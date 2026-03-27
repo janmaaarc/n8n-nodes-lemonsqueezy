@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-03-27
+
+### Added
+- **Batch Get Many by ID** - New "Get Many by ID" operation for Orders, Customers, and Subscriptions. Pass a comma-separated list of IDs to retrieve multiple resources in parallel.
+- **Customer Upsert** - New "Upsert" operation on Customer resource. Looks up a customer by email, updates if found, creates if not found. Supports optional update fields (name, city, country, region).
+- **New Webhook Events** - Added 3 new trigger events: `order_updated`, `subscription_plan_changed`, `license_key_expired` (19 total events).
+- **Webhook Metadata Filtering** - New trigger options to filter events by Product ID, Variant ID, or custom_data key/value. Reduces unnecessary workflow executions.
+- **Per-Event-Type Replay Protection** - Separate max event age overrides for order events and subscription events in the trigger node.
+- **Bulk Discount Creation** - New "Bulk Create" operation on Discount resource. Pass a JSON array of discount definitions to create multiple codes at once.
+- **Store Analytics** - New "Get Analytics" operation on Store resource. Returns revenue by product, churn rate, LTV, active/cancelled subscription counts, and unique customer count.
+- **Checkout URL Shortener** - New "Shorten URL" option when creating checkouts. Generates a shortened URL in the response.
+- **License Key Bulk Operations** - New "Bulk Activate" and "Bulk Deactivate" operations. Pass a JSON array of license keys to activate/deactivate multiple at once.
+- **60 New Tests** - Comprehensive test coverage for all v1.0.0 features. Total: 347 tests (up from 287).
+
+### Changed
+- **Raw JSON:API Output** - The existing "Simplify" toggle now includes a clearer description explaining that disabling it returns raw JSON:API format with type, attributes, and relationships intact.
+
+### Security
+- **Webhook Signature Length Check** - Added explicit buffer length comparison before `timingSafeEqual` to ensure timing-safe guarantee applies regardless of signature length.
+- **Bulk Operation Input Validation** - All bulk JSON inputs (discount codes, license keys) are now wrapped in try/catch with descriptive error messages for malformed JSON.
+- **Bulk Discount Validation** - Each discount in a bulk create now validates amount/type before API call (matching single-create behavior).
+- **Analytics Safety Limits** - Store Analytics queries are capped at 10,000 items with a 2-minute timeout to prevent unbounded API fetches.
+
 ## [0.15.0] - 2026-03-01
 
 ### Added
@@ -15,7 +38,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Customer Lookup by Email** - Added missing `lookupByEmail` operation entry to the Customer resource dropdown. The handler and fields existed but the operation was not selectable in the UI.
 - **File Download** - Added missing `download` operation entry and `binaryPropertyName` field to the File resource. The handler existed but the operation was not selectable in the UI.
 - **Subscription Invoice PDF Download** - Added missing `downloadPdf` and `generateBinaryProperty` fields to the Subscription Invoice Generate operation. The handler existed but the UI fields were missing.
-- **Discount Redemption Date Filters** - Added missing `createdAfter` and `createdBefore` dateTime filters to the Discount Redemption `Get Many` operation.
 
 ## [0.14.0] - 2026-02-24
 
@@ -39,7 +61,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **File Download operation** - New `download` operation on the File resource fetches the file binary and returns it as n8n binary data (configurable property name). Enables direct file handling in workflows (email attachments, S3 uploads, etc.).
 - **License Key Instance Deactivate** - New `deactivate` operation on the License Key Instance resource deactivates a specific instance using its instance ID and the associated license key string.
 - **Webhook Trigger: Include Event Headers** - New option to expose raw request headers (`X-Event-Name`, `X-Signature`, `X-Request-Id`, `Content-Type`) in the trigger output for debugging and downstream routing.
-- **Discount Redemption date range filters** - `Get Many` operation on Discount Redemption now supports `createdAfter` and `createdBefore` date filters for reporting workflows.
 
 ### Changed
 - Store ID, Variant ID, Product ID, and Discount ID fields converted from free-text to dynamic option dropdowns powered by `loadOptionsMethod`

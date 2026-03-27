@@ -289,7 +289,21 @@ async function handleCreate(
       variant: { type: 'variants', id: variantId },
     });
 
-    return await lemonSqueezyApiRequest.call(ctx, 'POST', '/checkouts', body);
+    const checkoutResponse = await lemonSqueezyApiRequest.call(ctx, 'POST', '/checkouts', body);
+
+    if (additionalOptions.shortenUrl) {
+      const checkoutData = (checkoutResponse as unknown as { data?: IDataObject })?.data;
+      const checkoutAttrs = (checkoutData?.attributes ?? {}) as IDataObject;
+      const fullUrl = checkoutAttrs.url as string;
+      if (fullUrl) {
+        return {
+          ...checkoutResponse,
+          checkout_short_url: fullUrl.replace('/checkout/buy/', '/buy/'),
+        };
+      }
+    }
+
+    return checkoutResponse;
   }
 
   if (resource === 'usageRecord') {
@@ -529,7 +543,34 @@ export class LemonSqueezy implements INodeType {
         type: 'boolean',
         default: true,
         description:
-          'Whether to simplify the response by flattening JSON:API attributes to the top level',
+          'Whether to simplify the response by flattening JSON:API attributes to the top level. Disable to get the raw JSON:API format with type, attributes, and relationships.',
+      },
+      {
+        displayName: 'Retry Options',
+        name: 'retryOptions',
+        type: 'collection',
+        placeholder: 'Add Option',
+        default: {},
+        description: 'Configure retry behavior for failed API requests',
+        options: [
+          {
+            displayName: 'Max Retries',
+            name: 'maxRetries',
+            type: 'number',
+            default: 3,
+            description: 'Maximum number of retry attempts for failed requests (0 to disable)',
+            typeOptions: { minValue: 0, maxValue: 10 },
+          },
+          {
+            displayName: 'Initial Delay (Ms)',
+            name: 'initialDelayMs',
+            type: 'number',
+            default: 1000,
+            description:
+              'Initial delay in milliseconds before the first retry (doubles each retry)',
+            typeOptions: { minValue: 100, maxValue: 30000 },
+          },
+        ],
       },
     ],
   };
@@ -623,6 +664,32 @@ export class LemonSqueezy implements INodeType {
               });
             }
           }
+        } else if (operation === 'getManyById') {
+          const batchIdParamMap: Record<string, string> = {
+            order: 'batchOrderIds',
+            customer: 'batchCustomerIds',
+            subscription: 'batchSubscriptionIds',
+          };
+          const batchParam = batchIdParamMap[resource];
+          if (!batchParam) {
+            throw new Error(`getManyById not supported for resource: ${resource}`);
+          }
+          const idsRaw = this.getNodeParameter(batchParam, i) as string;
+          const ids = idsRaw
+            .split(',')
+            .map((id: string) => id.trim())
+            .filter((id: string) => id.length > 0);
+          if (ids.length === 0) {
+            throw new Error('At least one ID is required');
+          }
+          const batchResults = await Promise.all(
+            ids.map((id: string) =>
+              lemonSqueezyApiRequest
+                .call(this, 'GET', `/${endpoint}/${id}`)
+                .catch((err: Error) => ({ error: err.message, id })),
+            ),
+          );
+          responseData = batchResults as IDataObject[];
         } else if (operation === 'create') {
           responseData = await handleCreate(this, resource, i);
         } else if (operation === 'update') {
@@ -786,6 +853,67 @@ export class LemonSqueezy implements INodeType {
               license_key: licenseKey,
               instance_id: instanceId,
             });
+          } else if (operation === 'bulkActivate') {
+            const bulkKeysRaw = this.getNodeParameter('bulkActivateKeys', i) as string;
+            let keyList: unknown;
+            try {
+              keyList = typeof bulkKeysRaw === 'string' ? JSON.parse(bulkKeysRaw) : bulkKeysRaw;
+            } catch {
+              throw new Error(
+                'License keys must be valid JSON. Example: [{"license_key":"...","instance_name":"..."}]',
+              );
+            }
+
+            if (!Array.isArray(keyList) || keyList.length === 0) {
+              throw new Error('License keys must be a non-empty JSON array');
+            }
+
+            const activateResults = await Promise.all(
+              (keyList as IDataObject[]).map((entry: IDataObject) =>
+                lemonSqueezyApiRequest
+                  .call(this, 'POST', '/licenses/activate', {
+                    license_key: entry.license_key,
+                    instance_name: entry.instance_name,
+                  })
+                  .catch((err: Error) => ({
+                    error: err.message,
+                    license_key: entry.license_key,
+                  })),
+              ),
+            );
+            responseData = activateResults as IDataObject[];
+          } else if (operation === 'bulkDeactivate') {
+            const bulkDeactivateRaw = this.getNodeParameter('bulkDeactivateKeys', i) as string;
+            let deactivateList: unknown;
+            try {
+              deactivateList =
+                typeof bulkDeactivateRaw === 'string'
+                  ? JSON.parse(bulkDeactivateRaw)
+                  : bulkDeactivateRaw;
+            } catch {
+              throw new Error(
+                'License key instances must be valid JSON. Example: [{"license_key":"...","instance_id":"..."}]',
+              );
+            }
+
+            if (!Array.isArray(deactivateList) || deactivateList.length === 0) {
+              throw new Error('License key instances must be a non-empty JSON array');
+            }
+
+            const deactivateResults = await Promise.all(
+              (deactivateList as IDataObject[]).map((entry: IDataObject) =>
+                lemonSqueezyApiRequest
+                  .call(this, 'POST', '/licenses/deactivate', {
+                    license_key: entry.license_key,
+                    instance_id: entry.instance_id,
+                  })
+                  .catch((err: Error) => ({
+                    error: err.message,
+                    license_key: entry.license_key,
+                  })),
+              ),
+            );
+            responseData = deactivateResults as IDataObject[];
           }
         } else if (resource === 'user' && operation === 'getCurrent') {
           responseData = await lemonSqueezyApiRequest.call(this, 'GET', '/users/me');
@@ -805,6 +933,71 @@ export class LemonSqueezy implements INodeType {
             throw new Error(`No customer found with email: ${lookupEmail}`);
           }
           responseData = customers[0];
+        } else if (resource === 'customer' && operation === 'upsert') {
+          const upsertEmail = this.getNodeParameter('upsertEmail', i) as string;
+          const upsertName = this.getNodeParameter('upsertName', i) as string;
+          const upsertStoreId = this.getNodeParameter('upsertStoreId', i) as string;
+          const upsertUpdateFields = this.getNodeParameter(
+            'upsertUpdateFields',
+            i,
+            {},
+          ) as IDataObject;
+
+          validateField('email', upsertEmail, 'email');
+
+          // Try to find existing customer
+          const lookupResp = await lemonSqueezyApiRequest.call(
+            this,
+            'GET',
+            '/customers',
+            undefined,
+            { 'filter[email]': upsertEmail },
+          );
+          const existingCustomers = (lookupResp as unknown as LemonSqueezyResponse)
+            .data as IDataObject[];
+
+          if (existingCustomers && existingCustomers.length > 0) {
+            // Customer exists — update if fields provided
+            const existing = existingCustomers[0];
+            const existingId = existing.id as string;
+            const hasUpdates = Object.keys(upsertUpdateFields).some(
+              (key) =>
+                upsertUpdateFields[key] !== undefined &&
+                upsertUpdateFields[key] !== null &&
+                upsertUpdateFields[key] !== '',
+            );
+
+            if (hasUpdates) {
+              const updateAttrs: IDataObject = {};
+              for (const [key, value] of Object.entries(upsertUpdateFields)) {
+                if (value !== undefined && value !== null && value !== '') {
+                  updateAttrs[key] = value;
+                }
+              }
+              const updateBody = buildJsonApiBody('customers', updateAttrs, undefined, existingId);
+              responseData = await lemonSqueezyApiRequest.call(
+                this,
+                'PATCH',
+                `/customers/${existingId}`,
+                updateBody,
+              );
+            } else {
+              responseData = existing;
+            }
+          } else {
+            // Customer not found — create
+            const createBody = buildJsonApiBody(
+              'customers',
+              { name: upsertName, email: upsertEmail },
+              { store: { type: 'stores', id: upsertStoreId } },
+            );
+            responseData = await lemonSqueezyApiRequest.call(
+              this,
+              'POST',
+              '/customers',
+              createBody,
+            );
+          }
         } else if (resource === 'store' && operation === 'getRevenueSummary') {
           const revStoreId = this.getNodeParameter('revenueSummaryStoreId', i) as string;
           const storeResponse = await lemonSqueezyApiRequest.call(
@@ -824,6 +1017,108 @@ export class LemonSqueezy implements INodeType {
             thirty_day_revenue: attrs.thirty_day_revenue,
             thirty_day_sales: attrs.thirty_day_sales,
             mrr: attrs.mrr,
+          } as IDataObject;
+        } else if (resource === 'store' && operation === 'getAnalytics') {
+          const analyticsStoreId = this.getNodeParameter('analyticsStoreId', i) as string;
+
+          // Fetch store data for revenue summary
+          const analyticsStoreResp = await lemonSqueezyApiRequest.call(
+            this,
+            'GET',
+            `/stores/${analyticsStoreId}`,
+          );
+          const analyticsStore = (analyticsStoreResp as unknown as LemonSqueezyResponse)
+            .data as IDataObject;
+          const storeAttrs = (analyticsStore?.attributes ?? {}) as IDataObject;
+
+          // Safety limits to prevent unbounded API fetches
+          const analyticsLimits = { maxItems: 10000, timeout: 120000 };
+
+          // Fetch products, subscriptions, and orders for this store
+          const products = await lemonSqueezyApiRequestAllItems.call(
+            this,
+            'GET',
+            '/products',
+            { 'filter[store_id]': analyticsStoreId },
+            analyticsLimits,
+          );
+
+          const subscriptions = await lemonSqueezyApiRequestAllItems.call(
+            this,
+            'GET',
+            '/subscriptions',
+            { 'filter[store_id]': analyticsStoreId },
+            analyticsLimits,
+          );
+
+          const orders = await lemonSqueezyApiRequestAllItems.call(
+            this,
+            'GET',
+            '/orders',
+            { 'filter[store_id]': analyticsStoreId },
+            analyticsLimits,
+          );
+
+          // Revenue by product
+          const revenueByProduct: IDataObject[] = products.map((product) => {
+            const pAttrs = (product.attributes ?? {}) as IDataObject;
+            const productOrders = orders.filter((order) => {
+              const oAttrs = (order.attributes ?? order) as IDataObject;
+              const firstItem = oAttrs.first_order_item as IDataObject | undefined;
+              return firstItem && String(firstItem.product_id) === String(product.id);
+            });
+            const productRevenue = productOrders.reduce((sum, order) => {
+              const oAttrs = (order.attributes ?? order) as IDataObject;
+              return sum + ((oAttrs.total as number) || 0);
+            }, 0);
+            return {
+              product_id: product.id,
+              product_name: pAttrs.name,
+              order_count: productOrders.length,
+              total_revenue: productRevenue,
+            };
+          });
+
+          // Churn analysis
+          const totalSubs = subscriptions.length;
+          const cancelledSubs = subscriptions.filter((sub) => {
+            const sAttrs = (sub.attributes ?? sub) as IDataObject;
+            return sAttrs.status === 'cancelled' || sAttrs.status === 'expired';
+          }).length;
+          const activeSubs = subscriptions.filter((sub) => {
+            const sAttrs = (sub.attributes ?? sub) as IDataObject;
+            return sAttrs.status === 'active' || sAttrs.status === 'on_trial';
+          }).length;
+          const churnRate = totalSubs > 0 ? cancelledSubs / totalSubs : 0;
+
+          // LTV (simple: total revenue / total customers who have ordered)
+          const uniqueCustomerIds = new Set(
+            orders.map((order) => {
+              const oAttrs = (order.attributes ?? order) as IDataObject;
+              return String(oAttrs.customer_id);
+            }),
+          );
+          const ltv =
+            uniqueCustomerIds.size > 0
+              ? ((storeAttrs.total_revenue as number) || 0) / uniqueCustomerIds.size
+              : 0;
+
+          responseData = {
+            store_id: analyticsStoreId,
+            store_name: storeAttrs.name,
+            currency: storeAttrs.currency,
+            total_revenue: storeAttrs.total_revenue,
+            total_sales: storeAttrs.total_sales,
+            mrr: storeAttrs.mrr,
+            thirty_day_revenue: storeAttrs.thirty_day_revenue,
+            thirty_day_sales: storeAttrs.thirty_day_sales,
+            total_subscriptions: totalSubs,
+            active_subscriptions: activeSubs,
+            cancelled_subscriptions: cancelledSubs,
+            churn_rate: Math.round(churnRate * 10000) / 100,
+            unique_customers: uniqueCustomerIds.size,
+            customer_ltv: Math.round(ltv),
+            revenue_by_product: revenueByProduct,
           } as IDataObject;
         } else if (resource === 'subscriptionInvoice') {
           if (operation === 'generate') {
@@ -964,6 +1259,63 @@ export class LemonSqueezy implements INodeType {
           );
           returnData.push(...executionItem);
           continue;
+        } else if (resource === 'discount' && operation === 'bulkCreate') {
+          const bulkStoreId = this.getNodeParameter('bulkDiscountStoreId', i) as string;
+          const bulkCodesRaw = this.getNodeParameter('bulkDiscountCodes', i) as string;
+          let discountList: unknown;
+          try {
+            discountList =
+              typeof bulkCodesRaw === 'string' ? JSON.parse(bulkCodesRaw) : bulkCodesRaw;
+          } catch {
+            throw new Error(
+              'Discount codes must be valid JSON. Example: [{"name":"10% Off","code":"SAVE10","amount":10,"amount_type":"percent"}]',
+            );
+          }
+
+          if (!Array.isArray(discountList) || discountList.length === 0) {
+            throw new Error('Discount codes must be a non-empty JSON array');
+          }
+
+          const bulkResults = await Promise.all(
+            (discountList as IDataObject[]).map((disc: IDataObject) => {
+              validateDiscountAmount(disc.amount as number, disc.amount_type as string);
+
+              const discAttrs: IDataObject = {
+                name: disc.name,
+                code: disc.code,
+                amount: disc.amount,
+                amount_type: disc.amount_type,
+              };
+              if (disc.duration) {
+                discAttrs.duration = disc.duration;
+              }
+              if (disc.duration_in_months) {
+                discAttrs.duration_in_months = disc.duration_in_months;
+              }
+              if (disc.max_redemptions) {
+                discAttrs.max_redemptions = disc.max_redemptions;
+                discAttrs.is_limited_redemptions = true;
+              }
+              if (disc.starts_at) {
+                discAttrs.starts_at = disc.starts_at;
+              }
+              if (disc.expires_at) {
+                discAttrs.expires_at = disc.expires_at;
+              }
+
+              const discBody = buildJsonApiBody('discounts', discAttrs, {
+                store: { type: 'stores', id: bulkStoreId },
+              });
+
+              return lemonSqueezyApiRequest
+                .call(this, 'POST', '/discounts', discBody)
+                .catch((err: Error) => ({
+                  error: err.message,
+                  code: disc.code,
+                }));
+            }),
+          );
+          responseData = bulkResults as IDataObject[];
         }
 
         // Apply output simplification if enabled

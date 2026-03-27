@@ -105,6 +105,54 @@ export class LemonSqueezyTrigger implements INodeType {
             description:
               'Whether to include raw webhook request headers (X-Event-Name, X-Signature, etc.) in the output data',
           },
+          {
+            displayName: 'Filter by Product ID',
+            name: 'filterProductId',
+            type: 'string',
+            default: '',
+            description:
+              'Only process events for this product ID. Leave empty to accept all products.',
+          },
+          {
+            displayName: 'Filter by Variant ID',
+            name: 'filterVariantId',
+            type: 'string',
+            default: '',
+            description:
+              'Only process events for this variant ID. Leave empty to accept all variants.',
+          },
+          {
+            displayName: 'Filter by Custom Data Key',
+            name: 'filterCustomDataKey',
+            type: 'string',
+            default: '',
+            description:
+              'Only process events where custom_data contains this key (e.g., "campaign_id")',
+          },
+          {
+            displayName: 'Filter by Custom Data Value',
+            name: 'filterCustomDataValue',
+            type: 'string',
+            default: '',
+            description:
+              'Only process events where the custom data key matches this value. Requires "Filter by Custom Data Key".',
+          },
+          {
+            displayName: 'Replay Protection (Order Events, Minutes)',
+            name: 'maxAgeOrderMinutes',
+            type: 'number',
+            default: 0,
+            description:
+              'Override max event age for order events (minutes). 0 uses the global setting.',
+          },
+          {
+            displayName: 'Replay Protection (Subscription Events, Minutes)',
+            name: 'maxAgeSubscriptionMinutes',
+            type: 'number',
+            default: 0,
+            description:
+              'Override max event age for subscription events (minutes). 0 uses the global setting.',
+          },
         ],
       },
     ],
@@ -339,6 +387,39 @@ export class LemonSqueezyTrigger implements INodeType {
       }
     }
 
+    // Per-event-type replay protection overrides
+    if (maxEventAgeMinutes > 0) {
+      const maxAgeOrderMinutes = (options.maxAgeOrderMinutes as number) || 0;
+      const maxAgeSubscriptionMinutes = (options.maxAgeSubscriptionMinutes as number) || 0;
+
+      let effectiveMaxAge = maxEventAgeMinutes;
+      if (maxAgeOrderMinutes > 0 && eventName?.startsWith('order_')) {
+        effectiveMaxAge = maxAgeOrderMinutes;
+      } else if (maxAgeSubscriptionMinutes > 0 && eventName?.startsWith('subscription_')) {
+        effectiveMaxAge = maxAgeSubscriptionMinutes;
+      }
+
+      // Re-check with per-event-type override if different from global
+      if (effectiveMaxAge !== maxEventAgeMinutes) {
+        const data = body.data as IDataObject | undefined;
+        const attributes = data?.attributes as IDataObject | undefined;
+        const createdAt = attributes?.created_at as string | undefined;
+        if (createdAt) {
+          const eventTime = new Date(createdAt).getTime();
+          const now = Date.now();
+          const maxAgeMs = effectiveMaxAge * 60 * 1000;
+          if (now - eventTime > maxAgeMs) {
+            return {
+              webhookResponse: {
+                status: 400,
+                body: { error: 'Event too old - possible replay attack (per-event-type check)' },
+              },
+            };
+          }
+        }
+      }
+    }
+
     // Check if we should process this event
     const subscribedEvents = this.getNodeParameter('events') as string[];
     if (!eventName || !subscribedEvents.includes(eventName)) {
@@ -349,6 +430,64 @@ export class LemonSqueezyTrigger implements INodeType {
           body: { received: true, processed: false, event: eventName },
         },
       };
+    }
+
+    // Metadata filtering
+    const filterProductId = (options.filterProductId as string) || '';
+    const filterVariantId = (options.filterVariantId as string) || '';
+    const filterCustomDataKey = (options.filterCustomDataKey as string) || '';
+    const filterCustomDataValue = (options.filterCustomDataValue as string) || '';
+
+    if (filterProductId || filterVariantId || filterCustomDataKey) {
+      const data = body.data as IDataObject | undefined;
+      const attributes = data?.attributes as IDataObject | undefined;
+
+      if (filterProductId) {
+        const productId = String(attributes?.product_id ?? '');
+        if (productId !== filterProductId) {
+          return {
+            webhookResponse: {
+              status: 200,
+              body: { received: true, processed: false, reason: 'product_id mismatch' },
+            },
+          };
+        }
+      }
+
+      if (filterVariantId) {
+        const variantId = String(attributes?.variant_id ?? '');
+        if (variantId !== filterVariantId) {
+          return {
+            webhookResponse: {
+              status: 200,
+              body: { received: true, processed: false, reason: 'variant_id mismatch' },
+            },
+          };
+        }
+      }
+
+      if (filterCustomDataKey) {
+        const customData = meta?.custom_data as IDataObject | undefined;
+        if (!customData || !(filterCustomDataKey in customData)) {
+          return {
+            webhookResponse: {
+              status: 200,
+              body: { received: true, processed: false, reason: 'custom_data key not found' },
+            },
+          };
+        }
+        if (
+          filterCustomDataValue &&
+          String(customData[filterCustomDataKey]) !== filterCustomDataValue
+        ) {
+          return {
+            webhookResponse: {
+              status: 200,
+              body: { received: true, processed: false, reason: 'custom_data value mismatch' },
+            },
+          };
+        }
+      }
     }
 
     // Return the webhook data

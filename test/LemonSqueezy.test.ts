@@ -46,13 +46,16 @@ import {
   PRICE_SCHEMES,
   AFFILIATE_STATUSES,
 } from '../nodes/LemonSqueezy/constants';
-import { orderFields } from '../nodes/LemonSqueezy/resources/order';
-import { subscriptionFields } from '../nodes/LemonSqueezy/resources/subscription';
+import { orderOperations, orderFields } from '../nodes/LemonSqueezy/resources/order';
+import {
+  subscriptionOperations,
+  subscriptionFields,
+} from '../nodes/LemonSqueezy/resources/subscription';
 import { subscriptionInvoiceFields } from '../nodes/LemonSqueezy/resources/subscriptionInvoice';
 import { customerOperations, customerFields } from '../nodes/LemonSqueezy/resources/customer';
 import { licenseKeyFields, licenseKeyOperations } from '../nodes/LemonSqueezy/resources/licenseKey';
 import { checkoutFields } from '../nodes/LemonSqueezy/resources/checkout';
-import { discountFields } from '../nodes/LemonSqueezy/resources/discount';
+import { discountOperations, discountFields } from '../nodes/LemonSqueezy/resources/discount';
 import { productFields } from '../nodes/LemonSqueezy/resources/product';
 import { storeOperations, storeFields } from '../nodes/LemonSqueezy/resources/store';
 import {
@@ -60,6 +63,7 @@ import {
   discountRedemptionFields,
 } from '../nodes/LemonSqueezy/resources/discountRedemption';
 import { fileOperations, fileFields } from '../nodes/LemonSqueezy/resources/file';
+import { orderItemOperations, orderItemFields } from '../nodes/LemonSqueezy/resources/orderItem';
 
 import { LemonSqueezyApi } from '../credentials/LemonSqueezyApi.credentials';
 import { LemonSqueezy } from '../nodes/LemonSqueezy/LemonSqueezy.node';
@@ -348,8 +352,8 @@ describe('Constants', () => {
       expect(eventValues).toContain('affiliate_activated');
     });
 
-    it('should have 16 webhook events', () => {
-      expect(WEBHOOK_EVENTS.length).toBe(16);
+    it('should have 19 webhook events', () => {
+      expect(WEBHOOK_EVENTS.length).toBe(19);
     });
 
     it('should have name and description for each event', () => {
@@ -2382,28 +2386,6 @@ describe('License Key Deactivate Operation (v0.13.0)', () => {
   });
 });
 
-describe('Discount Redemption Date Filters (v0.13.0)', () => {
-  const filtersProp = discountRedemptionFields.find((f) => f.name === 'filters');
-  const filterOptions = filtersProp?.options as Array<Record<string, unknown>> | undefined;
-
-  it('should have createdAfter filter', () => {
-    const createdAfter = filterOptions?.find((o) => o.name === 'createdAfter');
-    expect(createdAfter).toBeDefined();
-  });
-
-  it('should have createdBefore filter', () => {
-    const createdBefore = filterOptions?.find((o) => o.name === 'createdBefore');
-    expect(createdBefore).toBeDefined();
-  });
-
-  it('should have dateTime type for date filters', () => {
-    const createdAfter = filterOptions?.find((o) => o.name === 'createdAfter');
-    const createdBefore = filterOptions?.find((o) => o.name === 'createdBefore');
-    expect(createdAfter?.type).toBe('dateTime');
-    expect(createdBefore?.type).toBe('dateTime');
-  });
-});
-
 describe('Trigger Node Improvements (v0.13.0)', () => {
   it('should have includeHeaders option in trigger node', () => {
     const trigger = new LemonSqueezyTrigger();
@@ -2452,5 +2434,495 @@ describe('License Key Validate and Deactivate (v0.12.0/v0.13.0)', () => {
     const keyField = licenseKeyFields.find((f) => f.name === 'licenseKey');
     expect(keyField).toBeDefined();
     expect(keyField?.required).toBe(true);
+  });
+});
+
+// ============================================================================
+// v1.0.0 Feature Tests
+// ============================================================================
+
+describe('v1.0.0 - Batch Get Many by ID', () => {
+  it('should have getManyById operation in order resource', () => {
+    const options = orderOperations.options as Array<{ value: string }>;
+    const op = options.find((o) => o.value === 'getManyById');
+    expect(op).toBeDefined();
+    expect(op?.name).toBe('Get Many by ID');
+  });
+
+  it('should have getManyById operation in customer resource', () => {
+    const options = customerOperations.options as Array<{ value: string }>;
+    const op = options.find((o) => o.value === 'getManyById');
+    expect(op).toBeDefined();
+  });
+
+  it('should have getManyById operation in subscription resource', () => {
+    const options = subscriptionOperations.options as Array<{ value: string }>;
+    const op = options.find((o) => o.value === 'getManyById');
+    expect(op).toBeDefined();
+  });
+
+  it('should have batchOrderIds field for order getManyById', () => {
+    const field = orderFields.find((f) => f.name === 'batchOrderIds');
+    expect(field).toBeDefined();
+    expect(field?.required).toBe(true);
+    expect(field?.displayOptions?.show?.operation).toContain('getManyById');
+  });
+
+  it('should have batchCustomerIds field for customer getManyById', () => {
+    const field = customerFields.find((f) => f.name === 'batchCustomerIds');
+    expect(field).toBeDefined();
+    expect(field?.required).toBe(true);
+  });
+
+  it('should have batchSubscriptionIds field for subscription getManyById', () => {
+    const field = subscriptionFields.find((f) => f.name === 'batchSubscriptionIds');
+    expect(field).toBeDefined();
+    expect(field?.required).toBe(true);
+  });
+});
+
+describe('v1.0.0 - Customer Upsert', () => {
+  it('should have upsert operation in customer resource', () => {
+    const options = customerOperations.options as Array<{ value: string }>;
+    const op = options.find((o) => o.value === 'upsert');
+    expect(op).toBeDefined();
+    expect(op?.name).toBe('Upsert');
+  });
+
+  it('should have upsertEmail field', () => {
+    const field = customerFields.find((f) => f.name === 'upsertEmail');
+    expect(field).toBeDefined();
+    expect(field?.required).toBe(true);
+    expect(field?.displayOptions?.show?.operation).toContain('upsert');
+  });
+
+  it('should have upsertName field', () => {
+    const field = customerFields.find((f) => f.name === 'upsertName');
+    expect(field).toBeDefined();
+    expect(field?.required).toBe(true);
+  });
+
+  it('should have upsertStoreId field', () => {
+    const field = customerFields.find((f) => f.name === 'upsertStoreId');
+    expect(field).toBeDefined();
+    expect(field?.required).toBe(true);
+  });
+
+  it('should have upsertUpdateFields collection', () => {
+    const field = customerFields.find((f) => f.name === 'upsertUpdateFields');
+    expect(field).toBeDefined();
+    expect(field?.type).toBe('collection');
+    const options = field?.options as Array<{ name: string }> | undefined;
+    expect(options?.length).toBeGreaterThan(0);
+    const nameOpt = options?.find((o) => o.name === 'name');
+    expect(nameOpt).toBeDefined();
+  });
+});
+
+describe('v1.0.0 - New Webhook Events', () => {
+  it('should have order_updated event', () => {
+    const event = WEBHOOK_EVENTS.find((e: { value: string }) => e.value === 'order_updated');
+    expect(event).toBeDefined();
+  });
+
+  it('should have subscription_plan_changed event', () => {
+    const event = WEBHOOK_EVENTS.find(
+      (e: { value: string }) => e.value === 'subscription_plan_changed',
+    );
+    expect(event).toBeDefined();
+  });
+
+  it('should have license_key_expired event', () => {
+    const event = WEBHOOK_EVENTS.find((e: { value: string }) => e.value === 'license_key_expired');
+    expect(event).toBeDefined();
+  });
+});
+
+describe('v1.0.0 - Trigger Metadata Filtering', () => {
+  it('should have filterProductId option in trigger', () => {
+    const trigger = new LemonSqueezyTrigger();
+    const optionsField = trigger.description.properties.find(
+      (p) => p.type === 'collection' && p.name === 'options',
+    );
+    const options = optionsField?.options as Array<{ name: string }> | undefined;
+    const filter = options?.find((o) => o.name === 'filterProductId');
+    expect(filter).toBeDefined();
+  });
+
+  it('should have filterVariantId option in trigger', () => {
+    const trigger = new LemonSqueezyTrigger();
+    const optionsField = trigger.description.properties.find(
+      (p) => p.type === 'collection' && p.name === 'options',
+    );
+    const options = optionsField?.options as Array<{ name: string }> | undefined;
+    const filter = options?.find((o) => o.name === 'filterVariantId');
+    expect(filter).toBeDefined();
+  });
+
+  it('should have filterCustomDataKey option in trigger', () => {
+    const trigger = new LemonSqueezyTrigger();
+    const optionsField = trigger.description.properties.find(
+      (p) => p.type === 'collection' && p.name === 'options',
+    );
+    const options = optionsField?.options as Array<{ name: string }> | undefined;
+    const filter = options?.find((o) => o.name === 'filterCustomDataKey');
+    expect(filter).toBeDefined();
+  });
+
+  it('should have filterCustomDataValue option in trigger', () => {
+    const trigger = new LemonSqueezyTrigger();
+    const optionsField = trigger.description.properties.find(
+      (p) => p.type === 'collection' && p.name === 'options',
+    );
+    const options = optionsField?.options as Array<{ name: string }> | undefined;
+    const filter = options?.find((o) => o.name === 'filterCustomDataValue');
+    expect(filter).toBeDefined();
+  });
+});
+
+describe('v1.0.0 - Per-Event-Type Replay Protection', () => {
+  it('should have maxAgeOrderMinutes option in trigger', () => {
+    const trigger = new LemonSqueezyTrigger();
+    const optionsField = trigger.description.properties.find(
+      (p) => p.type === 'collection' && p.name === 'options',
+    );
+    const options = optionsField?.options as Array<{ name: string }> | undefined;
+    const opt = options?.find((o) => o.name === 'maxAgeOrderMinutes');
+    expect(opt).toBeDefined();
+  });
+
+  it('should have maxAgeSubscriptionMinutes option in trigger', () => {
+    const trigger = new LemonSqueezyTrigger();
+    const optionsField = trigger.description.properties.find(
+      (p) => p.type === 'collection' && p.name === 'options',
+    );
+    const options = optionsField?.options as Array<{ name: string }> | undefined;
+    const opt = options?.find((o) => o.name === 'maxAgeSubscriptionMinutes');
+    expect(opt).toBeDefined();
+  });
+});
+
+describe('v1.0.0 - Raw JSON:API Output Option', () => {
+  it('should have simplifyOutput toggle that defaults to true', () => {
+    const node = new LemonSqueezy();
+    const simplifyProp = node.description.properties.find((p) => p.name === 'simplifyOutput');
+    expect(simplifyProp).toBeDefined();
+    expect(simplifyProp?.type).toBe('boolean');
+    expect(simplifyProp?.default).toBe(true);
+  });
+
+  it('simplifyResponse should return raw format when given raw data', () => {
+    const raw = { id: '1', type: 'orders', attributes: { total: 999 } };
+    const simplified = simplifyResponse(raw);
+    expect(simplified).toHaveProperty('id', '1');
+    expect(simplified).toHaveProperty('total', 999);
+  });
+
+  it('simplifyResponse should handle array input', () => {
+    const raw = [
+      { id: '1', type: 'orders', attributes: { total: 100 } },
+      { id: '2', type: 'orders', attributes: { total: 200 } },
+    ];
+    const simplified = simplifyResponse(raw);
+    expect(Array.isArray(simplified)).toBe(true);
+    expect((simplified as Array<{ id: string }>).length).toBe(2);
+  });
+});
+
+describe('v1.0.0 - Bulk Discount Creation', () => {
+  it('should have bulkCreate operation in discount resource', () => {
+    const options = discountOperations.options as Array<{ value: string }>;
+    const op = options.find((o) => o.value === 'bulkCreate');
+    expect(op).toBeDefined();
+    expect(op?.name).toBe('Bulk Create');
+  });
+
+  it('should have bulkDiscountStoreId field', () => {
+    const field = discountFields.find((f) => f.name === 'bulkDiscountStoreId');
+    expect(field).toBeDefined();
+    expect(field?.required).toBe(true);
+    expect(field?.displayOptions?.show?.operation).toContain('bulkCreate');
+  });
+
+  it('should have bulkDiscountCodes JSON field', () => {
+    const field = discountFields.find((f) => f.name === 'bulkDiscountCodes');
+    expect(field).toBeDefined();
+    expect(field?.type).toBe('json');
+    expect(field?.required).toBe(true);
+  });
+});
+
+describe('v1.0.0 - Store Analytics', () => {
+  it('should have getAnalytics operation in store resource', () => {
+    const options = storeOperations.options as Array<{ value: string }>;
+    const op = options.find((o) => o.value === 'getAnalytics');
+    expect(op).toBeDefined();
+    expect(op?.name).toBe('Get Analytics');
+  });
+
+  it('should have analyticsStoreId field', () => {
+    const field = storeFields.find((f) => f.name === 'analyticsStoreId');
+    expect(field).toBeDefined();
+    expect(field?.required).toBe(true);
+    expect(field?.displayOptions?.show?.operation).toContain('getAnalytics');
+  });
+});
+
+describe('v1.0.0 - Checkout URL Shortener', () => {
+  it('should have shortenUrl option in checkout additionalOptions', () => {
+    const additionalOptions = checkoutFields.find((f) => f.name === 'additionalOptions');
+    expect(additionalOptions).toBeDefined();
+    const options = additionalOptions?.options as Array<{ name: string }> | undefined;
+    const shorten = options?.find((o) => o.name === 'shortenUrl');
+    expect(shorten).toBeDefined();
+  });
+});
+
+describe('v1.0.0 - License Key Bulk Operations', () => {
+  it('should have bulkActivate operation in licenseKey resource', () => {
+    const options = licenseKeyOperations.options as Array<{ value: string }>;
+    const op = options.find((o) => o.value === 'bulkActivate');
+    expect(op).toBeDefined();
+    expect(op?.name).toBe('Bulk Activate');
+  });
+
+  it('should have bulkDeactivate operation in licenseKey resource', () => {
+    const options = licenseKeyOperations.options as Array<{ value: string }>;
+    const op = options.find((o) => o.value === 'bulkDeactivate');
+    expect(op).toBeDefined();
+    expect(op?.name).toBe('Bulk Deactivate');
+  });
+
+  it('should have bulkActivateKeys JSON field', () => {
+    const field = licenseKeyFields.find((f) => f.name === 'bulkActivateKeys');
+    expect(field).toBeDefined();
+    expect(field?.type).toBe('json');
+    expect(field?.required).toBe(true);
+    expect(field?.displayOptions?.show?.operation).toContain('bulkActivate');
+  });
+
+  it('should have bulkDeactivateKeys JSON field', () => {
+    const field = licenseKeyFields.find((f) => f.name === 'bulkDeactivateKeys');
+    expect(field).toBeDefined();
+    expect(field?.type).toBe('json');
+    expect(field?.required).toBe(true);
+    expect(field?.displayOptions?.show?.operation).toContain('bulkDeactivate');
+  });
+});
+
+describe('v1.0.0 - Helper Functions', () => {
+  it('isRateLimitError should detect 429 status codes', () => {
+    expect(isRateLimitError({ statusCode: 429 })).toBe(true);
+    expect(isRateLimitError({ response: { statusCode: 429 } })).toBe(true);
+    expect(isRateLimitError({ statusCode: 500 })).toBe(false);
+    expect(isRateLimitError(null)).toBe(false);
+  });
+
+  it('isRetryableError should detect 5xx and network errors', () => {
+    expect(isRetryableError({ statusCode: 500 })).toBe(true);
+    expect(isRetryableError({ statusCode: 503 })).toBe(true);
+    expect(isRetryableError({ code: 'ECONNRESET' })).toBe(true);
+    expect(isRetryableError({ code: 'ETIMEDOUT' })).toBe(true);
+    expect(isRetryableError({ code: 'ECONNREFUSED' })).toBe(true);
+    expect(isRetryableError({ statusCode: 404 })).toBe(false);
+  });
+
+  it('getRetryAfterSeconds should extract retry-after header', () => {
+    expect(getRetryAfterSeconds({ response: { headers: { 'retry-after': '60' } } })).toBe(60);
+    expect(getRetryAfterSeconds({ response: { headers: {} } })).toBeUndefined();
+    expect(getRetryAfterSeconds(null)).toBeUndefined();
+  });
+
+  it('buildFilterParams should handle empty filters', () => {
+    expect(buildFilterParams({})).toEqual({});
+  });
+
+  it('buildFilterParams should convert camelCase to snake_case', () => {
+    const result = buildFilterParams({ storeId: '123', userEmail: 'test@test.com' });
+    expect(result['filter[store_id]']).toBe('123');
+    expect(result['filter[user_email]']).toBe('test@test.com');
+  });
+
+  it('buildFilterParams should skip empty values', () => {
+    const result = buildFilterParams({
+      storeId: '123',
+      status: '',
+      orderId: undefined as unknown as string,
+    });
+    expect(result['filter[store_id]']).toBe('123');
+    expect(result['filter[status]']).toBeUndefined();
+    expect(result['filter[order_id]']).toBeUndefined();
+  });
+
+  it('buildJsonApiBody should construct proper JSON:API body with relationships', () => {
+    const body = buildJsonApiBody(
+      'customers',
+      { name: 'Test', email: 'test@test.com' },
+      { store: { type: 'stores', id: '123' } },
+    );
+    expect(body.data).toBeDefined();
+    const data = body.data as Record<string, unknown>;
+    expect(data.type).toBe('customers');
+    expect((data.attributes as Record<string, unknown>).name).toBe('Test');
+    expect(data.relationships).toBeDefined();
+  });
+
+  it('buildJsonApiBody should include ID for update operations', () => {
+    const body = buildJsonApiBody('customers', { name: 'Updated' }, undefined, '456');
+    const data = body.data as Record<string, unknown>;
+    expect(data.id).toBe('456');
+  });
+
+  it('buildJsonApiBody should handle array relationships', () => {
+    const body = buildJsonApiBody(
+      'discounts',
+      { name: 'Test' },
+      {
+        variants: [
+          { type: 'variants', id: '1' },
+          { type: 'variants', id: '2' },
+        ],
+      },
+    );
+    const data = body.data as Record<string, Record<string, unknown>>;
+    const rels = data.relationships as Record<
+      string,
+      { data: Array<{ type: string; id: string }> }
+    >;
+    expect(rels.variants.data).toHaveLength(2);
+  });
+
+  it('validateDiscountAmount should validate percent range', () => {
+    expect(() => validateDiscountAmount(50, 'percent')).not.toThrow();
+    expect(() => validateDiscountAmount(0, 'percent')).not.toThrow();
+    expect(() => validateDiscountAmount(100, 'percent')).not.toThrow();
+    expect(() => validateDiscountAmount(101, 'percent')).toThrow();
+    expect(() => validateDiscountAmount(-1, 'percent')).toThrow();
+  });
+
+  it('validateDiscountAmount should validate fixed amount', () => {
+    expect(() => validateDiscountAmount(1000, 'fixed')).not.toThrow();
+    expect(() => validateDiscountAmount(0, 'fixed')).not.toThrow();
+    expect(() => validateDiscountAmount(-1, 'fixed')).toThrow();
+  });
+
+  it('validateFutureDate should reject past dates', () => {
+    expect(() => validateFutureDate('2020-01-01T00:00:00Z', 'expiresAt')).toThrow();
+  });
+
+  it('validateFutureDate should accept future dates', () => {
+    expect(() => validateFutureDate('2099-01-01T00:00:00Z', 'expiresAt')).not.toThrow();
+  });
+
+  it('validateDateRange should validate start before end', () => {
+    expect(() => validateDateRange('2024-01-01', '2024-12-31', 'start', 'end')).not.toThrow();
+    expect(() => validateDateRange('2024-12-31', '2024-01-01', 'start', 'end')).toThrow();
+  });
+
+  it('verifyWebhookSignature should verify HMAC-SHA256 signatures', () => {
+    const payload = '{"test": true}';
+    const secret = 'test-secret-key';
+    const crypto = require('crypto');
+    const expectedSig = crypto.createHmac('sha256', secret).update(payload).digest('hex');
+    expect(verifyWebhookSignature(payload, expectedSig, secret)).toBe(true);
+    expect(verifyWebhookSignature(payload, 'invalid-signature', secret)).toBe(false);
+  });
+
+  it('verifyWebhookSignature should reject signatures with wrong length', () => {
+    const payload = '{"test": true}';
+    const secret = 'test-secret-key';
+    expect(verifyWebhookSignature(payload, '', secret)).toBe(false);
+    expect(verifyWebhookSignature(payload, 'short', secret)).toBe(false);
+  });
+
+  it('simplifyJsonApiResponse should flatten attributes', () => {
+    const data = {
+      id: '1',
+      type: 'orders',
+      attributes: { total: 999, status: 'paid' },
+    };
+    const result = simplifyJsonApiResponse(data);
+    expect(result.id).toBe('1');
+    expect(result.type).toBe('orders');
+    expect(result.total).toBe(999);
+    expect(result.status).toBe('paid');
+  });
+
+  it('simplifyJsonApiResponse should preserve meta', () => {
+    const data = {
+      id: '1',
+      type: 'orders',
+      attributes: { total: 999 },
+      meta: { urls: { download: 'https://example.com' } },
+    };
+    const result = simplifyJsonApiResponse(data);
+    expect(result.meta).toBeDefined();
+  });
+
+  it('buildAdvancedFilterParams should handle date ranges', () => {
+    const result = buildAdvancedFilterParams(
+      { createdAt: { from: '2024-01-01', to: '2024-12-31' } },
+      { dateFields: ['createdAt'] },
+    );
+    expect(result['filter[created_at_after]']).toBe('2024-01-01');
+    expect(result['filter[created_at_before]']).toBe('2024-12-31');
+  });
+
+  it('buildAdvancedFilterParams should handle sorting', () => {
+    const result = buildAdvancedFilterParams(
+      { status: 'active' },
+      { sortField: 'created_at', sortDirection: 'desc' },
+    );
+    expect(result.sort).toBe('-created_at');
+    expect(result['filter[status]']).toBe('active');
+  });
+
+  it('buildAdvancedFilterParams should handle ascending sort', () => {
+    const result = buildAdvancedFilterParams({}, { sortField: 'name', sortDirection: 'asc' });
+    expect(result.sort).toBe('name');
+  });
+});
+
+describe('v1.0.0 - Resource Field Definitions', () => {
+  it('subscription update should have billingAnchor field', () => {
+    const updateFields = subscriptionFields.find((f) => f.name === 'updateFields');
+    const options = updateFields?.options as Array<{ name: string }> | undefined;
+    const anchor = options?.find((o) => o.name === 'billingAnchor');
+    expect(anchor).toBeDefined();
+  });
+
+  it('subscription update should have invoiceImmediately field', () => {
+    const updateFields = subscriptionFields.find((f) => f.name === 'updateFields');
+    const options = updateFields?.options as Array<{ name: string }> | undefined;
+    const invoice = options?.find((o) => o.name === 'invoiceImmediately');
+    expect(invoice).toBeDefined();
+  });
+
+  it('subscription update should have disableProrations field', () => {
+    const updateFields = subscriptionFields.find((f) => f.name === 'updateFields');
+    const options = updateFields?.options as Array<{ name: string }> | undefined;
+    const proration = options?.find((o) => o.name === 'disableProrations');
+    expect(proration).toBeDefined();
+  });
+
+  it('order item getAll should have orderId filter', () => {
+    const filters = orderItemFields.find((f) => f.name === 'filters');
+    const options = filters?.options as Array<{ name: string }> | undefined;
+    const orderId = options?.find((o) => o.name === 'orderId');
+    expect(orderId).toBeDefined();
+  });
+
+  it('order item getAll should have productId filter', () => {
+    const filters = orderItemFields.find((f) => f.name === 'filters');
+    const options = filters?.options as Array<{ name: string }> | undefined;
+    const productId = options?.find((o) => o.name === 'productId');
+    expect(productId).toBeDefined();
+  });
+
+  it('order item getAll should have variantId filter', () => {
+    const filters = orderItemFields.find((f) => f.name === 'filters');
+    const options = filters?.options as Array<{ name: string }> | undefined;
+    const variantId = options?.find((o) => o.name === 'variantId');
+    expect(variantId).toBeDefined();
   });
 });

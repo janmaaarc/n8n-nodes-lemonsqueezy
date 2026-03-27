@@ -22,6 +22,12 @@ export const storeOperations: INodeProperties = {
       description: 'Retrieve multiple stores',
     },
     {
+      name: 'Get Analytics',
+      value: 'getAnalytics',
+      action: 'Get store analytics',
+      description: 'Get revenue by product, churn rate, and LTV analytics for a store',
+    },
+    {
       name: 'Get Revenue Summary',
       value: 'getRevenueSummary',
       action: 'Get store revenue summary',
@@ -57,6 +63,22 @@ export const storeFields: INodeProperties[] = [
       'The store to get revenue metrics for. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
     displayOptions: {
       show: { resource: ['store'], operation: ['getRevenueSummary'] },
+    },
+  },
+  // Analytics
+  {
+    displayName: 'Store',
+    name: 'analyticsStoreId',
+    type: 'options',
+    typeOptions: {
+      loadOptionsMethod: 'getStores',
+    },
+    required: true,
+    default: '',
+    description:
+      'The store to analyze. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+    displayOptions: {
+      show: { resource: ['store'], operation: ['getAnalytics'] },
     },
   },
   // Get All

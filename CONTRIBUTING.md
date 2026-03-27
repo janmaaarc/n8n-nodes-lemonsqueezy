@@ -39,17 +39,20 @@ Thank you for your interest in contributing! This document provides guidelines a
 
 ```
 n8n-nodes-lemonsqueezy/
-├── credentials/           # Credential definitions
+├── credentials/             # Credential definitions
 │   └── LemonSqueezyApi.credentials.ts
-├── nodes/LemonSqueezy/    # Node implementations
-│   ├── LemonSqueezy.node.ts      # Main node
-│   ├── LemonSqueezyTrigger.node.ts  # Webhook trigger
-│   ├── helpers.ts         # API helpers and utilities
-│   ├── constants.ts       # Configuration constants
-│   ├── types.ts          # TypeScript type definitions
-│   └── resources/        # Resource-specific operations
-├── test/                 # Test files
-└── dist/                 # Compiled output (generated)
+├── nodes/LemonSqueezy/      # Node implementations
+│   ├── LemonSqueezy.node.ts        # Main node (20 resources)
+│   ├── LemonSqueezyTrigger.node.ts  # Webhook trigger (19 events)
+│   ├── helpers.ts           # API helpers, validation, simplification
+│   ├── constants.ts         # Endpoints, statuses, webhook events
+│   ├── types.ts             # TypeScript interfaces
+│   └── resources/           # UI field definitions per resource
+│       ├── index.ts         # Barrel export
+│       ├── shared.ts        # Shared fields (sorting, includes)
+│       └── *.ts             # One file per resource
+├── test/                    # Vitest test files (347 tests)
+└── dist/                    # Compiled output (generated)
 ```
 
 ### Making Changes
@@ -102,9 +105,10 @@ n8n-nodes-lemonsqueezy/
 
 ### Testing
 
-- Write tests for new functionality
-- Maintain >70% code coverage
+- Write tests for new functionality using Vitest
+- Maintain >80% code coverage (currently 347 tests)
 - Test edge cases and error conditions
+- Test bulk operation JSON parsing and validation
 - Run `npm run test:coverage` to check coverage
 
 ### Adding a New Resource

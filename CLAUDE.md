@@ -4,38 +4,46 @@
 
 n8n community node for Lemon Squeezy API integration. Provides both regular node operations and webhook trigger functionality for n8n workflows.
 
-**Tech Stack:** TypeScript, n8n node SDK, Jest for testing
+**Tech Stack:** TypeScript, n8n node SDK, Vitest for testing
 
 ## File Structure
 
 ```
 nodes/LemonSqueezy/
-├── LemonSqueezy.node.ts      # Main node (API operations)
-├── LemonSqueezy.node.json    # Node metadata
-├── LemonSqueezyTrigger.node.ts  # Webhook trigger node
-├── descriptions/             # UI field definitions by resource
-│   ├── affiliate.ts
-│   ├── customer.ts
-│   ├── order.ts
-│   ├── price.ts
-│   ├── subscription.ts
-│   ├── subscriptionItem.ts
-│   ├── product.ts
-│   ├── variant.ts
-│   ├── store.ts
-│   ├── checkout.ts
-│   ├── discount.ts
-│   ├── licenseKey.ts
-│   ├── usageRecord.ts
-│   ├── webhook.ts
-│   └── shared.ts            # Shared fields (pagination, timeout)
-├── helpers.ts               # API request helpers, validation
-└── types.ts                 # TypeScript interfaces
+├── LemonSqueezy.node.ts        # Main node (API operations)
+├── LemonSqueezyTrigger.node.ts # Webhook trigger node
+├── constants.ts                # API URLs, status arrays, webhook events
+├── helpers.ts                  # API request helpers, validation
+├── types.ts                    # TypeScript interfaces
+└── resources/                  # UI field definitions by resource
+    ├── index.ts                # Barrel export
+    ├── shared.ts               # Shared fields (pagination, sorting, includes)
+    ├── affiliate.ts
+    ├── checkout.ts
+    ├── customer.ts             # Includes upsert, getManyById
+    ├── discount.ts             # Includes bulkCreate
+    ├── discountRedemption.ts
+    ├── file.ts
+    ├── licenseKey.ts           # Includes bulkActivate, bulkDeactivate
+    ├── licenseKeyInstance.ts
+    ├── order.ts                # Includes getManyById
+    ├── orderItem.ts
+    ├── price.ts
+    ├── product.ts
+    ├── store.ts                # Includes getAnalytics
+    ├── subscription.ts         # Includes getManyById
+    ├── subscriptionInvoice.ts
+    ├── subscriptionItem.ts
+    ├── usageRecord.ts
+    ├── user.ts
+    ├── variant.ts
+    └── webhook.ts
 
 credentials/
 └── LemonSqueezyApi.credentials.ts  # API credential definition
 
-__tests__/                   # Jest test files
+test/
+└── LemonSqueezy.test.ts       # Vitest test file (347 tests)
 ```
 
 ## Critical Rules
@@ -58,10 +66,11 @@ __tests__/                   # Jest test files
 
 ### 3. Testing
 
-- Jest with 80%+ coverage target
+- Vitest with 80%+ coverage target (347 tests)
 - Mock n8n execution context
 - Test both success and error paths
 - Test input validation edge cases
+- Test bulk operation JSON parsing
 
 ### 4. Security
 
@@ -79,19 +88,19 @@ __tests__/                   # Jest test files
 const response = await lemonSqueezyApiRequest.call(
   this,
   'GET',
-  '/v1/customers',
-  {},
-  { filter: { email: 'test@example.com' } }
+  '/customers',
+  undefined,
+  { 'filter[email]': 'test@example.com' }
 );
 ```
 
 ### Input Validation
 
 ```typescript
-import { validateEmail, validateUrl } from './helpers';
+import { validateField } from './helpers';
 
 const email = this.getNodeParameter('email', i) as string;
-validateEmail(email); // Throws NodeOperationError if invalid
+validateField('email', email, 'email'); // Throws Error if invalid
 ```
 
 ### Pagination
@@ -100,12 +109,14 @@ validateEmail(email); // Throws NodeOperationError if invalid
 const returnAll = this.getNodeParameter('returnAll', i) as boolean;
 if (returnAll) {
   responseData = await lemonSqueezyApiRequestAllItems.call(
-    this, 'GET', endpoint, {}, qs
+    this, 'GET', `/${endpoint}`, qs
   );
 } else {
   const limit = this.getNodeParameter('limit', i) as number;
-  qs.page = { size: Math.min(limit, 100) };
-  responseData = await lemonSqueezyApiRequest.call(this, 'GET', endpoint, {}, qs);
+  qs['page[size]'] = limit;
+  responseData = await lemonSqueezyApiRequest.call(
+    this, 'GET', `/${endpoint}`, undefined, qs
+  );
 }
 ```
 
@@ -119,11 +130,14 @@ LEMON_SQUEEZY_API_KEY=your_test_api_key
 ## Available Commands
 
 ```bash
-npm run build      # Compile TypeScript
-npm run lint       # ESLint check
-npm run format     # Prettier format
-npm test           # Run Jest tests
-npm run test:cov   # Tests with coverage
+npm run build         # Compile TypeScript
+npm run lint          # ESLint check
+npm run format        # Prettier format
+npm run format:check  # Check formatting
+npm run typecheck     # TypeScript type check
+npm test              # Run Vitest tests
+npm run test:watch    # Tests in watch mode
+npm run test:coverage # Tests with coverage
 ```
 
 ## Git Workflow

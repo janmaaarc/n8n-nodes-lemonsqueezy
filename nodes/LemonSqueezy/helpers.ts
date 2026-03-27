@@ -882,11 +882,12 @@ export function verifyWebhookSignature(
 ): boolean {
   const hmac = crypto.createHmac('sha256', secret);
   const digest = hmac.update(payload).digest('hex');
-  try {
-    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
-  } catch {
+  const sigBuffer = Buffer.from(signature);
+  const digBuffer = Buffer.from(digest);
+  if (sigBuffer.length !== digBuffer.length) {
     return false;
   }
+  return crypto.timingSafeEqual(sigBuffer, digBuffer);
 }
 
 // ============================================================================

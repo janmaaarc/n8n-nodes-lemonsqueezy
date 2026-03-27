@@ -78,6 +78,9 @@ export interface StoreAttributes extends BaseAttributes {
   total_revenue: number;
   thirty_day_sales: number;
   thirty_day_revenue: number;
+  mrr: number;
+  mrr_formatted: string;
+  currency_rate: string;
 }
 
 /**
@@ -378,6 +381,7 @@ export interface FileAttributes extends BaseAttributes {
   name: string;
   extension: string;
   download_url: string;
+  mime_type: string;
   size: number;
   size_formatted: string;
   version: string;
@@ -576,7 +580,10 @@ export type WebhookEventType =
   | 'subscription_payment_refunded'
   | 'license_key_created'
   | 'license_key_updated'
-  | 'affiliate_activated';
+  | 'affiliate_activated'
+  | 'order_updated'
+  | 'subscription_plan_changed'
+  | 'license_key_expired';
 
 /**
  * Webhook payload received from Lemon Squeezy
@@ -696,4 +703,11 @@ export type OperationType =
   | 'deactivate'
   | 'validate'
   | 'getCurrentUsage'
-  | 'generateInvoice';
+  | 'generateInvoice'
+  | 'getManyById'
+  | 'upsert'
+  | 'bulkCreate'
+  | 'bulkActivate'
+  | 'bulkDeactivate'
+  | 'getAnalytics'
+  | 'lookupByEmail';

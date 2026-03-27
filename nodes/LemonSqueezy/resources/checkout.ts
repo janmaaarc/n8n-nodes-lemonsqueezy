@@ -227,6 +227,14 @@ export const checkoutFields: INodeProperties[] = [
         default: '',
         description: 'Comma-separated list of variant IDs to enable for product selection',
       },
+      {
+        displayName: 'Shorten URL',
+        name: 'shortenUrl',
+        type: 'boolean',
+        default: false,
+        description:
+          'Whether to generate a shortened checkout URL using the Lemon Squeezy short URL format. The shortened URL will be returned in the checkout_short_url field.',
+      },
     ],
   },
   // Checkout Options

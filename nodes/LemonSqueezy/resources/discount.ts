@@ -29,6 +29,12 @@ export const discountOperations: INodeProperties = {
       description: 'Create a new discount code',
     },
     {
+      name: 'Bulk Create',
+      value: 'bulkCreate',
+      action: 'Bulk create discounts',
+      description: 'Create multiple discount codes at once',
+    },
+    {
       name: 'Delete',
       value: 'delete',
       action: 'Delete a discount',
@@ -196,6 +202,36 @@ export const discountFields: INodeProperties[] = [
           'Comma-separated list of variant IDs this discount applies to (requires "Limit to Products" enabled)',
       },
     ],
+  },
+  // Bulk Create Fields
+  {
+    displayName: 'Store',
+    name: 'bulkDiscountStoreId',
+    type: 'options',
+    typeOptions: {
+      loadOptionsMethod: 'getStores',
+    },
+    required: true,
+    default: '',
+    description:
+      'The store for the discounts. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code/expressions/">expression</a>.',
+    displayOptions: {
+      show: { resource: ['discount'], operation: ['bulkCreate'] },
+    },
+  },
+  {
+    displayName: 'Discount Codes',
+    name: 'bulkDiscountCodes',
+    type: 'json',
+    required: true,
+    default: '[]',
+    placeholder:
+      '[{"name":"Holiday 10%","code":"HOLIDAY10","amount":10,"amount_type":"percent"},{"name":"Welcome $5","code":"WELCOME5","amount":500,"amount_type":"fixed"}]',
+    description:
+      'JSON array of discount objects. Each must have: name, code, amount, amount_type ("percent" or "fixed"). Optional: duration, duration_in_months, max_redemptions, starts_at, expires_at.',
+    displayOptions: {
+      show: { resource: ['discount'], operation: ['bulkCreate'] },
+    },
   },
   // Return All
   {

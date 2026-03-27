@@ -105,20 +105,6 @@ export const discountRedemptionFields: INodeProperties[] = [
         default: '',
         description: 'Filter by order ID',
       },
-      {
-        displayName: 'Created After',
-        name: 'createdAfter',
-        type: 'dateTime',
-        default: '',
-        description: 'Return only redemptions created on or after this date',
-      },
-      {
-        displayName: 'Created Before',
-        name: 'createdBefore',
-        type: 'dateTime',
-        default: '',
-        description: 'Return only redemptions created on or before this date',
-      },
     ],
   },
 ];

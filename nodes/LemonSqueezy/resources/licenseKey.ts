@@ -46,6 +46,18 @@ export const licenseKeyOperations: INodeProperties = {
       action: 'Validate a license key',
       description: 'Validate a license key',
     },
+    {
+      name: 'Bulk Activate',
+      value: 'bulkActivate',
+      action: 'Bulk activate license keys',
+      description: 'Activate multiple license keys at once',
+    },
+    {
+      name: 'Bulk Deactivate',
+      value: 'bulkDeactivate',
+      action: 'Bulk deactivate license keys',
+      description: 'Deactivate multiple license key instances at once',
+    },
   ],
   default: 'getAll',
 };
@@ -97,6 +109,34 @@ export const licenseKeyFields: INodeProperties[] = [
     description: 'A label for the new license key instance (e.g., user email or device name)',
     displayOptions: {
       show: { resource: ['licenseKey'], operation: ['activate'] },
+    },
+  },
+  // Bulk Activate Fields
+  {
+    displayName: 'License Keys',
+    name: 'bulkActivateKeys',
+    type: 'json',
+    required: true,
+    default: '[]',
+    placeholder:
+      '[{"license_key":"AAAA-BBBB-CCCC","instance_name":"server-1"},{"license_key":"DDDD-EEEE-FFFF","instance_name":"server-2"}]',
+    description: 'JSON array of objects with license_key and instance_name fields',
+    displayOptions: {
+      show: { resource: ['licenseKey'], operation: ['bulkActivate'] },
+    },
+  },
+  // Bulk Deactivate Fields
+  {
+    displayName: 'License Key Instances',
+    name: 'bulkDeactivateKeys',
+    type: 'json',
+    required: true,
+    default: '[]',
+    placeholder:
+      '[{"license_key":"AAAA-BBBB-CCCC","instance_id":"inst_123"},{"license_key":"DDDD-EEEE-FFFF","instance_id":"inst_456"}]',
+    description: 'JSON array of objects with license_key and instance_id fields',
+    displayOptions: {
+      show: { resource: ['licenseKey'], operation: ['bulkDeactivate'] },
     },
   },
   // Update Fields

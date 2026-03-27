@@ -19,6 +19,12 @@ export const licenseKeyInstanceOperations: INodeProperties[] = [
         action: 'Get a license key instance',
       },
       {
+        name: 'Deactivate',
+        value: 'deactivate',
+        description: 'Deactivate a license key instance',
+        action: 'Deactivate a license key instance',
+      },
+      {
         name: 'Get Many',
         value: 'getAll',
         description: 'Get many license key instances',
@@ -46,6 +52,35 @@ export const licenseKeyInstanceFields: INodeProperties[] = [
     description: 'The ID of the license key instance to retrieve',
   },
 
+  // Deactivate
+  {
+    displayName: 'License Key',
+    name: 'licenseKeyString',
+    type: 'string',
+    required: true,
+    default: '',
+    description: 'The actual license key string (not the ID)',
+    displayOptions: {
+      show: {
+        resource: ['licenseKeyInstance'],
+        operation: ['deactivate'],
+      },
+    },
+  },
+  {
+    displayName: 'Instance ID',
+    name: 'deactivateInstanceId',
+    type: 'string',
+    required: true,
+    default: '',
+    description: 'The ID of the license key instance to deactivate',
+    displayOptions: {
+      show: {
+        resource: ['licenseKeyInstance'],
+        operation: ['deactivate'],
+      },
+    },
+  },
   // Get All
   {
     displayName: 'Return All',

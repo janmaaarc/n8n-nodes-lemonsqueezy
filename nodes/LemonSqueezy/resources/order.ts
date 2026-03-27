@@ -43,6 +43,12 @@ export const orderOperations: INodeProperties = {
       description: 'Retrieve multiple orders',
     },
     {
+      name: 'Get Many by ID',
+      value: 'getManyById',
+      action: 'Get many orders by ID',
+      description: 'Retrieve multiple orders by their IDs in parallel',
+    },
+    {
       name: 'Refund',
       value: 'refund',
       action: 'Refund an order',
@@ -174,6 +180,19 @@ export const orderFields: INodeProperties[] = [
         description: 'ISO 639 language code for the invoice (e.g., "en", "fr")',
       },
     ],
+  },
+  // Get Many by ID
+  {
+    displayName: 'Order IDs',
+    name: 'batchOrderIds',
+    type: 'string',
+    required: true,
+    default: '',
+    placeholder: 'e.g., 123,456,789',
+    description: 'Comma-separated list of order IDs to retrieve',
+    displayOptions: {
+      show: { resource: ['order'], operation: ['getManyById'] },
+    },
   },
   // Refund Amount for partial refunds
   {

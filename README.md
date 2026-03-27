@@ -21,6 +21,13 @@ An [n8n](https://n8n.io/) community node for [Lemon Squeezy](https://lemonsqueez
 - **Type Safety** - Full TypeScript support with comprehensive type definitions
 - **Advanced Query Options** - Sorting and relationship expansion for "Get Many" operations
 - **Security Hardened** - Mandatory webhook signature verification with replay attack protection
+- **Batch Operations** - Get Many by ID for orders, customers, and subscriptions in parallel
+- **Customer Upsert** - Find-or-create customers by email with optional update fields
+- **Bulk Discount Creation** - Create multiple discount codes in a single operation
+- **License Key Bulk Ops** - Activate or deactivate multiple license keys at once
+- **Store Analytics** - Revenue by product, churn rate, LTV, and subscription health metrics
+- **Webhook Metadata Filters** - Filter trigger events by product, variant, or custom data
+- **Per-Event Replay Protection** - Separate replay attack tolerances for different event types
 
 ## Installation
 
@@ -58,18 +65,18 @@ The main node for interacting with the Lemon Squeezy API.
 |----------|------------|
 | **Affiliate** | Get, Get Many |
 | **Checkout** | Create, Get, Get Many |
-| **Customer** | Create, Update, Archive, Get, Get Many, Lookup by Email |
-| **Discount** | Create (with product/variant limiting), Delete, Get, Get Many |
+| **Customer** | Create, Update, Archive, Get, Get Many, Get Many by ID, Lookup by Email, Upsert |
+| **Discount** | Create, Bulk Create, Delete, Get, Get Many |
 | **Discount Redemption** | Get, Get Many |
 | **File** | Download, Get, Get Many |
-| **License Key** | Get, Get Many, Update, Validate, Activate, Deactivate |
+| **License Key** | Get, Get Many, Update, Validate, Activate, Deactivate, Bulk Activate, Bulk Deactivate |
 | **License Key Instance** | Deactivate, Get, Get Many |
-| **Order** | Get, Get Many, Refund, Generate Invoice |
+| **Order** | Get, Get Many, Get Many by ID, Refund, Generate Invoice |
 | **Order Item** | Get, Get Many |
 | **Price** | Get, Get Many |
 | **Product** | Get, Get Many |
-| **Store** | Get, Get Many, Get Revenue Summary |
-| **Subscription** | Get, Get Many, Update, Cancel, Pause, Resume |
+| **Store** | Get, Get Many, Get Revenue Summary, Get Analytics |
+| **Subscription** | Get, Get Many, Get Many by ID, Update, Cancel, Pause, Resume |
 | **Subscription Invoice** | Get, Get Many, Generate, Refund |
 | **Subscription Item** | Get, Get Many, Update, Get Current Usage |
 | **Usage Record** | Create, Get, Get Many |
@@ -90,6 +97,7 @@ Webhook trigger node for receiving real-time events.
 - `subscription_cancelled` - Subscription cancelled
 - `subscription_resumed` - Paused subscription resumed
 - `subscription_paused` - Subscription paused
+- `subscription_unpaused` - Paused subscription unpaused
 - `subscription_expired` - Subscription expired
 - `subscription_payment_success` - Subscription payment succeeded
 - `subscription_payment_failed` - Subscription payment failed
@@ -98,6 +106,9 @@ Webhook trigger node for receiving real-time events.
 - `license_key_created` - License key generated
 - `license_key_updated` - License key modified
 - `affiliate_activated` - Affiliate activated
+- `order_updated` - Order updated
+- `subscription_plan_changed` - Subscription plan/variant changed
+- `license_key_expired` - License key expired
 
 ## Example Workflows
 
@@ -327,6 +338,25 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## Changelog
 
+### v1.0.0
+
+**New Features:**
+- **Batch Get Many by ID** - Retrieve multiple orders, customers, or subscriptions by comma-separated IDs in parallel
+- **Customer Upsert** - Find by email and update, or create if not found
+- **3 New Webhook Events** - `order_updated`, `subscription_plan_changed`, `license_key_expired` (19 total)
+- **Webhook Metadata Filtering** - Filter trigger events by Product ID, Variant ID, or custom data key/value
+- **Per-Event-Type Replay Protection** - Separate max age overrides for order and subscription events
+- **Bulk Discount Creation** - Create multiple discount codes from a JSON array
+- **Store Analytics** - Revenue by product, churn rate, LTV, subscription health metrics
+- **Checkout URL Shortener** - Generate shortened checkout URLs
+- **License Key Bulk Activate/Deactivate** - Process multiple license keys at once
+- **60 New Tests** - 347 total tests
+
+**Security:**
+- Explicit buffer length check in webhook signature verification
+- Input validation for all bulk JSON operations
+- Analytics queries capped at 10,000 items with 2-minute timeout
+
 ### v0.15.0
 
 **New Features:**
@@ -337,7 +367,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - Fixed Customer `Lookup by Email` operation not appearing in dropdown
 - Fixed File `Download` operation not appearing in dropdown
 - Fixed Subscription Invoice Generate missing PDF download fields
-- Fixed Discount Redemption `Get Many` missing date range filters
 
 ### v0.14.0
 
@@ -360,7 +389,6 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - **File Download operation** - New `download` operation on the File resource returns file binary data, ready for email attachments, S3 uploads, or any binary-aware downstream node.
 - **License Key Instance Deactivate** - Deactivate a specific license key instance directly from the License Key Instance resource.
 - **Webhook Trigger: Include Event Headers** - Optional setting to expose raw request headers in the trigger output for routing and debugging.
-- **Discount Redemption date range filters** - `Get Many` now supports `createdAfter` / `createdBefore` date filters for period-specific reporting.
 
 ### v0.12.0
 

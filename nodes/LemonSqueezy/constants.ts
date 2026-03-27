@@ -150,6 +150,21 @@ export const WEBHOOK_EVENTS = [
     value: 'license_key_updated',
     description: 'Triggered when a license key is updated',
   },
+  {
+    name: 'Order Updated',
+    value: 'order_updated',
+    description: 'Triggered when an order is updated',
+  },
+  {
+    name: 'Subscription Plan Changed',
+    value: 'subscription_plan_changed',
+    description: 'Triggered when a subscription plan/variant is changed',
+  },
+  {
+    name: 'License Key Expired',
+    value: 'license_key_expired',
+    description: 'Triggered when a license key expires',
+  },
 ];
 
 /**

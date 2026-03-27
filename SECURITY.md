@@ -4,11 +4,11 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 0.12.x  | :white_check_mark: |
-| 0.11.x  | :white_check_mark: |
-| 0.10.x  | :white_check_mark: |
-| 0.9.x   | :white_check_mark: |
-| < 0.9   | :x:                |
+| 1.0.x   | :white_check_mark: |
+| 0.15.x  | :white_check_mark: |
+| 0.14.x  | :white_check_mark: |
+| 0.13.x  | :white_check_mark: |
+| < 0.13  | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -76,6 +76,13 @@ This node implements several security measures:
    - Don't store sensitive data unnecessarily
 
 ## Security Changelog
+
+### v1.0.0
+- Added explicit buffer length comparison in `verifyWebhookSignature` before `timingSafeEqual` to ensure timing-safe guarantee regardless of input length
+- Added try/catch with descriptive errors around all bulk operation `JSON.parse` calls (discount bulk create, license key bulk activate/deactivate)
+- Added `validateDiscountAmount` to each item in bulk discount creation (matching single-create validation)
+- Capped Store Analytics queries at 10,000 items with 2-minute timeout to prevent unbounded API fetches
+- Fixed immutability violation in checkout URL shortener (uses spread instead of mutation)
 
 ### v0.11.0
 - Removed Discount Update operation that would cause API errors (PATCH not supported by Lemon Squeezy API)

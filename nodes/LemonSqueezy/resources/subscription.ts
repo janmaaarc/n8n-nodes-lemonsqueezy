@@ -44,6 +44,12 @@ export const subscriptionOperations: INodeProperties = {
       description: 'Retrieve multiple subscriptions',
     },
     {
+      name: 'Get Many by ID',
+      value: 'getManyById',
+      action: 'Get many subscriptions by ID',
+      description: 'Retrieve multiple subscriptions by their IDs in parallel',
+    },
+    {
       name: 'Pause',
       value: 'pause',
       action: 'Pause a subscription',
@@ -79,6 +85,19 @@ export const subscriptionFields: INodeProperties[] = [
         resource: ['subscription'],
         operation: ['get', 'update', 'cancel', 'resume', 'pause'],
       },
+    },
+  },
+  // Get Many by ID
+  {
+    displayName: 'Subscription IDs',
+    name: 'batchSubscriptionIds',
+    type: 'string',
+    required: true,
+    default: '',
+    placeholder: 'e.g., 123,456,789',
+    description: 'Comma-separated list of subscription IDs to retrieve',
+    displayOptions: {
+      show: { resource: ['subscription'], operation: ['getManyById'] },
     },
   },
   // Pause Mode for Pause operation
