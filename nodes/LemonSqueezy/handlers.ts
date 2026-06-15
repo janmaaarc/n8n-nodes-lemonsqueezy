@@ -351,16 +351,16 @@ export async function handleCreate(
   if (resource === 'product') {
     const storeId = ctx.getNodeParameter('productStoreId', itemIndex) as string;
     const name = ctx.getNodeParameter('productName', itemIndex) as string;
-    const additionalFields = ctx.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
+    const additionalFields = ctx.getNodeParameter('additionalFields', itemIndex, {});
 
     const attributes: IDataObject = { name };
-    if (additionalFields.slug) attributes.slug = additionalFields.slug;
-    if (additionalFields.description) attributes.description = additionalFields.description;
-    if (additionalFields.status) attributes.status = additionalFields.status;
+    if (additionalFields.slug) {attributes.slug = additionalFields.slug;}
+    if (additionalFields.description) {attributes.description = additionalFields.description;}
+    if (additionalFields.status) {attributes.status = additionalFields.status;}
     if (additionalFields.payWhatYouWant !== undefined) {
       attributes.pay_what_you_want = additionalFields.payWhatYouWant;
     }
-    if (additionalFields.testMode !== undefined) attributes.test_mode = additionalFields.testMode;
+    if (additionalFields.testMode !== undefined) {attributes.test_mode = additionalFields.testMode;}
 
     const body = buildJsonApiBody('products', attributes, {
       store: { type: 'stores', id: storeId },
@@ -373,20 +373,20 @@ export async function handleCreate(
     const productId = ctx.getNodeParameter('variantProductId', itemIndex) as string;
     const name = ctx.getNodeParameter('variantName', itemIndex) as string;
     const price = ctx.getNodeParameter('variantPrice', itemIndex) as number;
-    const additionalFields = ctx.getNodeParameter('additionalFields', itemIndex, {}) as IDataObject;
+    const additionalFields = ctx.getNodeParameter('additionalFields', itemIndex, {});
 
     const attributes: IDataObject = { name, price };
-    if (additionalFields.description) attributes.description = additionalFields.description;
-    if (additionalFields.status) attributes.status = additionalFields.status;
+    if (additionalFields.description) {attributes.description = additionalFields.description;}
+    if (additionalFields.status) {attributes.status = additionalFields.status;}
     if (additionalFields.isSubscription !== undefined) {
       attributes.is_subscription = additionalFields.isSubscription;
     }
-    if (additionalFields.interval) attributes.interval = additionalFields.interval;
-    if (additionalFields.intervalCount) attributes.interval_count = additionalFields.intervalCount;
+    if (additionalFields.interval) {attributes.interval = additionalFields.interval;}
+    if (additionalFields.intervalCount) {attributes.interval_count = additionalFields.intervalCount;}
     if (additionalFields.hasFreeTrialPeriod !== undefined) {
       attributes.has_free_trial = additionalFields.hasFreeTrialPeriod;
     }
-    if (additionalFields.trialInterval) attributes.trial_interval = additionalFields.trialInterval;
+    if (additionalFields.trialInterval) {attributes.trial_interval = additionalFields.trialInterval;}
     if (additionalFields.trialIntervalCount) {
       attributes.trial_interval_count = additionalFields.trialIntervalCount;
     }
@@ -405,8 +405,8 @@ export async function handleCreate(
     if (additionalFields.licenseLengthUnit) {
       attributes.license_length_unit = additionalFields.licenseLengthUnit;
     }
-    if (additionalFields.sort !== undefined) attributes.sort = additionalFields.sort;
-    if (additionalFields.testMode !== undefined) attributes.test_mode = additionalFields.testMode;
+    if (additionalFields.sort !== undefined) {attributes.sort = additionalFields.sort;}
+    if (additionalFields.testMode !== undefined) {attributes.test_mode = additionalFields.testMode;}
 
     const body = buildJsonApiBody('variants', attributes, {
       product: { type: 'products', id: productId },
@@ -573,13 +573,13 @@ export async function handleUpdate(
 
   if (resource === 'product') {
     const productId = ctx.getNodeParameter('productId', itemIndex) as string;
-    const updateFields = ctx.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
+    const updateFields = ctx.getNodeParameter('updateFields', itemIndex, {});
 
     const attributes: IDataObject = {};
-    if (updateFields.name) attributes.name = updateFields.name;
-    if (updateFields.slug) attributes.slug = updateFields.slug;
-    if (updateFields.description) attributes.description = updateFields.description;
-    if (updateFields.status) attributes.status = updateFields.status;
+    if (updateFields.name) {attributes.name = updateFields.name;}
+    if (updateFields.slug) {attributes.slug = updateFields.slug;}
+    if (updateFields.description) {attributes.description = updateFields.description;}
+    if (updateFields.status) {attributes.status = updateFields.status;}
     if (updateFields.payWhatYouWant !== undefined) {
       attributes.pay_what_you_want = updateFields.payWhatYouWant;
     }
@@ -590,14 +590,14 @@ export async function handleUpdate(
 
   if (resource === 'variant') {
     const variantId = ctx.getNodeParameter('variantId', itemIndex) as string;
-    const updateFields = ctx.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
+    const updateFields = ctx.getNodeParameter('updateFields', itemIndex, {});
 
     const attributes: IDataObject = {};
-    if (updateFields.name) attributes.name = updateFields.name;
-    if (updateFields.description) attributes.description = updateFields.description;
-    if (updateFields.price !== undefined) attributes.price = updateFields.price;
-    if (updateFields.status) attributes.status = updateFields.status;
-    if (updateFields.sort !== undefined) attributes.sort = updateFields.sort;
+    if (updateFields.name) {attributes.name = updateFields.name;}
+    if (updateFields.description) {attributes.description = updateFields.description;}
+    if (updateFields.price !== undefined) {attributes.price = updateFields.price;}
+    if (updateFields.status) {attributes.status = updateFields.status;}
+    if (updateFields.sort !== undefined) {attributes.sort = updateFields.sort;}
     if (updateFields.licenseActivationLimit !== undefined) {
       attributes.license_activation_limit = updateFields.licenseActivationLimit;
     }
@@ -608,19 +608,19 @@ export async function handleUpdate(
 
   if (resource === 'checkout') {
     const checkoutId = ctx.getNodeParameter('checkoutId', itemIndex) as string;
-    const updateFields = ctx.getNodeParameter('updateFields', itemIndex, {}) as IDataObject;
+    const updateFields = ctx.getNodeParameter('updateFields', itemIndex, {});
 
     const attributes: IDataObject = {};
     const checkoutData: IDataObject = {};
 
-    if (updateFields.customPrice !== undefined) attributes.custom_price = updateFields.customPrice;
-    if (updateFields.expiresAt) attributes.expires_at = updateFields.expiresAt;
+    if (updateFields.customPrice !== undefined) {attributes.custom_price = updateFields.customPrice;}
+    if (updateFields.expiresAt) {attributes.expires_at = updateFields.expiresAt;}
     if (updateFields.email) {
       validateField('email', updateFields.email as string, 'email');
       checkoutData.email = updateFields.email;
     }
-    if (updateFields.name) checkoutData.name = updateFields.name;
-    if (updateFields.discountCode) checkoutData.discount_code = updateFields.discountCode;
+    if (updateFields.name) {checkoutData.name = updateFields.name;}
+    if (updateFields.discountCode) {checkoutData.discount_code = updateFields.discountCode;}
 
     if (Object.keys(checkoutData).length > 0) {
       attributes.checkout_data = checkoutData;
