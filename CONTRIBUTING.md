@@ -109,7 +109,7 @@ n8n-nodes-lemonsqueezy/
 ### Testing
 
 - Write tests for new functionality using Vitest
-- Maintain >80% code coverage (currently 344 tests)
+- Maintain >80% code coverage (currently 378 tests)
 - Test edge cases and error conditions
 - Test bulk operation JSON parsing and validation
 - Run `npm run test:coverage` to check coverage

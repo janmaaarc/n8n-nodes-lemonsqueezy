@@ -451,3 +451,31 @@ export function validateRequiredFields(
  * buildFilterParams({ storeId: 123, status: 'active' })
  * // Returns: { 'filter[store_id]': 123, 'filter[status]': 'active' }
  */
+
+/**
+ * Validates that a string is a valid lowercase hex string of the expected length.
+ *
+ * Used to guard webhook signature values before timing-safe comparison,
+ * ensuring the value is exactly 64 hex chars (32 bytes SHA-256 HMAC).
+ *
+ * @param value - The string to validate
+ * @param fieldName - Field name for error messages
+ * @param expectedLength - Expected character length (default: 64 for SHA-256 hex)
+ * @throws Error if the value is not a valid hex string of the expected length
+ *
+ * @example
+ * validateHexString('abc123...', 'x-signature', 64) // passes
+ * validateHexString('not-hex!', 'x-signature', 64)  // throws
+ */
+export function validateHexString(
+  value: string,
+  fieldName: string,
+  expectedLength: number = 64,
+): void {
+  const hexRegex = /^[0-9a-f]+$/i;
+  if (value.length !== expectedLength || !hexRegex.test(value)) {
+    throw new Error(
+      `${fieldName} must be a ${expectedLength}-character hex string (received length: ${value.length})`,
+    );
+  }
+}

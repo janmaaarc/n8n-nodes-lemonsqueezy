@@ -135,14 +135,14 @@ export function verifyWebhookSignature(
   signature: string,
   secret: string,
 ): boolean {
-  const hmac = crypto.createHmac('sha256', secret);
-  const digest = hmac.update(payload).digest('hex');
-  const sigBuffer = Buffer.from(signature);
-  const digBuffer = Buffer.from(digest);
-  if (sigBuffer.length !== digBuffer.length) {
+  // Guard: SHA-256 HMAC hex digest is always exactly 64 lowercase hex chars.
+  // Reject non-hex or wrong-length signatures before any comparison.
+  if (!/^[0-9a-f]{64}$/i.test(signature)) {
     return false;
   }
-  return crypto.timingSafeEqual(sigBuffer, digBuffer);
+  const hmac = crypto.createHmac('sha256', secret);
+  const digest = hmac.update(payload).digest('hex');
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
 }
 
 // ============================================================================

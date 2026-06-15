@@ -51,12 +51,16 @@ import {
   subscriptionOperations,
   subscriptionFields,
 } from '../nodes/LemonSqueezy/resources/subscription';
-import { subscriptionInvoiceFields } from '../nodes/LemonSqueezy/resources/subscriptionInvoice';
+import {
+  subscriptionInvoiceFields,
+  subscriptionInvoiceOperations,
+} from '../nodes/LemonSqueezy/resources/subscriptionInvoice';
 import { customerOperations, customerFields } from '../nodes/LemonSqueezy/resources/customer';
 import { licenseKeyFields, licenseKeyOperations } from '../nodes/LemonSqueezy/resources/licenseKey';
-import { checkoutFields } from '../nodes/LemonSqueezy/resources/checkout';
+import { checkoutFields, checkoutOperations } from '../nodes/LemonSqueezy/resources/checkout';
 import { discountOperations, discountFields } from '../nodes/LemonSqueezy/resources/discount';
-import { productFields } from '../nodes/LemonSqueezy/resources/product';
+import { productFields, productOperations } from '../nodes/LemonSqueezy/resources/product';
+import { variantOperations, variantFields } from '../nodes/LemonSqueezy/resources/variant';
 import { storeOperations, storeFields } from '../nodes/LemonSqueezy/resources/store';
 import {
   discountRedemptionOperations,
@@ -65,6 +69,7 @@ import {
 import { fileOperations, fileFields } from '../nodes/LemonSqueezy/resources/file';
 import { orderItemOperations, orderItemFields } from '../nodes/LemonSqueezy/resources/orderItem';
 
+import { validateHexString } from '../nodes/LemonSqueezy/validation';
 import { LemonSqueezyApi } from '../credentials/LemonSqueezyApi.credentials';
 import { LemonSqueezy } from '../nodes/LemonSqueezy/LemonSqueezy.node';
 import { LemonSqueezyTrigger } from '../nodes/LemonSqueezy/LemonSqueezyTrigger.node';
@@ -1940,18 +1945,17 @@ describe('v0.12.0 Resource Field Changes', () => {
   });
 
   describe('Product Filters', () => {
-    it('should only have storeId filter (no status filter)', () => {
+    it('should have storeId filter', () => {
       const filtersProp = productFields.find((f) => f.name === 'filters');
       const filterOptions = filtersProp?.options as Array<{ name: string }> | undefined;
-      expect(filterOptions).toHaveLength(1);
-      expect((filterOptions?.[0] as { name: string })?.name).toBe('storeId');
+      expect(filterOptions?.some((o) => (o as { name: string }).name === 'storeId')).toBe(true);
     });
 
-    it('should not have status filter on product', () => {
+    it('should have status filter on product (added in v2.0.0)', () => {
       const filtersProp = productFields.find((f) => f.name === 'filters');
       const filterOptions = filtersProp?.options as Array<{ name: string }> | undefined;
-      const statusFilter = filterOptions?.find((o) => (o as { name: string }).name === 'status');
-      expect(statusFilter).toBeUndefined();
+      const statusFilter = filterOptions?.some((o) => (o as { name: string }).name === 'status');
+      expect(statusFilter).toBe(true);
     });
   });
 });
@@ -2924,5 +2928,224 @@ describe('v1.0.0 - Resource Field Definitions', () => {
     const options = filters?.options as Array<{ name: string }> | undefined;
     const variantId = options?.find((o) => o.name === 'variantId');
     expect(variantId).toBeDefined();
+  });
+});
+
+describe('v2.0.0 - Product Resource', () => {
+  it('product should have create operation', () => {
+    const ops = productOperations.options as Array<{ value: string }>;
+    expect(ops.some((o) => o.value === 'create')).toBe(true);
+  });
+
+  it('product should have update operation', () => {
+    const ops = productOperations.options as Array<{ value: string }>;
+    expect(ops.some((o) => o.value === 'update')).toBe(true);
+  });
+
+  it('product should have delete operation', () => {
+    const ops = productOperations.options as Array<{ value: string }>;
+    expect(ops.some((o) => o.value === 'delete')).toBe(true);
+  });
+
+  it('product create should require productStoreId', () => {
+    const storeField = productFields.find((f) => f.name === 'productStoreId');
+    expect(storeField).toBeDefined();
+    expect(storeField?.required).toBe(true);
+  });
+
+  it('product create should require productName', () => {
+    const nameField = productFields.find((f) => f.name === 'productName');
+    expect(nameField).toBeDefined();
+    expect(nameField?.required).toBe(true);
+  });
+
+  it('product create should have additionalFields with status option', () => {
+    const addl = productFields.find(
+      (f) =>
+        f.name === 'additionalFields' &&
+        (f.displayOptions?.show?.operation as string[] | undefined)?.includes('create'),
+    );
+    const options = addl?.options as Array<{ name: string }> | undefined;
+    expect(options?.some((o) => o.name === 'status')).toBe(true);
+  });
+
+  it('product update should have updateFields collection', () => {
+    const updateFields = productFields.find((f) => f.name === 'updateFields');
+    expect(updateFields).toBeDefined();
+    expect(updateFields?.type).toBe('collection');
+  });
+
+  it('product getAll should have status filter', () => {
+    const filters = productFields.find((f) => f.name === 'filters');
+    const options = filters?.options as Array<{ name: string }> | undefined;
+    expect(options?.some((o) => o.name === 'status')).toBe(true);
+  });
+
+  it('product getAll should have storeId filter', () => {
+    const filters = productFields.find((f) => f.name === 'filters');
+    const options = filters?.options as Array<{ name: string }> | undefined;
+    expect(options?.some((o) => o.name === 'storeId')).toBe(true);
+  });
+});
+
+describe('v2.0.0 - Variant Resource', () => {
+  it('variant should have create operation', () => {
+    const ops = variantOperations.options as Array<{ value: string }>;
+    expect(ops.some((o) => o.value === 'create')).toBe(true);
+  });
+
+  it('variant should have update operation', () => {
+    const ops = variantOperations.options as Array<{ value: string }>;
+    expect(ops.some((o) => o.value === 'update')).toBe(true);
+  });
+
+  it('variant should have delete operation', () => {
+    const ops = variantOperations.options as Array<{ value: string }>;
+    expect(ops.some((o) => o.value === 'delete')).toBe(true);
+  });
+
+  it('variant create should require variantProductId', () => {
+    const field = variantFields.find((f) => f.name === 'variantProductId');
+    expect(field).toBeDefined();
+    expect(field?.required).toBe(true);
+  });
+
+  it('variant create should require variantName', () => {
+    const field = variantFields.find((f) => f.name === 'variantName');
+    expect(field).toBeDefined();
+    expect(field?.required).toBe(true);
+  });
+
+  it('variant create should require variantPrice', () => {
+    const field = variantFields.find((f) => f.name === 'variantPrice');
+    expect(field).toBeDefined();
+    expect(field?.required).toBe(true);
+  });
+
+  it('variant create additionalFields should include subscription options', () => {
+    const addl = variantFields.find(
+      (f) =>
+        f.name === 'additionalFields' &&
+        (f.displayOptions?.show?.operation as string[] | undefined)?.includes('create'),
+    );
+    const options = addl?.options as Array<{ name: string }> | undefined;
+    expect(options?.some((o) => o.name === 'isSubscription')).toBe(true);
+    expect(options?.some((o) => o.name === 'hasLicenseKeys')).toBe(true);
+  });
+
+  it('variant update should have updateFields with price option', () => {
+    const updateFields = variantFields.find((f) => f.name === 'updateFields');
+    const options = updateFields?.options as Array<{ name: string }> | undefined;
+    expect(options?.some((o) => o.name === 'price')).toBe(true);
+  });
+
+  it('variant getAll should have status filter', () => {
+    const filters = variantFields.find((f) => f.name === 'filters');
+    const options = filters?.options as Array<{ name: string }> | undefined;
+    expect(options?.some((o) => o.name === 'status')).toBe(true);
+  });
+
+  it('variant getAll should have productId filter', () => {
+    const filters = variantFields.find((f) => f.name === 'filters');
+    const options = filters?.options as Array<{ name: string }> | undefined;
+    expect(options?.some((o) => o.name === 'productId')).toBe(true);
+  });
+});
+
+describe('v2.0.0 - Checkout Resource', () => {
+  it('checkout should have update operation', () => {
+    const ops = checkoutOperations.options as Array<{ value: string }>;
+    expect(ops.some((o) => o.value === 'update')).toBe(true);
+  });
+
+  it('checkout should have delete operation', () => {
+    const ops = checkoutOperations.options as Array<{ value: string }>;
+    expect(ops.some((o) => o.value === 'delete')).toBe(true);
+  });
+
+  it('checkout update should have updateFields collection', () => {
+    const updateFields = checkoutFields.find((f) => f.name === 'updateFields');
+    expect(updateFields).toBeDefined();
+    expect(updateFields?.type).toBe('collection');
+  });
+
+  it('checkout updateFields should include expiresAt option', () => {
+    const updateFields = checkoutFields.find((f) => f.name === 'updateFields');
+    const options = updateFields?.options as Array<{ name: string }> | undefined;
+    expect(options?.some((o) => o.name === 'expiresAt')).toBe(true);
+  });
+
+  it('checkout updateFields should include email option', () => {
+    const updateFields = checkoutFields.find((f) => f.name === 'updateFields');
+    const options = updateFields?.options as Array<{ name: string }> | undefined;
+    expect(options?.some((o) => o.name === 'email')).toBe(true);
+  });
+});
+
+describe('v2.0.0 - Subscription Invoice Resource', () => {
+  it('subscriptionInvoice should have delete operation', () => {
+    const opNode = subscriptionInvoiceOperations.find((f) => f.name === 'operation');
+    const ops = opNode?.options as Array<{ value: string }> | undefined;
+    expect(ops?.some((o) => o.value === 'delete')).toBe(true);
+  });
+});
+
+describe('v2.0.0 - Discount Status Filter', () => {
+  it('discount getAll should have status filter', () => {
+    const filters = discountFields.find((f) => f.name === 'filters');
+    const options = filters?.options as Array<{ name: string }> | undefined;
+    expect(options?.some((o) => o.name === 'status')).toBe(true);
+  });
+});
+
+describe('v2.0.0 - Webhook Signature Hex Guard', () => {
+  const secret = 'test-webhook-secret-key-32-chars!!';
+
+  it('verifyWebhookSignature should reject non-hex signature', () => {
+    const result = verifyWebhookSignature('payload', 'not-hex!!', secret);
+    expect(result).toBe(false);
+  });
+
+  it('verifyWebhookSignature should reject wrong-length hex signature', () => {
+    const result = verifyWebhookSignature('payload', 'abc123', secret);
+    expect(result).toBe(false);
+  });
+
+  it('verifyWebhookSignature should reject all-zeros wrong-length', () => {
+    const result = verifyWebhookSignature('payload', '0'.repeat(32), secret);
+    expect(result).toBe(false);
+  });
+
+  it('verifyWebhookSignature should accept valid 64-char hex HMAC', () => {
+    const payload = 'test-payload-content';
+    const hmac = crypto.createHmac('sha256', secret);
+    const validSig = hmac.update(payload).digest('hex');
+    expect(validSig).toHaveLength(64);
+    const result = verifyWebhookSignature(payload, validSig, secret);
+    expect(result).toBe(true);
+  });
+
+  it('verifyWebhookSignature should reject tampered payload', () => {
+    const payload = 'original-payload';
+    const hmac = crypto.createHmac('sha256', secret);
+    const validSig = hmac.update(payload).digest('hex');
+    const result = verifyWebhookSignature('tampered-payload', validSig, secret);
+    expect(result).toBe(false);
+  });
+
+  it('validateHexString should accept valid 64-char hex', () => {
+    expect(() => validateHexString('a'.repeat(64), 'sig')).not.toThrow();
+    expect(() => validateHexString('0123456789abcdef'.repeat(4), 'sig')).not.toThrow();
+  });
+
+  it('validateHexString should reject wrong length', () => {
+    expect(() => validateHexString('abc', 'sig')).toThrow();
+    expect(() => validateHexString('a'.repeat(63), 'sig')).toThrow();
+    expect(() => validateHexString('a'.repeat(65), 'sig')).toThrow();
+  });
+
+  it('validateHexString should reject non-hex characters', () => {
+    expect(() => validateHexString('g'.repeat(64), 'sig')).toThrow();
+    expect(() => validateHexString('x!z'.padEnd(64, '0'), 'sig')).toThrow();
   });
 });

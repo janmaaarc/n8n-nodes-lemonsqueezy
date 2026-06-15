@@ -268,6 +268,18 @@ export const discountFields: INodeProperties[] = [
     },
     options: [
       {
+        displayName: 'Status',
+        name: 'status',
+        type: 'options',
+        options: [
+          { name: 'Any', value: '' },
+          { name: 'Draft', value: 'draft' },
+          { name: 'Published', value: 'published' },
+        ],
+        default: '',
+        description: 'Filter by discount status',
+      },
+      {
         displayName: 'Store ID',
         name: 'storeId',
         type: 'string',

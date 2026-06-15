@@ -5,7 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2026-03-27
+
+## [2.0.0] - 2026-06-15
+
+### Added
+- **Product CRUD** - Full create/update/delete operations for Products. Create accepts store, name, description, slug, pay-what-you-want, status, and test mode. Update accepts name, description, slug, pay-what-you-want, and status.
+- **Variant CRUD** - Full create/update/delete operations for Variants. Create accepts product, name, price (cents), subscription interval, trial period, license key settings, sort order, and test mode. Update accepts name, price, description, status, sort order, and license activation limit.
+- **Checkout Update** - Update a checkout's custom price, pre-filled email/name, discount code, and expiry date.
+- **Checkout Delete** - Permanently delete a checkout.
+- **Subscription Invoice Delete** - Void/cancel a subscription invoice.
+- **Discount Status Filter** - Filter discounts by status (Draft/Published) in Get Many.
+- **Product Status Filter** - Filter products by status (Draft/Published) in Get Many.
+- **Variant Status Filter** - Filter variants by status (Pending/Draft/Published) in Get Many.
+- **34 New Tests** - Comprehensive coverage for all v2.0.0 operations and security guard. Total: 378 tests (up from 344).
+
+### Security
+- **Webhook Signature Hex Guard** - `verifyWebhookSignature` now validates that the incoming signature is exactly 64 lowercase hex characters before calling `crypto.timingSafeEqual`. Rejects signatures containing non-hex characters or wrong length without performing any cryptographic operation.
+
+# [1.0.0] - 2026-03-27
 
 ### Added
 - **Batch Get Many by ID** - New "Get Many by ID" operation for Orders, Customers, and Subscriptions. Pass a comma-separated list of IDs to retrieve multiple resources in parallel.

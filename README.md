@@ -9,25 +9,14 @@ An [n8n](https://n8n.io/) community node for [Lemon Squeezy](https://lemonsqueez
 
 ## Features
 
-- **Full CRUD Operations** - Create, read, update, and delete operations for all major resources
-- **Dynamic Dropdowns** - Store, Product, Variant, and Discount fields load options automatically from your account
-- **Output Simplification** - Flatten nested JSON:API responses into simple objects with one toggle
-- **Webhook Trigger** - Real-time event notifications for orders, subscriptions, and license keys
-- **License Key Management** - Validate, activate, and deactivate license keys
-- **File Download** - Download product files as binary data for use in subsequent workflow nodes
-- **Checkout Links** - Create dynamic checkout URLs with custom options
-- **Input Validation** - RFC 5322 compliant email validation, secure URL validation (blocks internal networks)
-- **Detailed Error Messages** - Descriptive error messages with field-level details
-- **Type Safety** - Full TypeScript support with comprehensive type definitions
-- **Advanced Query Options** - Sorting and relationship expansion for "Get Many" operations
-- **Security Hardened** - Mandatory webhook signature verification with replay attack protection
-- **Batch Operations** - Get Many by ID for orders, customers, and subscriptions in parallel
-- **Customer Upsert** - Find-or-create customers by email with optional update fields
-- **Bulk Discount Creation** - Create multiple discount codes in a single operation
-- **License Key Bulk Ops** - Activate or deactivate multiple license keys at once
+- **20 Resources, 80+ Operations** - Full CRUD for Products, Variants, Checkouts, and all Lemon Squeezy resources
+- **Dynamic Dropdowns** - Store, Product, Variant, and Discount fields load options from your account automatically
+- **Webhook Trigger** - Real-time events for orders, subscriptions, and license keys (19 event types) with mandatory HMAC-SHA256 signature verification
+- **Output Simplification** - One toggle flattens nested JSON:API responses into clean key-value objects, with automatic relationship flattening
+- **Security Hardened** - Hex-validated webhook signatures, replay attack protection, SSRF-blocking URL validation, RFC 5322 email validation
+- **Batch & Bulk Operations** - Get Many by ID (orders, customers, subscriptions), bulk discount creation, bulk license key activate/deactivate
 - **Store Analytics** - Revenue by product, churn rate, LTV, and subscription health metrics
-- **Webhook Metadata Filters** - Filter trigger events by product, variant, or custom data
-- **Per-Event Replay Protection** - Separate replay attack tolerances for different event types
+- **378 Tests** - Comprehensive test coverage at 80%+
 
 ## Installation
 
@@ -64,7 +53,7 @@ The main node for interacting with the Lemon Squeezy API.
 | Resource | Operations |
 |----------|------------|
 | **Affiliate** | Get, Get Many |
-| **Checkout** | Create, Get, Get Many |
+| **Checkout** | Create, Delete, Get, Get Many, Update |
 | **Customer** | Create, Update, Archive, Get, Get Many, Get Many by ID, Lookup by Email, Upsert |
 | **Discount** | Create, Bulk Create, Delete, Get, Get Many |
 | **Discount Redemption** | Get, Get Many |
@@ -74,14 +63,14 @@ The main node for interacting with the Lemon Squeezy API.
 | **Order** | Get, Get Many, Get Many by ID, Refund, Generate Invoice |
 | **Order Item** | Get, Get Many |
 | **Price** | Get, Get Many |
-| **Product** | Get, Get Many |
+| **Product** | Create, Delete, Get, Get Many, Update |
 | **Store** | Get, Get Many, Get Revenue Summary, Get Analytics |
 | **Subscription** | Get, Get Many, Get Many by ID, Update, Cancel, Pause, Resume |
-| **Subscription Invoice** | Get, Get Many, Generate, Refund |
+| **Subscription Invoice** | Delete, Generate, Get, Get Many, Refund |
 | **Subscription Item** | Get, Get Many, Update, Get Current Usage |
 | **Usage Record** | Create, Get, Get Many |
 | **User** | Get Current |
-| **Variant** | Get, Get Many |
+| **Variant** | Create, Delete, Get, Get Many, Update |
 | **Webhook** | Create, Update, Delete, Get, Get Many |
 
 ### Lemon Squeezy Trigger
@@ -152,6 +141,14 @@ Lemon Squeezy Trigger (order_created) → Lemon Squeezy (Get Customer) → HubSp
 
 Automatically sync new customers to your CRM.
 
+### 6. Product Catalog Sync
+
+```
+Schedule Trigger → Lemon Squeezy (Get Many Products, status=published) → Google Sheets (Update Rows)
+```
+
+Keep an external product catalog in sync with your published Lemon Squeezy products.
+
 ## Filtering
 
 Most "Get Many" operations support filtering:
@@ -159,7 +156,7 @@ Most "Get Many" operations support filtering:
 | Filter | Description | Available On |
 |--------|-------------|--------------|
 | `storeId` | Filter by store | All resources |
-| `status` | Filter by status (includes `partial_refund` for Orders and Subscription Invoices) | Orders, Subscriptions, Customers, License Keys, Subscription Invoices |
+| `status` | Filter by status (includes `partial_refund` for Orders and Subscription Invoices) | Orders, Subscriptions, Customers, License Keys, Subscription Invoices, Products, Variants, Discounts |
 | `email` | Filter by email | Orders, Customers |
 | `order_number` | Filter by order number | Orders |
 | `order_item_id` | Filter by order item | Subscriptions, License Keys |
@@ -337,6 +334,26 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 - [n8n Community Forum](https://community.n8n.io/)
 
 ## Changelog
+
+### v2.0.0
+
+**New Operations:**
+- **Product CRUD** - Create, update, and delete products. Create accepts store, name, description, slug, pay-what-you-want, status, and test mode.
+- **Variant CRUD** - Create, update, and delete variants. Create supports subscription intervals, trial periods, license key settings, and test mode.
+- **Checkout Update** - Update custom price, pre-filled email/name, discount code, and expiry date on an existing checkout.
+- **Checkout Delete** - Delete a checkout permanently.
+- **Subscription Invoice Delete** - Void/cancel a subscription invoice.
+
+**New Filters:**
+- Discount Get Many: filter by status (Draft/Published)
+- Product Get Many: filter by status (Draft/Published)
+- Variant Get Many: filter by status (Pending/Draft/Published)
+
+**Security:**
+- Webhook signature hex guard: validates 64-char hex format before `timingSafeEqual` — rejects malformed signatures without cryptographic comparison.
+- New `validateHexString` utility in `validation.ts`
+
+**Tests:** 378 total (+34 new)
 
 ### v1.0.0
 

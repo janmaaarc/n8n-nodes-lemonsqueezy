@@ -4,11 +4,9 @@
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 1.0.x   | :white_check_mark: |
-| 0.15.x  | :white_check_mark: |
-| 0.14.x  | :white_check_mark: |
-| 0.13.x  | :white_check_mark: |
-| < 0.13  | :x:                |
+| 2.0.x   | :white_check_mark: |
+| 1.0.x   | :x:                |
+| < 1.0   | :x:                |
 
 ## Reporting a Vulnerability
 
@@ -76,6 +74,10 @@ This node implements several security measures:
    - Don't store sensitive data unnecessarily
 
 ## Security Changelog
+
+### v2.0.0
+- Added hex character guard in `verifyWebhookSignature` — signature is now validated as exactly 64 hex characters (`/^[0-9a-f]{64}$/i`) before `crypto.timingSafeEqual` is called. Invalid signatures (wrong length, non-hex characters) are rejected immediately without any cryptographic comparison.
+- Added `validateHexString` utility to `validation.ts` for reusable hex-format validation.
 
 ### v1.0.0
 - Added explicit buffer length comparison in `verifyWebhookSignature` before `timingSafeEqual` to ensure timing-safe guarantee regardless of input length

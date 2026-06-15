@@ -44,6 +44,12 @@ export const subscriptionInvoiceOperations: INodeProperties[] = [
         action: 'Get many subscription invoices',
       },
       {
+        name: 'Delete',
+        value: 'delete',
+        description: 'Delete (void) a subscription invoice',
+        action: 'Delete a subscription invoice',
+      },
+      {
         name: 'Refund',
         value: 'refund',
         description: 'Issue a refund for a subscription invoice',
@@ -65,7 +71,7 @@ export const subscriptionInvoiceFields: INodeProperties[] = [
     displayOptions: {
       show: {
         resource: ['subscriptionInvoice'],
-        operation: ['get', 'refund'],
+        operation: ['get', 'refund', 'delete'],
       },
     },
     description: 'The ID of the subscription invoice (e.g., "123456")',

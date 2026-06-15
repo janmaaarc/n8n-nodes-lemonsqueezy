@@ -27,6 +27,18 @@ export const checkoutOperations: INodeProperties = {
       action: 'Get many checkouts',
       description: 'Retrieve multiple checkouts',
     },
+    {
+      name: 'Update',
+      value: 'update',
+      action: 'Update a checkout',
+      description: 'Update an existing checkout (e.g. change expiry or prefilled data)',
+    },
+    {
+      name: 'Delete',
+      value: 'delete',
+      action: 'Delete a checkout',
+      description: 'Delete a checkout link',
+    },
   ],
   default: 'create',
 };
@@ -41,7 +53,7 @@ export const checkoutFields: INodeProperties[] = [
     default: '',
     description: 'The ID of the checkout to retrieve',
     displayOptions: {
-      show: { resource: ['checkout'], operation: ['get'] },
+      show: { resource: ['checkout'], operation: ['get', 'update', 'delete'] },
     },
   },
   // Create Fields
@@ -427,6 +439,56 @@ export const checkoutFields: INodeProperties[] = [
         type: 'string',
         default: '',
         description: 'Filter by variant ID',
+      },
+    ],
+  },
+  // ── Update fields ─────────────────────────────────────────────────────────
+  {
+    displayName: 'Update Fields',
+    name: 'updateFields',
+    type: 'collection',
+    placeholder: 'Add Field',
+    default: {},
+    displayOptions: {
+      show: { resource: ['checkout'], operation: ['update'] },
+    },
+    options: [
+      {
+        displayName: 'Custom Price (Cents)',
+        name: 'customPrice',
+        type: 'number',
+        default: 0,
+        typeOptions: { minValue: 0 },
+        description: 'Override the product price for this checkout (in cents)',
+      },
+      {
+        displayName: 'Discount Code',
+        name: 'discountCode',
+        type: 'string',
+        default: '',
+        description: 'Pre-fill a discount code for the customer',
+      },
+      {
+        displayName: 'Email',
+        name: 'email',
+        type: 'string',
+        default: '',
+        description: 'Pre-fill the customer email address',
+        placeholder: 'name@email.com',
+      },
+      {
+        displayName: 'Expires At',
+        name: 'expiresAt',
+        type: 'dateTime',
+        default: '',
+        description: 'The new expiry date/time for the checkout link',
+      },
+      {
+        displayName: 'Name',
+        name: 'name',
+        type: 'string',
+        default: '',
+        description: 'Pre-fill the customer name',
       },
     ],
   },

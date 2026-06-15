@@ -711,3 +711,38 @@ export type OperationType =
   | 'bulkDeactivate'
   | 'getAnalytics'
   | 'lookupByEmail';
+
+/**
+ * Response from license key validation endpoint
+ */
+export interface LicenseKeyValidateResponse {
+  valid: boolean;
+  error: string | null;
+  license_key: {
+    id: number;
+    status: string;
+    key: string;
+    activation_limit: number;
+    activation_usage: number;
+    created_at: string;
+    expires_at: string | null;
+    test_mode: boolean;
+  };
+  instance: {
+    id: string;
+    name: string;
+    created_at: string;
+  } | null;
+  meta: {
+    store_id: number;
+    order_id: number;
+    order_item_id: number;
+    variant_id: number;
+    variant_name: string;
+    product_id: number;
+    product_name: string;
+    customer_id: number;
+    customer_name: string;
+    customer_email: string;
+  };
+}
